@@ -1,6 +1,8 @@
 "use client"
 import 'websocket-polyfill'
 import { useEffect, useState } from 'react'
+import ShowSession from '../mysession';
+import { SessionProvider } from 'next-auth/react';
 import {
     relayInit,
     generatePrivateKey,
@@ -23,7 +25,6 @@ export default function PostsPage() {
     useEffect(() => {
         const grabStuff = async (relayUrl: string) => {
             const relay = relayInit(relayUrl);
-            await relay.connect();
             relay.on('connect', () => {
                 console.log(`connected to ${relay.url}`)
                 addToStatus(relayUrl + ": connected")
@@ -44,29 +45,32 @@ export default function PostsPage() {
                 console.log(`failed to connect to ${relayUrl}`);
                 addToStatus(relayUrl + " connection failed");
             })
+            await relay.connect();
         }
-        grabStuff("wss://nostr-pub.wellorder.net")
+        grabStuff("wss://nostr21.com")
             .catch(console.error);
-        grabStuff("wss://relay.damus.io")
-            .catch(console.error);
-        grabStuff("wss://relay.nostr.info")
-            .catch(console.error);
-        grabStuff("wss://nostr-relay.wlvs.space")
-            .catch(console.error);
-        grabStuff("wss://rsslay.fiatjaf.com")
-            .catch(console.error);
-        grabStuff("wss://expensive-relay.fiatjaf.com")
-            .catch(console.error);
-        grabStuff("wss://nostr-relay.freeberty.net")
-            .catch(console.error);
-        grabStuff("wss://nostrrr.bublina.eu.org")
-            .catch(console.error);
-        grabStuff("wss://nostr.bitcoiner.social")
-            .catch(console.error);
-        grabStuff("wss://astral.ninja")
-            .catch(console.error);
-        grabStuff("wss://nostr-pub.semisol.dev")
-            .catch(console.error);
+        /*
+    grabStuff("wss://relay.damus.io")
+        .catch(console.error);
+    grabStuff("wss://relay.nostr.info")
+        .catch(console.error);
+    grabStuff("wss://nostr-relay.wlvs.space")
+        .catch(console.error);
+    grabStuff("wss://rsslay.fiatjaf.com")
+        .catch(console.error);
+    grabStuff("wss://expensive-relay.fiatjaf.com")
+        .catch(console.error);
+    grabStuff("wss://nostr-relay.freeberty.net")
+        .catch(console.error);
+    grabStuff("wss://nostrrr.bublina.eu.org")
+        .catch(console.error);
+    grabStuff("wss://nostr.bitcoiner.social")
+        .catch(console.error);
+    grabStuff("wss://astral.ninja")
+        .catch(console.error);
+    grabStuff("wss://nostr-pub.semisol.dev")
+        .catch(console.error);
+        */
 
     }, []);
 
