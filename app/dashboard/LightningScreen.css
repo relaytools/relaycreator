@@ -1,0 +1,74 @@
+.payment-success {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+}
+
+.checkmark {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: checkmark 1s ease-out forwards;
+}
+
+@keyframes checkmark {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+
+
+/*.lightning-screen {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    font-size: 2rem;
+}
+
+.bolt {
+    padding: 0 0.5rem;
+}
+
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.clearing {
+    position: fixed;
+    top: 20%;
+    left: 20%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    transition: all 2s ease-out;
+}
+
+.clearing.active {
+    width: 200vw;
+    height: 200vw;
+    opacity: 1;
+    transition: all 2s ease-out;
+}
+*/
