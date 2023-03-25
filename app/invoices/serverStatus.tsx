@@ -3,18 +3,42 @@ import authOptions from "../../pages/api/auth/[...nextauth]"
 import LNBits from 'lnbits'
 import PaymentStatus from "./paymentStatus"
 import PaymentSuccess from "./paymentSuccess"
+import { PrismaClient } from '@prisma/client'
 
 export const dynamic = 'force-dynamic';
+const prisma = new PrismaClient()
+
+async function getOrCreateUser(user: string) {
+    await prisma.user.create({
+        data: {
+            pubkey: user,
+        },
+    })
+}
+
+async function updateOrCreateUser(user_pubkey: string) {
+    const user = await prisma.user.findFirst({
+        where: { pubkey: user_pubkey }
+    })
+
+    if (user == null) {
+        const user = await prisma.user.create({
+            data: {
+                pubkey: user_pubkey,
+                // todo: add last_login timestamp?
+            },
+        })
+    }
+}
 
 export default async function ServerStatus(searchParams: Record<string, string>) {
 
     const session = await getServerSession(authOptions)
 
     console.log(searchParams)
-
     console.log(session)
 
-    const { relayname, pubkey } = searchParams;
+    const { relayname, pubkey, order_id } = searchParams;
 
     let useRelayName = "wtf-bro";
     if (relayname) {
@@ -26,6 +50,31 @@ export default async function ServerStatus(searchParams: Record<string, string>)
         usePubkey = pubkey
     }
 
+    const userWithOrder = await prisma.user.findFirst({
+        where: {
+            pubkey: usePubkey,
+            orders: {
+                some: {
+                    id: order_id,
+                }
+            }
+        },
+        include: {
+            orders: true,
+        }
+    })
+
+    const o = await prisma.order.findFirst({
+        where: { id: order_id }
+    })
+
+    if (o == null) {
+        console.log("order not found")
+        return
+    }
+
+    console.log(o)
+    /*
     if (!process.env.LNBITS_ADMIN_KEY || !process.env.LNBITS_INVOICE_READ_KEY || !process.env.LNBITS_ENDPOINT) {
         console.log("ERROR: no LNBITS env vars")
         return
@@ -42,6 +91,9 @@ export default async function ServerStatus(searchParams: Record<string, string>)
         memo: relayname + " " + pubkey,
         out: false,
     });
+    */
+
+
     //console.log(newInvoice);
 
     // inside here we will:
@@ -61,8 +113,8 @@ export default async function ServerStatus(searchParams: Record<string, string>)
 
     return (
         <div>
-            <PaymentStatus payment_hash={newInvoice.payment_hash} payment_request={newInvoice.payment_request} />
-            <PaymentSuccess payment_hash={newInvoice.payment_hash} payment_request={newInvoice.payment_request} />
+            <PaymentStatus payment_hash={o.payment_hash} payment_request={o.lnurl} />
+            <PaymentSuccess payment_hash={o.payment_hash} payment_request={o.lnurl} />
         </div>
     )
 }

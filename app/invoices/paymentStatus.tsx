@@ -49,6 +49,7 @@ export default function PaymentStatus(
     }>) {
 
     const { data: session, status } = useSession();
+    console.log(session)
 
 
 

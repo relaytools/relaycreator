@@ -24,7 +24,7 @@ export default function PaymentPage(props: { params: Record<string, string> }) {
     return (
         <div>
             {/* @ts-expect-error Server Component */}
-            <ServerStatus pubkey={props.searchParams.pubkey} relayname={props.searchParams.relayname}></ServerStatus>
+            <ServerStatus pubkey={props.searchParams.pubkey} relayname={props.searchParams.relayname} order_id={props.searchParams.order_id}></ServerStatus>
         </div>
     )
 

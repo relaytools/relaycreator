@@ -76,29 +76,19 @@ export default function SignupPage() {
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
-        // let's see here,
+        // here double check name isn't taken via the api, if it's taken, the api will return error.  if it's available the api will
+        // 'reserve it' to this user pubkey.. and return the order_id here. the next page, will lookup the order id and populate with invoice.
+        const response = await fetch(`/api/invoices?relayname=${name}&pubkey=${pubkey}`)
+        const data = await response.json()
 
-        // call to the api to get the invoice, and get back the payment_hash
-
-        // /api/invoices (new invoice)
-        // newInvoice/payment_hash
-
-
-        // /api/invoices/payment_hash_id
-        // checkinvoice/paid=true
-        // checkinvoice/details/payment_hash
-        // checkinvoice/details/bolt11
-
-        router.push(`/invoices?relayname=${name}&pubkey=${pubkey}`);
+        if (response.ok) {
+            // send more stuff here like the invoice order#
+            router.push(`/invoices?relayname=${name}&pubkey=${pubkey}&order_id=${data.order_id}`);
+        } else {
+            setNameError("❌")
+            setNameErrorDescription("name already taken")
+        }
     }
-
-    /*
-    const doNip07Pubkey = async (event: any) => {
-        event.preventDefault();
-        const pubKey = await (window as any).nostr.getPublicKey();
-        setAndValidatePubkey(pubKey)
-    }
-    */
 
     return (
 
