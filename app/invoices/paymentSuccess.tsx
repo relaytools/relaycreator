@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import ZapAnimation from '../dashboard/page'
 
 export default function PaymentSuccess(props: React.PropsWithChildren<{
     payment_hash: string;
@@ -26,12 +27,12 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
 
     if (status) {
         // success
-        router.push(`/dashboard?success`)
+        //router.push(`/dashboard?success`)
     }
 
     return (
         <>
-            {status && <div>success</div>}
+            {status && <div>success<ZapAnimation></ZapAnimation></div>}
             {!status && <div>waiting</div>}
         </>
     )

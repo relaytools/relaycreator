@@ -1,4 +1,6 @@
 import LNBits from 'lnbits'
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 
 export default async function handle(req: any, res: any) {
 
@@ -14,12 +16,41 @@ export default async function handle(req: any, res: any) {
     });
 
     const invoiceId = req.query.id;
+    if (invoiceId == null) {
+        res.status(404).json({ "error": "no invoice id" })
+        return
+    }
 
     const checkinvoice = await wallet.checkInvoice({
         payment_hash: invoiceId,
     });
 
-    console.log(checkinvoice);
+    //console.log(checkinvoice);
+    // if invoice is paid, update prisma
+
+    const findOrder = await prisma.order.findFirst({
+        where: {
+            payment_hash: invoiceId,
+        }
+    })
+
+    if (!findOrder) {
+        res.status(404).json({ "error": "no order found" })
+        return
+    }
+
+    if (checkinvoice.paid == true && findOrder.paid == false) {
+        await prisma.order.update({
+            where: {
+                id: findOrder.id,
+            },
+            data: {
+                paid: true,
+                status: "paid",
+                paid_at: new Date(),
+            }
+        })
+    }
 
     res.status(200).json({ checkinvoice });
 }
