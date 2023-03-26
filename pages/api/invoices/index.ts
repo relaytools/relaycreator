@@ -15,19 +15,21 @@ export default async function handle(req: any, res: any) {
     // server side validation of relayname and pubkey
     // using nostr-tools even
 
+    //TODO: require sign-in or not?
+
     const session = await getServerSession(req, res, authOptions)
     if (session) {
         // Signed in
         console.log("Session", JSON.stringify(session, null, 2))
     } else {
         // Not Signed in
-        res.status(401)
+        res.status(404).json({ "error": "not signed in" })
         res.end()
         return
     }
 
     if (session == null || session.user?.name == null) {
-        res.status(401)
+        res.status(404).json({ "error": "not signed in" })
         res.end()
         return
     }
@@ -77,8 +79,6 @@ export default async function handle(req: any, res: any) {
         res.status(404).json({ "error": "relay creation failed" })
         return
     }
-
-
 
     const { wallet } = LNBits({
         adminKey: process.env.LNBITS_ADMIN_KEY,

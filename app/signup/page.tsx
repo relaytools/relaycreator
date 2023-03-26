@@ -28,6 +28,7 @@ export default function SignupPage() {
     const [nameError, setNameError] = useState("")
     const [pubkeyError, setPubkeyError] = useState("")
     const [nameErrorDescription, setNameErrorDescription] = useState("")
+    const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("")
 
     const [pubkey, setPubkey] = useState("")
 
@@ -62,8 +63,10 @@ export default function SignupPage() {
 
         if (validHex) {
             setPubkeyError("✅")
+            setPubkeyErrorDescription("")
         } else {
             setPubkeyError("❌")
+            setPubkeyErrorDescription("key must be valid hex")
         }
     }
 
@@ -71,7 +74,21 @@ export default function SignupPage() {
     function validateRelayName(name: string) {
         // use javascript regex to detect hostname from name
         const valid = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}$/.test(name);
+
+        if (valid) {
+            setNameErrorDescription("")
+        } else {
+            setNameErrorDescription("name must be valid hostname")
+        }
         return valid;
+    }
+
+    function isValidForm() {
+        if (pubkeyError == "✅" && nameError == "✅") {
+            return true
+        } else {
+            return false
+        }
     }
 
     const handleSubmit = async (event: any) => {
@@ -86,7 +103,7 @@ export default function SignupPage() {
             router.push(`/invoices?relayname=${name}&pubkey=${pubkey}&order_id=${data.order_id}`);
         } else {
             setNameError("❌")
-            setNameErrorDescription("name already taken")
+            setNameErrorDescription(data.error)
         }
     }
 
@@ -142,7 +159,12 @@ export default function SignupPage() {
                                                 {nameError}
                                             </button>
                                         </div>
+
                                     </div>
+
+                                    <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                                        {nameErrorDescription}
+                                    </span>
 
                                     <div className="relative flex flex-grow items-stretch focus-within:z-10">
                                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -171,6 +193,8 @@ export default function SignupPage() {
                                             />
                                         }
 
+
+
                                         <div>
                                             <button
                                                 type="button"
@@ -180,6 +204,9 @@ export default function SignupPage() {
                                             </button>
                                         </div>
                                     </div>
+                                    <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                                        {pubkeyErrorDescription}
+                                    </span>
 
                                 </div>
 
@@ -189,6 +216,7 @@ export default function SignupPage() {
                             <div>
                                 <button
                                     onClick={handleSubmit}
+                                    disabled={!isValidForm}
                                     type="submit"
                                     className="flex w-full justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300"
                                 >
