@@ -1,8 +1,7 @@
 import LNBits from 'lnbits'
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]"
+import prisma from '../../../lib/prisma'
 
 export default async function handle(req: any, res: any) {
     // here is where we rely on prisma, 

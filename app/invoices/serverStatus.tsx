@@ -3,33 +3,9 @@ import authOptions from "../../pages/api/auth/[...nextauth]"
 import LNBits from 'lnbits'
 import PaymentStatus from "./paymentStatus"
 import PaymentSuccess from "./paymentSuccess"
-import { PrismaClient } from '@prisma/client'
+import prisma from '../../lib/prisma'
 
 export const dynamic = 'force-dynamic';
-const prisma = new PrismaClient()
-
-async function getOrCreateUser(user: string) {
-    await prisma.user.create({
-        data: {
-            pubkey: user,
-        },
-    })
-}
-
-async function updateOrCreateUser(user_pubkey: string) {
-    const user = await prisma.user.findFirst({
-        where: { pubkey: user_pubkey }
-    })
-
-    if (user == null) {
-        const user = await prisma.user.create({
-            data: {
-                pubkey: user_pubkey,
-                // todo: add last_login timestamp?
-            },
-        })
-    }
-}
 
 export default async function ServerStatus(searchParams: Record<string, string>) {
 

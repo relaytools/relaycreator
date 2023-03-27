@@ -9,9 +9,7 @@ import {
     EventTemplate,
     Event,
 } from 'nostr-tools'
-
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import prisma from '../../../lib/prisma'
 
 function isWithinLast10Minutes(timestampString: string) {
     // Convert the timestamp string to a number

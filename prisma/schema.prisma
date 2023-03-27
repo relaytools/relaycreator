@@ -19,6 +19,8 @@ model User {
   // these are relay the user owns vs. is a moderator for
   relays    Relay[]
   moderator Moderator[]
+
+  @@index([id])
 }
 
 model Order {
@@ -41,11 +43,15 @@ model Relay {
   id         String      @id @default(cuid())
   name       String      @db.VarChar(255)
   ownerId    String
+  status     String?     @db.VarChar(255)
   owner      User        @relation(fields: [ownerId], references: [id])
   moderators Moderator[]
   Order      Order[]
+  server     Server?     @relation(fields: [serverId], references: [id])
+  serverId   String?
+  port       Int?
 
-  @@index([ownerId])
+  @@index([ownerId, serverId])
 }
 
 model Moderator {
@@ -54,4 +60,14 @@ model Moderator {
   relayId String
   user    User   @relation(fields: userId, references: [id])
   userId  String
+}
+
+model Server {
+  id       String  @id @default(cuid())
+  name     String  @db.VarChar(255)
+  ip       String  @db.VarChar(255)
+  capacity Int
+  relays   Relay[]
+
+  @@index([id])
 }
