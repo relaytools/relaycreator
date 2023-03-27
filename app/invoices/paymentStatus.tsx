@@ -74,7 +74,7 @@ export default function PaymentStatus(
 
                 <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
 
-                    <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <div className="py-8 px-4 shadow sm:rounded-lg sm:px-10">
                         <div className="mt-6 grid grid-cols-3 gap-3">
                             <div className="col-span-3 flex justify-center">
                                 <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={100} height={100} />

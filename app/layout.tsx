@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-head-element */
-import './globals.css';
+import '/styles/globals.css';
 import AuthContext from './AuthContext';
 import ShowSession from './mysession'
 
@@ -8,8 +8,8 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
   return (
     <html>
       <head></head>
-      <body>
-        <div>
+      <body className='min-h-screen bg-base-100'>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 bg-base-100">
           <AuthContext>
             <ShowSession />
             {children}
