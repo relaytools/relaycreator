@@ -10,7 +10,7 @@ import {
     getEventHash,
     signEvent
 } from 'nostr-tools'
-import '../globals.css'
+import '/styles/globals.css'
 
 export default function PostsPage() {
     const [post, setPost] = useState("");
@@ -30,7 +30,7 @@ export default function PostsPage() {
                 addToStatus(relayUrl + ": connected")
                 let sub = relay.sub([{ kinds: [1], limit: 5 }])
                 sub.on('event', (event: any) => {
-                    //console.log('got event:', event);
+                    console.log('got event:', event);
                     setPost(event.content);
                     setAuthor(event.pubkey);
                     setRelay(relay.url);
@@ -77,32 +77,56 @@ export default function PostsPage() {
 
     return (
         <div>
-            <div>
-                <h1>Posts</h1>
-                <div className="overflow-hidden bg-white shadow sm:rounded-lg">
-                    <div className="px-4 py-5 sm:px-6">
-                        <h3 className="text-lg font-medium leading-6 text-gray-900">Post</h3>
-                        <p className="mt-1 max-w-2xl text-sm text-gray-500">by: {author}</p>
+
+
+            <article key={author} className="flex max-w-xl flex-col items-start justify-between font-jetbrains py-12 px-6">
+                <div className="flex items-center gap-x-4 text-xs">
+                    <time className="text-gray-500">
+                        00:00:00
+                    </time>
+                    <a
+                        href={relay}
+                        className="relative z-10 rounded-full bg-gray-50 py-1.5 px-3 font-medium text-gray-600 hover:bg-gray-100"
+                    >
+                        {relay}
+                    </a>
+                </div>
+                <div className="group relative">
+                    <h3 className="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600">
+                        <a href={relay}>
+                            <span className="absolute inset-0" />
+                            {relay}
+                        </a>
+                    </h3>
+                    <p className="mt-5 text-sm leading-6 text-gray-600 line-clamp-3">{post}</p>
+                </div>
+                <div className="relative mt-8 flex items-center gap-x-4">
+                    <div className="avatar">
+                        <div className="w-24 mask mask-squircle">
+                            <img src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                        </div>
                     </div>
-                    <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                        <dl className="sm:divide-y sm:divide-gray-200">
-                            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                                <dt className="text-sm font-medium text-gray-500">content</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                                    {post}
-                                </dd>
-                            </div>
-                            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                                <dt className="text-sm font-medium text-gray-500">relay</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{relay}</dd>
-                            </div>
-                        </dl>
+                    <div className="text-sm leading-6">
+                        <p className="font-semibold text-gray-900">
+                            <a href={author}>
+                                <span className="absolute inset-0" />
+                                {author}
+                            </a>
+                        </p>
+                        <p className="text-gray-600">{relay}</p>
                     </div>
                 </div>
-            </div>
-            <div>
-                <h2>status log</h2>
-                <ul role="list" className="divide-y divide-gray-200">
+            </article>
+
+
+
+
+
+
+
+            <div className="flex max-w-xl flex-col items-start justify-between font-jetbrains p-6 border-t border-base-200">
+                <h2>Status Log</h2>
+                <ul role="list" className="text-xs">
                     {relayStatus.map((item, i) => (
                         <li key={"post" + i} className="px-1 py-1 sm:px-0">
                             {item}

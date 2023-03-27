@@ -55,11 +55,11 @@ export default function Login() {
 
     return (
         <>
-            <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
+            <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8 bg-base-100">
 
                 <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
 
-                    <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <div className="py-8 px-4 shadow sm:rounded-lg sm:px-10">
                         <div className="mt-6 grid grid-cols-3 gap-3">
                             <div className="col-span-3 flex justify-center">
                                 <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={100} height={100} />
@@ -114,7 +114,7 @@ export default function Login() {
                                     <div className="w-full border-t border-gray-300" />
                                 </div>
                                 <div className="relative flex justify-center text-sm">
-                                    <span className="bg-white px-2 text-gray-500">Or sign-in with Nostr extension</span>
+                                    <span className="px-2 text-gray-500">Or sign-in with Nostr extension</span>
                                 </div>
                             </div>
 

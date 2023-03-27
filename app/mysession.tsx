@@ -2,6 +2,7 @@
 import { useSession } from 'next-auth/react'
 import { signIn, signOut } from "next-auth/react"
 import Image from 'next/image';
+import SwitchTheme from './components/SwitchTheme';
 
 const doNip07Login = async () => {
     //const pubKey = await (window as any).nostr.getPublicKey();
@@ -28,39 +29,48 @@ const doNip07Login = async () => {
 
 export default function ShowSession() {
     const { data: session, status } = useSession();
-    if (!session) {
-        return (
-            <>
-                <div className="rounded bg-purple-600 text-xs text-white shadow-sm">
-                    <div>
-                        <button
-                            onClick={doNip07Login}
-                            className="inline-flex w-full justify-center rounded-md bg-purple-600 py-2 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0"
-                        >
-                            <span className="sr-only">nip07</span>
-                            <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={30} height={30} />
-                            sign in
 
-                        </button>
-                    </div>
-                </div>
-            </>
-        )
-    } else if (session?.user) {
-        return (
-            <>
-                <div className="rounded bg-purple-600 text-xs text-white shadow-sm">Welcome {session.user.name}
+    return (
+        <div className="font-jetbrains navbar bg-base-100 border-b border-base-200 pb-12">
+            <div className="flex-1">
+                <a href="/" className="btn btn-ghost normal-case text-xl">nostr21: curator</a>
+            </div>
+
+            <div className="flex-none">
+                {!session ? (
                     <button
-                        onClick={() => signOut({ callbackUrl: "/" })}
-                        type="button"
-                        className="float-right rounded bg-indigo-400 py-1 px-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        onClick={doNip07Login}
+                        className="btn btn-ghost ml-2"
                     >
-                        sign out
+                        <span className="mr-2">nip-07</span>
+                        <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={30} height={30} />
+                        <span className="ml-2">Sign In</span>
                     </button>
-                </div>
-            </>
-        )
-    } else {
-        return (<> </>)
-    }
+                ) : (
+                    <div className="dropdown dropdown-end">
+                        <label tabIndex={0} className="btn cursor-pointer mask mask-squircle">
+                            <div className="w-10 rounded-full">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
+                            </div>
+
+                        </label>
+                        <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                            <li className="border-b border-base-200"><SwitchTheme /></li>
+                            <li><a href="/dashboard">Dashboard</a></li>
+                            <li><a href="/invoices">Invoices</a></li>
+                            <li><a href="/posts">Posts</a></li>
+                            <li className="border-b border-base-200"><a href="/signup">Sign-up</a></li>
+                            <li>
+                                <a onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer">
+                                    Sign Out
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 }
