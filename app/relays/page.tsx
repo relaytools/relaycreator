@@ -50,6 +50,11 @@ export default async function Relays() {
                                                 <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-0">
                                                     Name
                                                 </th>
+
+                                                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-0">
+                                                    URL
+                                                </th>
+
                                                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white">
                                                     Owner
                                                 </th>
@@ -63,6 +68,9 @@ export default async function Relays() {
                                                 <tr key={relay.id}>
                                                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
                                                         {relay.name}
+                                                    </td>
+                                                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
+                                                        wss://{relay.name}.nostr1.com
                                                     </td>
                                                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-300">{me.pubkey}</td>
                                                     <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
