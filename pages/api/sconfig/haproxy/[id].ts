@@ -209,6 +209,6 @@ backend backend_static_index
 
 	res.statusCode = 200;
 	res.setHeader('Content-Type', 'application/octet-stream');
-	res.setHeader('Content-disposition', 'filename="boring.env"');
+	res.setHeader('Content-disposition', 'filename="haproxy.cfg"');
 	res.end(haproxy_cfg);
 }
