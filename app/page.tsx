@@ -1,18 +1,10 @@
-//import Head from 'next/head'
-
-/*
-import { Inter } from '@next/font/google'
-
-const inter = Inter({ subsets: ['latin'] })
-*/
+import Relays from "./relays/page"
 
 export default function Home() {
   return (
     <>
-      <title>login to nostr1.com</title>
-      <meta name="description" content="nostr1" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <link rel="icon" href="/favicon.ico" />
+      {/* @ts-expect-error Server Component */}
+      <Relays></Relays>
     </>
   )
 }

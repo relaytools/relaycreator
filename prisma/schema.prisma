@@ -47,11 +47,13 @@ model Relay {
   owner      User        @relation(fields: [ownerId], references: [id])
   moderators Moderator[]
   Order      Order[]
-  server     Server?     @relation(fields: [serverId], references: [id])
-  serverId   String?
+  white_list WhiteList?
+  black_list BlackList?
+  ip         String?     @db.VarChar(255)
+  capacity   Int?
   port       Int?
 
-  @@index([ownerId, serverId])
+  @@index([ownerId])
 }
 
 model Moderator {
@@ -62,12 +64,40 @@ model Moderator {
   userId  String
 }
 
-model Server {
-  id       String  @id @default(cuid())
-  name     String  @db.VarChar(255)
-  ip       String  @db.VarChar(255)
-  capacity Int
-  relays   Relay[]
+model WhiteList {
+  id            String             @id @default(cuid())
+  relay         Relay              @relation(fields: [relayId], references: [id])
+  relayId       String             @unique
+  list_keywords ListEntryKeyword[]
+  list_pubkeys  ListEntryPubkey[]
+}
 
-  @@index([id])
+model BlackList {
+  id            String             @id @default(cuid())
+  relay         Relay              @relation(fields: [relayId], references: [id])
+  relayId       String             @unique
+  list_keywords ListEntryKeyword[]
+  list_pubkeys  ListEntryPubkey[]
+}
+
+model ListEntryPubkey {
+  id          String     @id @default(cuid())
+  whitelist   WhiteList? @relation(fields: [whiteListId], references: [id])
+  whiteListId String?
+  blackList   BlackList? @relation(fields: [blackListId], references: [id])
+  blackListId String?
+  pubkey      String     @db.VarChar(255)
+  reason      String?    @db.VarChar(255)
+  expires_at  DateTime?
+}
+
+model ListEntryKeyword {
+  id          String     @id @default(cuid())
+  whitelist   WhiteList? @relation(fields: [whiteListId], references: [id])
+  whiteListId String?
+  blackList   BlackList? @relation(fields: [blackListId], references: [id])
+  blackListId String?
+  keyword     String     @db.VarChar(255)
+  reason      String?    @db.VarChar(255)
+  expires_at  DateTime?
 }
