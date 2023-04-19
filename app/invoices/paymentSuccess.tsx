@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import ZapAnimation from '../dashboard/page'
+import ZapAnimation from '../lightningsuccess/page'
 
 export default function PaymentSuccess(props: React.PropsWithChildren<{
     payment_hash: string;

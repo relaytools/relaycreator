@@ -128,10 +128,10 @@ export default function SignupPage() {
 
 
                                 <div>
-                                    <label htmlFor="pubkey" className="block text-sm font-medium leading-6 text-gray-900">
+                                    <label htmlFor="pubkey" className="block text-sm font-medium leading-6">
                                     </label>
                                     <div className="relative flex flex-grow items-stretch focus-within:z-10">
-                                        <label htmlFor="relayname" className="block text-sm font-medium leading-6 text-gray-900">
+                                        <label htmlFor="relayname" className="block text-sm font-medium leading-6 ">
                                         </label>
                                         <div className="mt-2 flex rounded-md shadow-sm">
                                             <div className="relative flex flex-grow items-stretch focus-within:z-10">
@@ -141,7 +141,7 @@ export default function SignupPage() {
                                                     type="text"
                                                     name="relayname"
                                                     id="relayname"
-                                                    className="block w-full rounded-none rounded-l-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                    className="input input-bordered input-primary w-full max-w-xs"
                                                     placeholder={name}
                                                     value={name}
                                                     onChange={event => setRelayName(event.target.value)}
@@ -149,13 +149,13 @@ export default function SignupPage() {
                                             </div>
                                             <button
                                                 type="button"
-                                                className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                                className="btn btn-outline btn-primary">
                                                 .nostr1.com
                                             </button>
                                             <button
                                                 type="button"
                                                 disabled
-                                                className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900">
+                                                className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold ">
                                                 {nameError}
                                             </button>
                                         </div>
@@ -174,7 +174,7 @@ export default function SignupPage() {
                                                 type="text"
                                                 name="pubkey"
                                                 id="pubkey"
-                                                className="block w-full rounded-none rounded-l-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                className="input w-full max-w-xs"
                                                 placeholder="enter pubkey or use sign-in"
                                                 value={session.user.name}
                                                 onChange={event => setAndValidatePubkey(event.target.value)}
@@ -186,7 +186,7 @@ export default function SignupPage() {
                                                 type="text"
                                                 name="pubkey"
                                                 id="pubkey"
-                                                className="block w-full rounded-none rounded-l-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                className="input w-full max-w-xs"
                                                 placeholder="enter pubkey or sign-in"
                                                 value={pubkey}
                                                 onChange={event => setAndValidatePubkey(event.target.value)}
@@ -199,7 +199,7 @@ export default function SignupPage() {
                                             <button
                                                 type="button"
                                                 disabled
-                                                className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900">
+                                                className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold ">
                                                 {pubkeyError}
                                             </button>
                                         </div>

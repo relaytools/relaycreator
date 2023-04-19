@@ -13,7 +13,7 @@ export default function ZapAnimation() {
         // Simulate payment success after 3 seconds
         const timeoutId = setTimeout(() => {
             setSuccess(true);
-            router.push(`/dashboard?success`)
+            router.push(`/`)
         }, 3000);
         return () => clearTimeout(timeoutId);
     }, []);

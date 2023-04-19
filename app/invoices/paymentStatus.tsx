@@ -98,14 +98,14 @@ export default function PaymentStatus(
                                                     type="text"
                                                     name="relayname"
                                                     id="relayname"
-                                                    className="block w-full rounded-none rounded-l-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                    className="input input-bordered input-primary w-full max-w-xs"
                                                     readOnly={true}
                                                     value={relayname}
                                                 />
                                             </div>
                                             <button
                                                 type="button"
-                                                className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                                className="btn btn-outline btn-primary">
                                                 .nostr1.com
                                             </button>
                                         </div>
