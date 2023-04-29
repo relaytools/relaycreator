@@ -1,3 +1,9 @@
+"use client"
+
+import { useState } from "react";
+import { useRouter } from "next/navigation"
+import { checkServerIdentity } from "tls";
+
 type ListEntryKeyword = {
     keyword: string;
     reason: string;
@@ -7,6 +13,33 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
     keywords: ListEntryKeyword[];
     kind: string;
 }>) {
+
+    const [keyword, setKeyword] = useState("");
+    const [reason, setReason] = useState("");
+    const [newkeyword, setNewKeyword] = useState(false);
+    const [kind, setKind] = useState("all messages must include this keyword (OR) another existing keyword")
+
+    const router = useRouter();
+
+    const handleSubmit = async (event: any) => {
+        event.preventDefault();
+        const id = event.currentTarget.id
+        console.log(event.currentTarget.id)
+        // call to API to add new keyword
+        const response = await fetch(`/api/relay/${id}/whitelist`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+        });
+    }
+
+    let idkind = ""
+    if (props.kind == "Whitelisted Keywords") {
+        idkind = "whitelist"
+    } else {
+        idkind = "blacklist"
+    }
+
+    const kinds = ["all messages must include this keyword (OR) another existing keyword", "all messages must include keyword (AND)"]
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
@@ -47,18 +80,70 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                                         </td>
                                     </tr>
                                 ))}
+
+                                {newkeyword &&
+
+                                    <tr>
+                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
+                                            <form className="space-y-6" action="#" method="POST">
+                                                <input
+                                                    type="text"
+                                                    name="keyword"
+                                                    id={idkind + "newkeyword"}
+                                                    className="input input-bordered input-primary w-full max-w-xs"
+                                                    placeholder="add keyword"
+                                                    value={keyword}
+                                                    onChange={event => setKeyword(event.target.value)}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    name="reason"
+                                                    id={idkind + "newreason"}
+                                                    className="input input-bordered input-primary w-full max-w-xs"
+                                                    placeholder="add reason"
+                                                    value={reason}
+                                                    onChange={event => setReason(event.target.value)}
+                                                />
+                                                {props.kind == "Whitelisted keywords" &&
+                                                    <div>
+                                                        {kinds.map((kind, id) => (
+                                                            <label className="label cursor-pointer" key={"kind" + idkind + id}>
+                                                                <span className="label-text">{kind}</span>
+                                                                <input
+                                                                    className="radio"
+                                                                    type="radio"
+                                                                    name="kind"
+                                                                    id={"kind" + idkind + id}
+                                                                    placeholder="add kind"
+                                                                    value={kind}
+                                                                    onChange={event => setKind(event.target.value)}
+                                                                    defaultChecked={kind === "all messages must include this keyword (OR) another existing keyword" ? true : false}
+                                                                />
+                                                            </label>
+                                                        ))
+                                                        }
+                                                    </div>
+                                                }
+                                                <button onClick={handleSubmit} className="btn btn-primary">Add</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    <button
-                        type="button"
-                        className="block rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
-                    >
-                        Add keyword
-                    </button>
-                </div>
+                {!newkeyword &&
+                    <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                        <button
+                            onClick={() => setNewKeyword(true)}
+                            type="button"
+                            className="block rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
+                        >
+                            Add keyword
+                        </button>
+                    </div>
+                }
             </div>
         </div>
     )
