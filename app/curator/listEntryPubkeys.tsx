@@ -1,6 +1,6 @@
 type ListEntryPubkey = {
     pubkey: string;
-    reason: string;
+    reason: string | null;
 }
 
 export default function ListEntryPubkeys(props: React.PropsWithChildren<{

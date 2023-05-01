@@ -1,10 +1,12 @@
 import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
-import ListEntryKeywords from "./listEntryKeywords"
+import ListEntryKeywords, { ListEntryKeyword } from "./listEntryKeywords"
 import ListEntryPubkeys from "./listEntryPubkeys"
 import EnableWhiteList from "./enableWhiteList"
 import EnableBlackList from "./enableBlackList"
+
+
 
 export default async function Curator(searchParams: Record<string, Record<string, string>>) {
     const session = await getServerSession(authOptions)
