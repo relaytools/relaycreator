@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation"
 import { checkServerIdentity } from "tls";
+import prisma from '../../lib/prisma'
 
-type ListEntryKeyword = {
+export type ListEntryKeyword = {
     keyword: string;
-    reason: string;
+    reason: string | null;
 }
+
 
 export default function ListEntryKeywords(props: React.PropsWithChildren<{
     keywords: ListEntryKeyword[];
