@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation"
-import { checkServerIdentity } from "tls";
-import prisma from '../../lib/prisma'
 
 export type ListEntryKeyword = {
     keyword: string;
     reason: string | null;
+    id: string,
 }
 
 
 export default function ListEntryKeywords(props: React.PropsWithChildren<{
     keywords: ListEntryKeyword[];
     kind: string;
+    relay_id: string;
 }>) {
 
     const [keyword, setKeyword] = useState("");
@@ -22,23 +22,40 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
     const [kind, setKind] = useState("all messages must include this keyword (OR) another existing keyword")
 
     const router = useRouter();
-
-    const handleSubmit = async (event: any) => {
-        event.preventDefault();
-        const id = event.currentTarget.id
-        console.log(event.currentTarget.id)
-        // call to API to add new keyword
-        const response = await fetch(`/api/relay/${id}/whitelist`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-        });
-    }
-
     let idkind = ""
-    if (props.kind == "Whitelisted Keywords") {
+    if (props.kind == "Whitelisted keywords") {
         idkind = "whitelist"
     } else {
         idkind = "blacklist"
+    }
+
+    const handleDelete = async (event: any) => {
+        event.preventDefault();
+        console.log(event.currentTarget.id)
+        // call to API to delete keyword
+        const response = await fetch(`/api/relay/${props.relay_id}/${idkind}keyword?list_id=${event.currentTarget.id}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+        });
+        router.push(`/curator?relay_id=${props.relay_id}`)
+    }
+
+    const handleSubmit = async (event: any) => {
+        event.preventDefault();
+        console.log(event.currentTarget.id)
+        // call to API to add new keyword
+        const response = await fetch(`/api/relay/${props.relay_id}/${idkind}keyword`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "keyword": keyword, "reason": reason })
+        });
+        if (response.ok) {
+            setNewKeyword(false)
+            router.push(`/curator?relay_id=${props.relay_id}`)
+        }
+    }
+    const handleCancel = async () => {
+        setNewKeyword(false)
     }
 
     const kinds = ["all messages must include this keyword (OR) another existing keyword", "all messages must include keyword (AND)"]
@@ -72,13 +89,9 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                                             {entry.keyword}
                                         </td>
                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{entry.reason}</td>
-                                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                            <a href="#" className="btn">
-                                                Edit <span className="sr-only">, {entry.keyword}</span>
-                                            </a>
-                                            <a href="#" className="btn">
-                                                Delete <span className="sr-only">, {entry.keyword}</span>
-                                            </a>
+                                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
+
+                                            <button onClick={handleDelete} className="btn btn-secondary" id={entry.id}>Delete</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -126,7 +139,8 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                                                         }
                                                     </div>
                                                 }
-                                                <button onClick={handleSubmit} className="btn btn-primary">Add</button>
+                                                <button onClick={handleSubmit} className="btn btn-secondary">Add</button>
+                                                <button onClick={handleCancel} className="btn btn-secondary">Cancel</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -140,7 +154,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                         <button
                             onClick={() => setNewKeyword(true)}
                             type="button"
-                            className="block rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
+                            className="btn btn-primary"
                         >
                             Add keyword
                         </button>

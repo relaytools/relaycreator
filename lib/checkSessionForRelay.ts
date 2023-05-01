@@ -1,12 +1,11 @@
-import prisma from '../../../../lib/prisma'
+import prisma from './prisma'
 import { getSession } from 'next-auth/react'
 
-export default async function handle(req: any, res: any) {
-    // check owner and relay, to create blank blacklist
+export async function checkSessionForRelay(req: any, res: any) {
     const session = await getSession({ req });
     if (!session || !session.user?.name) {
         res.status(403).json({ "error": "not authenticated" })
-        return
+        return null
     }
 
     if (!req.query.id) {
@@ -19,12 +18,13 @@ export default async function handle(req: any, res: any) {
         },
         include: {
             black_list: true,
+            white_list: true,
         }
     })
 
     if (!isMyRelay) {
         res.status(404).json({ "error": "relay not found" })
-        return
+        return null
     }
 
     const relayOwner = await prisma.user.findFirst({
@@ -35,32 +35,14 @@ export default async function handle(req: any, res: any) {
 
     if (!relayOwner) {
         res.status(404).json({ "error": "relay not found" })
-        return
+        return null
     }
 
     if (isMyRelay.ownerId != relayOwner.id) {
         res.status(403).json({ "error": "not your relay" })
-        return
+        return null
     } else {
         // continue
     }
-
-    if (req.method == "POST") {
-        // create blacklist
-        // relay's id
-        console.log("relay id was: " + req.query.id)
-        if (isMyRelay.black_list == null) {
-            await prisma.blackList.create({
-                data: {
-                    relayId: isMyRelay.id
-                }
-            })
-        }
-    } else if (req.method == "PUT") {
-        // update whitelist
-    } else {
-        res.status(500).json({ "error": "method not allowed" })
-    }
-
-    res.status(200).json({});
+    return isMyRelay
 }
