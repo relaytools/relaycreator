@@ -1,12 +1,10 @@
 import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
-import ListEntryKeywords, { ListEntryKeyword } from "./listEntryKeywords"
+import ListEntryKeywords from "./listEntryKeywords"
 import ListEntryPubkeys from "./listEntryPubkeys"
 import EnableWhiteList from "./enableWhiteList"
 import EnableBlackList from "./enableBlackList"
-
-
 
 export default async function Curator(searchParams: Record<string, Record<string, string>>) {
     const session = await getServerSession(authOptions)
@@ -62,19 +60,19 @@ export default async function Curator(searchParams: Record<string, Record<string
             }
 
             {relay != null && relay.white_list != null &&
-                <ListEntryKeywords keywords={relay.white_list.list_keywords} kind="Whitelisted keywords"></ListEntryKeywords>
+                <ListEntryKeywords keywords={relay.white_list.list_keywords} relay_id={relay_id} kind="Whitelisted keywords"></ListEntryKeywords>
             }
 
             {relay != null && relay.black_list != null &&
-                <ListEntryKeywords keywords={relay.black_list.list_keywords} kind="Blacklisted keywords"></ListEntryKeywords>
+                <ListEntryKeywords keywords={relay.black_list.list_keywords} relay_id={relay_id} kind="Blacklisted keywords"></ListEntryKeywords>
             }
 
             {relay != null && relay.white_list != null &&
-                <ListEntryPubkeys pubkeys={relay.white_list.list_pubkeys} kind="Whitelisted pubkeys"></ListEntryPubkeys>
+                <ListEntryPubkeys pubkeys={relay.white_list.list_pubkeys} relay_id={relay_id} kind="Whitelisted pubkeys"></ListEntryPubkeys>
             }
 
             {relay != null && relay.black_list != null &&
-                <ListEntryPubkeys pubkeys={relay.black_list.list_pubkeys} kind="Blacklisted pubkeys"></ListEntryPubkeys>
+                <ListEntryPubkeys pubkeys={relay.black_list.list_pubkeys} relay_id={relay_id} kind="Blacklisted pubkeys"></ListEntryPubkeys>
             }
         </div>
     )
