@@ -40,18 +40,19 @@ model Order {
 }
 
 model Relay {
-  id         String      @id @default(cuid())
-  name       String      @db.VarChar(255)
-  ownerId    String
-  status     String?     @db.VarChar(255)
-  owner      User        @relation(fields: [ownerId], references: [id])
-  moderators Moderator[]
-  Order      Order[]
-  white_list WhiteList?
-  black_list BlackList?
-  ip         String?     @db.VarChar(255)
-  capacity   Int?
-  port       Int?
+  id                     String      @id @default(cuid())
+  name                   String      @db.VarChar(255)
+  ownerId                String
+  status                 String?     @db.VarChar(255)
+  owner                  User        @relation(fields: [ownerId], references: [id])
+  moderators             Moderator[]
+  Order                  Order[]
+  white_list             WhiteList?
+  black_list             BlackList?
+  default_message_policy Boolean     @default(true)
+  ip                     String?     @db.VarChar(255)
+  capacity               Int?
+  port                   Int?
 
   @@index([ownerId])
 }

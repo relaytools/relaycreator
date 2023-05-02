@@ -15,7 +15,7 @@ export default function EnableWhiteList(props: React.PropsWithChildren<{
         const id = event.currentTarget.id
         console.log(event.currentTarget.id)
         // call to API to create a new blank whitelist and re-render page
-        const response = await fetch(`/api/relay/${id}/whitelist`, {
+        const response = await fetch(`/api/relay/${id}/whitelistkeyword`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
         });

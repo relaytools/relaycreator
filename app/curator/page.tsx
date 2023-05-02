@@ -1,10 +1,12 @@
 import { getServerSession } from "next-auth/next"
+import Image from "next/image"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
 import ListEntryKeywords from "./listEntryKeywords"
 import ListEntryPubkeys from "./listEntryPubkeys"
 import EnableWhiteList from "./enableWhiteList"
 import EnableBlackList from "./enableBlackList"
+import DefaultPolicy from "./defaultPolicy"
 
 export default async function Curator(searchParams: Record<string, Record<string, string>>) {
     const session = await getServerSession(authOptions)
@@ -45,11 +47,34 @@ export default async function Curator(searchParams: Record<string, Record<string
             },
         }
     })
+
     console.log(relay)
+
+    if (relay == null) {
+        return (
+            <>
+                relay not found
+            </>
+        )
+    }
 
     return (
         <div>
-            <h1>{relay?.name}</h1>
+            <div className="card card-side bg-base-100 shadow-xl">
+
+                <figure><Image src="/green-check.png" alt="relay" width={100} height={100} /></figure>
+                <div className="card-body">
+                    <h2 className="card-title">{relay?.name}</h2>
+                    <p>details</p>
+                    <div className="card-actions justify-end">
+                    </div>
+                </div>
+            </div>
+
+            <div className="divider">General Settings</div>
+            <DefaultPolicy relay_id={relay_id} allow={relay.default_message_policy}></DefaultPolicy>
+
+            <div className="divider">Lists</div>
 
             {relay != null && relay.white_list == null &&
                 <EnableWhiteList relay={relay}></EnableWhiteList>
