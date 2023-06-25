@@ -7,8 +7,15 @@ import ListEntryPubkeys from "./listEntryPubkeys"
 import EnableWhiteList from "./enableWhiteList"
 import EnableBlackList from "./enableBlackList"
 import DefaultPolicy from "./defaultPolicy"
+import Moderators from "./moderators"
 
-export default async function Curator(searchParams: Record<string, Record<string, string>>) {
+export default async function Curator({
+    params,
+    searchParams,
+}: {
+    params: { slug: string }
+    searchParams: { [key: string]: string | undefined }
+}) {
     const session = await getServerSession(authOptions)
 
     if (!session || !(session as any).user.name) {
@@ -24,15 +31,25 @@ export default async function Curator(searchParams: Record<string, Record<string
     })
 
     // get the relay from the param
-    const { relay_id } = searchParams.searchParams
+    const { relay_id } = searchParams
     console.log(searchParams)
     console.log(relay_id)
+    if (relay_id == null) {
+        return (
+            <>
+                relay not found
+            </>
+        )
+    }
 
     const relay = await prisma.relay.findFirst({
         where: {
             id: relay_id,
         },
         include: {
+            moderators: {
+                include: { user: true }
+            },
             black_list: {
                 include: {
                     list_keywords: true,
@@ -73,6 +90,10 @@ export default async function Curator(searchParams: Record<string, Record<string
 
             <div className="divider">General Settings</div>
             <DefaultPolicy relay_id={relay_id} allow={relay.default_message_policy}></DefaultPolicy>
+            <div className="divider">Moderators</div>
+            {relay != null && relay.moderators != null &&
+                <Moderators moderators={relay.moderators} relay_id={relay_id}></Moderators>
+            }
 
             <div className="divider">Lists</div>
 
@@ -85,19 +106,19 @@ export default async function Curator(searchParams: Record<string, Record<string
             }
 
             {relay != null && relay.white_list != null &&
-                <ListEntryKeywords keywords={relay.white_list.list_keywords} relay_id={relay_id} kind="Whitelisted keywords"></ListEntryKeywords>
+                <ListEntryKeywords keywords={relay.white_list.list_keywords} relay_id={relay_id} kind="Whitelisted keywords ✅"></ListEntryKeywords>
             }
 
             {relay != null && relay.black_list != null &&
-                <ListEntryKeywords keywords={relay.black_list.list_keywords} relay_id={relay_id} kind="Blacklisted keywords"></ListEntryKeywords>
+                <ListEntryKeywords keywords={relay.black_list.list_keywords} relay_id={relay_id} kind="Blacklisted keywords 🔨"></ListEntryKeywords>
             }
 
             {relay != null && relay.white_list != null &&
-                <ListEntryPubkeys pubkeys={relay.white_list.list_pubkeys} relay_id={relay_id} kind="Whitelisted pubkeys"></ListEntryPubkeys>
+                <ListEntryPubkeys pubkeys={relay.white_list.list_pubkeys} relay_id={relay_id} kind="Whitelisted pubkeys ✅"></ListEntryPubkeys>
             }
 
             {relay != null && relay.black_list != null &&
-                <ListEntryPubkeys pubkeys={relay.black_list.list_pubkeys} relay_id={relay_id} kind="Blacklisted pubkeys"></ListEntryPubkeys>
+                <ListEntryPubkeys pubkeys={relay.black_list.list_pubkeys} relay_id={relay_id} kind="Blacklisted pubkeys 🔨"></ListEntryPubkeys>
             }
         </div>
     )

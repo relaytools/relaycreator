@@ -30,6 +30,9 @@ export default async function handle(req: any, res: any) {
     const findOrder = await prisma.order.findFirst({
         where: {
             payment_hash: invoiceId,
+        },
+        include: {
+            relay: true,
         }
     })
 
@@ -49,9 +52,20 @@ export default async function handle(req: any, res: any) {
                 paid_at: new Date(),
             }
         })
+        // check relay, if new relay, set to waiting for provision
+        if (findOrder.relay.status == null) {
+            // new relay
+            const updateRelayStatus = await prisma.relay.update({
+                where: {
+                    id: findOrder.relay.id,
+                },
+                data: {
+                    status: "provision",
+                }
+            })
+        }
+        res.status(200).json({ checkinvoice });
     }
-
-    res.status(200).json({ checkinvoice });
 }
 
 

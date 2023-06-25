@@ -46,7 +46,6 @@ export default async function handle(req: any, res: any) {
     // the backends with port# for strfry backends
     // the certificates locations
 
-
     const relay = await prisma.relay.findFirst({
         where: { id: req.query.id },
         include: {

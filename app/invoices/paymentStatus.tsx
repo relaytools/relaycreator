@@ -54,6 +54,13 @@ export default function PaymentStatus(
 
 
     const p = useSearchParams();
+    if (p == null) {
+        return (
+            <>
+                no p
+            </>
+        )
+    }
     let pubkey = p.get('pubkey');
 
     let relayname = p.get('relayname');

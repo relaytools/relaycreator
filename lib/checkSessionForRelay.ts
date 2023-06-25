@@ -17,6 +17,7 @@ export async function checkSessionForRelay(req: any, res: any) {
             id: req.query.id,
         },
         include: {
+            moderators: true,
             black_list: true,
             white_list: true,
         }

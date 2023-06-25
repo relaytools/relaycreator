@@ -1,4 +1,5 @@
 //SwitchTheme.tsx
+import { useTheme } from 'next-themes'
 
 import React, { useEffect } from "react";
 import { FiMoon, FiSun } from "react-icons/fi";
