@@ -23,7 +23,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
 
     const router = useRouter();
     let idkind = ""
-    if (props.kind == "Whitelisted keywords") {
+    if (props.kind == "Whitelisted keywords ✅") {
         idkind = "whitelist"
     } else {
         idkind = "blacklist"
@@ -38,6 +38,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
             headers: { "Content-Type": "application/json" },
         });
         router.push(`/curator?relay_id=${props.relay_id}`)
+        router.refresh()
     }
 
     const handleSubmit = async (event: any) => {
@@ -50,8 +51,10 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
             body: JSON.stringify({ "keyword": keyword, "reason": reason })
         });
         if (response.ok) {
+            console.log("response was ok?")
             setNewKeyword(false)
             router.push(`/curator?relay_id=${props.relay_id}`)
+            router.refresh()
         }
     }
     const handleCancel = async () => {
@@ -68,7 +71,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
             <div className="mt-8 flow-root">
                 <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                        <table className="min-w-full divide-y divide-gray-300">
+                        <table className="table table-sm">
                             <thead>
                                 <tr>
                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-0">
@@ -150,7 +153,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                     </div>
                 </div>
                 {!newkeyword &&
-                    <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                    <div className="">
                         <button
                             onClick={() => setNewKeyword(true)}
                             type="button"

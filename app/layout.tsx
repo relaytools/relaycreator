@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-head-element */
 import '/styles/globals.css';
 import AuthContext from './AuthContext';
-import ShowSession from './mysession'
+import ShowSession from './mysession';
 
 //export default function RootLayout({ children, }: { children: React.ReactNode; }) {
 export default function RootLayout({ children, }: React.PropsWithChildren) {

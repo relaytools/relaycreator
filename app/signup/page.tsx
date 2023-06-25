@@ -18,6 +18,13 @@ import { useSession } from 'next-auth/react';
 export default function SignupPage() {
     const { data: session, status } = useSession();
     const p = useSearchParams();
+    if (p == null) {
+        return (
+            <>
+                no p
+            </>
+        )
+    }
     const relayname = p.get('relayname');
     let useName = ""
     if (relayname) {
@@ -218,7 +225,7 @@ export default function SignupPage() {
                                     onClick={handleSubmit}
                                     disabled={!isValidForm}
                                     type="submit"
-                                    className="btn ntn-primary w-full "
+                                    className="btn btn-primary w-full"
                                 >
                                     Pay with ⚡
                                 </button>

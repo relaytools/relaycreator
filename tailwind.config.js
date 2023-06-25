@@ -20,10 +20,11 @@ module.exports = {
     themes: [
       {
         light: {
-          primary: "#a991f7",
-          secondary: "#f6d860",
-          accent: "#37cdbe",
-          neutral: "#3d4451",
+
+          "primary": "#6c4ab6",
+          "secondary": "#8d72e1",
+          "accent": "#8d9eff",
+          "neutral": "#1E293B",
           "base-100": "#ffffff",
 
           "--rounded-box": "0.1rem", // border radius rounded-box utility class, used in card and other large boxes
@@ -40,12 +41,12 @@ module.exports = {
       },
       {
         dark: {
-          "primary": "#38BDF8",
-          "secondary": "#818CF8",
-          "accent": "#F471B5",
+          "primary": "#6c4ab6",
+          "secondary": "#8d72e1",
+          "accent": "#8d9eff",
           "neutral": "#1E293B",
           "base-100": "#0F172A",
-          "info": "#0CA5E9",
+          "info": "#B9E0FF",
           "success": "#2DD4BF",
           "warning": "#F4BF50",
           "error": "#FB7085",

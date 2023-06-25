@@ -2,36 +2,29 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type ListEntryPubkey = {
+export type User = {
     pubkey: string;
-    reason: string | null;
-    id: string,
 }
 
-export default function ListEntryPubkeys(props: React.PropsWithChildren<{
-    pubkeys: ListEntryPubkey[];
-    kind: string;
+export type Moderator = {
+    user: User;
+}
+
+export default function Moderators(props: React.PropsWithChildren<{
+    moderators: Moderator[];
     relay_id: string;
 }>) {
 
     const [pubkey, setPubkey] = useState("");
-    const [reason, setReason] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
 
     const router = useRouter();
 
-    let idkind = ""
-    if (props.kind == "Whitelisted keywords ✅") {
-        idkind = "whitelist"
-    } else {
-        idkind = "blacklist"
-    }
-
     const handleDelete = async (event: any) => {
         event.preventDefault();
         console.log(event.currentTarget.id)
-        // call to API to delete keyword
-        const response = await fetch(`/api/relay/${props.relay_id}/${idkind}pubkey?list_id=${event.currentTarget.id}`, {
+        // call to API to delete moderator
+        const response = await fetch(`/api/relay/${props.relay_id}/moderator?pubkey=${event.currentTarget.id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
         });
@@ -43,10 +36,10 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         const id = event.currentTarget.id
         console.log(event.currentTarget.id)
         // call to API to add new keyword
-        const response = await fetch(`/api/relay/${props.relay_id}/${idkind}pubkey`, {
+        const response = await fetch(`/api/relay/${props.relay_id}/moderator`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "pubkey": pubkey, "reason": reason })
+            body: JSON.stringify({ "pubkey": pubkey })
         });
         if (response.ok) {
             setNewPubkey(false)
@@ -67,10 +60,7 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
                             <thead>
                                 <tr>
                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-0">
-                                        {props.kind}
-                                    </th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold">
-                                        Reason
+                                        Mods
                                     </th>
                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                                         <span className="sr-only">Edit</span>
@@ -78,41 +68,30 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
                                 </tr>
                             </thead>
                             <tbody>
-                                {props.pubkeys.map((entry) => (
-                                    <tr key={entry.pubkey}>
+                                {props.moderators.map((entry) => (
+                                    <tr>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
-                                            {entry.pubkey}
+                                            {entry.user.pubkey}
                                         </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{entry.reason}</td>
                                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
 
-                                            <button onClick={handleDelete} className="btn btn-secondary" id={entry.id}>Delete</button>
+                                            <button onClick={handleDelete} className="btn btn-secondary" id={entry.user.pubkey}>Delete</button>
                                         </td>
                                     </tr>
                                 ))}
 
                                 {newpubkey &&
-
                                     <tr>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             <form className="space-y-6" action="#" method="POST">
                                                 <input
                                                     type="text"
                                                     name="pubkey"
-                                                    id={idkind + "newpubkey"}
+                                                    id="newpubkey"
                                                     className="input input-bordered input-primary w-full max-w-xs"
                                                     placeholder="add pubkey"
                                                     value={pubkey}
                                                     onChange={event => setPubkey(event.target.value)}
-                                                />
-                                                <input
-                                                    type="text"
-                                                    name="reason"
-                                                    id={idkind + "newreason"}
-                                                    className="input input-bordered input-primary w-full max-w-xs"
-                                                    placeholder="add reason"
-                                                    value={reason}
-                                                    onChange={event => setReason(event.target.value)}
                                                 />
                                                 <button onClick={handleSubmit} className="btn btn-primary">Add</button>
                                                 <button onClick={handleCancel} className="btn btn-primary">Cancel</button>

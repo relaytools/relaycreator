@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 // we can do a time check here serverside, to verify the event was created in this 5 min window or so.
-                // todo: verify created_at is actually part of the signature on a nostr event.
+                // todo: verify created_at is actually part of the signature on a nostr event. yes it is.
                 /*if (!isWithinLast10Minutes(credentials.created_at)) {
                     return null
                 }*/
