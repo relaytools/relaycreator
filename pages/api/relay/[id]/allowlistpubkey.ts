@@ -14,13 +14,14 @@ export default async function handle(req: any, res: any) {
     if (req.method == "POST") {
         const { pubkey, reason } = req.body;
         if (isMyRelay.allow_list == null && pubkey == null && reason == null) {
-            await prisma.allowList.create({
+            const newp = await prisma.allowList.create({
                 data: {
                     relayId: isMyRelay.id,
                 }
             })
+            res.status(200).json(newp);
         } else if (isMyRelay.allow_list == null) {
-            await prisma.allowList.create({
+            const newp = await prisma.allowList.create({
                 data: {
                     relayId: isMyRelay.id,
                     list_pubkeys: {
@@ -31,14 +32,16 @@ export default async function handle(req: any, res: any) {
                     },
                 }
             })
+            res.status(200).json(newp);
         } else {
-            await prisma.listEntryPubkey.create({
+            const newp = await prisma.listEntryPubkey.create({
                 data: {
                     AllowListId: isMyRelay.allow_list.id,
                     pubkey: pubkey,
                     reason: reason,
                 }
             })
+            res.status(200).json(newp);
         }
     } else if (req.method == "PUT") {
         // update AllowList
@@ -54,9 +57,10 @@ export default async function handle(req: any, res: any) {
                 id: listId,
             }
         })
+
+        res.status(200).json({});
     } else {
         res.status(500).json({ "error": "method not allowed" })
     }
 
-    res.status(200).json({});
 }

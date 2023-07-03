@@ -15,7 +15,7 @@ export default function EnableBlockList(props: React.PropsWithChildren<{
         const id = event.currentTarget.id
         console.log(event.currentTarget.id)
         // call to API to create a new blank AllowList and re-render page
-        const response = await fetch(`/api/relay/${id}/BlockListkeyword`, {
+        const response = await fetch(`/api/relay/${id}/blocklistkeyword`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
         });

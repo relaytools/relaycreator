@@ -105,24 +105,24 @@ export default async function Curator({
                 <EnableAllowList relay={relay}></EnableAllowList>
             }
 
+            {relay != null && relay.allow_list != null &&
+                <ListEntryKeywords keywords={relay.allow_list.list_keywords} relay_id={relay_id} kind="Allowed Keywords ✅"></ListEntryKeywords>
+            }
+
+            {relay != null && relay.allow_list != null &&
+                <ListEntryPubkeys pubkeys={relay.allow_list.list_pubkeys} relay_id={relay_id} kind="Allowed Pubkeys ✅"></ListEntryPubkeys>
+            }
+
             {relay != null && relay.block_list == null &&
                 <EnableBlockList relay={relay}></EnableBlockList>
             }
 
-            {relay != null && relay.allow_list != null &&
-                <ListEntryKeywords keywords={relay.allow_list.list_keywords} relay_id={relay_id} kind="AllowListed keywords ✅"></ListEntryKeywords>
+            {relay != null && relay.block_list != null &&
+                <ListEntryKeywords keywords={relay.block_list.list_keywords} relay_id={relay_id} kind="Blocked Keywords 🔨"></ListEntryKeywords>
             }
 
             {relay != null && relay.block_list != null &&
-                <ListEntryKeywords keywords={relay.block_list.list_keywords} relay_id={relay_id} kind="BlockListed keywords 🔨"></ListEntryKeywords>
-            }
-
-            {relay != null && relay.allow_list != null &&
-                <ListEntryPubkeys pubkeys={relay.allow_list.list_pubkeys} relay_id={relay_id} kind="AllowListed pubkeys ✅"></ListEntryPubkeys>
-            }
-
-            {relay != null && relay.block_list != null &&
-                <ListEntryPubkeys pubkeys={relay.block_list.list_pubkeys} relay_id={relay_id} kind="BlockListed pubkeys 🔨"></ListEntryPubkeys>
+                <ListEntryPubkeys pubkeys={relay.block_list.list_pubkeys} relay_id={relay_id} kind="Blocked Pubkeys 🔨"></ListEntryPubkeys>
             }
         </div>
     )
