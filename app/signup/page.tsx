@@ -106,7 +106,6 @@ export default function SignupPage() {
         const data = await response.json()
 
         if (response.ok) {
-            // send more stuff here like the invoice order#
             router.push(`/invoices?relayname=${name}&pubkey=${pubkey}&order_id=${data.order_id}`);
         } else {
             setNameError("❌")
@@ -183,6 +182,7 @@ export default function SignupPage() {
                                                 id="pubkey"
                                                 className="input w-full max-w-xs"
                                                 placeholder="enter pubkey or use sign-in"
+                                                hidden={true}
                                                 value={session.user.name}
                                                 onChange={event => setAndValidatePubkey(event.target.value)}
                                             />
@@ -195,6 +195,7 @@ export default function SignupPage() {
                                                 id="pubkey"
                                                 className="input w-full max-w-xs"
                                                 placeholder="enter pubkey or sign-in"
+                                                hidden={true}
                                                 value={pubkey}
                                                 onChange={event => setAndValidatePubkey(event.target.value)}
                                             />

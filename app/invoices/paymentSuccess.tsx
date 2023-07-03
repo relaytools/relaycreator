@@ -13,7 +13,7 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
     const [status, setStatus] = useState(false)
 
     const getInvoiceStatus = async (paymentHash: string) => {
-        const result = await fetch(`http://localhost:3000/api/invoices/${paymentHash}`)
+        const result = await fetch(`/api/invoices/${paymentHash}`)
         const j = await result.json()
         setStatus(j.checkinvoice.paid)
     }

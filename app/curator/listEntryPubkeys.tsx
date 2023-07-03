@@ -21,10 +21,10 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
     const router = useRouter();
 
     let idkind = ""
-    if (props.kind == "Whitelisted keywords ✅") {
-        idkind = "whitelist"
+    if (props.kind == "AllowListed keywords ✅") {
+        idkind = "AllowList"
     } else {
-        idkind = "blacklist"
+        idkind = "BlockList"
     }
 
     const handleDelete = async (event: any) => {

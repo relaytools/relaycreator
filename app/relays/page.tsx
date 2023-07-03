@@ -48,8 +48,9 @@ export default async function Relays() {
                                     <figure><Image src="/green-check.png" alt="relay" width={100} height={100} /></figure>
                                     <div className="card-body">
                                         <h2 className="card-title">{relay.name}</h2>
-                                        <p>details</p>
-                                        <h2 className="card-title">{relay.id}</h2>
+                                        <p>{relay.name}</p>
+                                        <p>{"wss://" + relay.name + ".nostr1.com"}</p>
+                                        <p>{relay.id}</p>
                                         <div className="card-actions justify-end">
                                             <a href={`/curator?relay_id=${relay.id}`} className="text-indigo-400 hover:text-indigo-300">
                                                 Details<span className="sr-only">, {relay.id}</span>

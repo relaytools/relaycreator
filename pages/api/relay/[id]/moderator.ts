@@ -3,7 +3,7 @@ import { checkSessionForRelay } from "../../../../lib/checkSessionForRelay"
 import { getSession } from 'next-auth/react'
 
 export default async function handle(req: any, res: any) {
-    // check owner and relay, to create blank blacklist
+    // check owner and relay, to create blank BlockList
     const session = await getSession({ req });
 
     const isMyRelay = await checkSessionForRelay(req, res)

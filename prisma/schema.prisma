@@ -44,11 +44,12 @@ model Relay {
   name                   String      @db.VarChar(255)
   ownerId                String
   status                 String?     @db.VarChar(255)
+  //details                String?     @db.Text
   owner                  User        @relation(fields: [ownerId], references: [id])
   moderators             Moderator[]
   Order                  Order[]
-  white_list             WhiteList?
-  black_list             BlackList?
+  allow_list             AllowList?
+  block_list             BlockList?
   default_message_policy Boolean     @default(true)
   ip                     String?     @db.VarChar(255)
   capacity               Int?
@@ -65,7 +66,7 @@ model Moderator {
   userId  String
 }
 
-model WhiteList {
+model AllowList {
   id            String             @id @default(cuid())
   relay         Relay              @relation(fields: [relayId], references: [id])
   relayId       String             @unique
@@ -73,7 +74,7 @@ model WhiteList {
   list_pubkeys  ListEntryPubkey[]
 }
 
-model BlackList {
+model BlockList {
   id            String             @id @default(cuid())
   relay         Relay              @relation(fields: [relayId], references: [id])
   relayId       String             @unique
@@ -83,10 +84,10 @@ model BlackList {
 
 model ListEntryPubkey {
   id          String     @id @default(cuid())
-  whitelist   WhiteList? @relation(fields: [whiteListId], references: [id])
-  whiteListId String?
-  blackList   BlackList? @relation(fields: [blackListId], references: [id])
-  blackListId String?
+  AllowList   AllowList? @relation(fields: [AllowListId], references: [id])
+  AllowListId String?
+  BlockList   BlockList? @relation(fields: [BlockListId], references: [id])
+  BlockListId String?
   pubkey      String     @db.VarChar(255)
   reason      String?    @db.VarChar(255)
   expires_at  DateTime?
@@ -94,10 +95,10 @@ model ListEntryPubkey {
 
 model ListEntryKeyword {
   id          String     @id @default(cuid())
-  whitelist   WhiteList? @relation(fields: [whiteListId], references: [id])
-  whiteListId String?
-  blackList   BlackList? @relation(fields: [blackListId], references: [id])
-  blackListId String?
+  AllowList   AllowList? @relation(fields: [AllowListId], references: [id])
+  AllowListId String?
+  BlockList   BlockList? @relation(fields: [BlockListId], references: [id])
+  BlockListId String?
   keyword     String     @db.VarChar(255)
   reason      String?    @db.VarChar(255)
   expires_at  DateTime?

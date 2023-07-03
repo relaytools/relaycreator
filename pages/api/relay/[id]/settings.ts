@@ -3,7 +3,7 @@ import { checkSessionForRelay } from "../../../../lib/checkSessionForRelay"
 import { getSession } from 'next-auth/react'
 
 export default async function handle(req: any, res: any) {
-    // check owner and relay, to create blank blacklist
+    // check owner and relay, to create blank BlockList
     const session = await getSession({ req });
 
     const isMyRelay = await checkSessionForRelay(req, res)
@@ -22,9 +22,9 @@ export default async function handle(req: any, res: any) {
             }
         })
     } else if (req.method == "PUT") {
-        // update whitelist
+        // update AllowList
     } else if (req.method == "DELETE") {
-        // delete whitelist
+        // delete AllowList
         const listId = req.query.list_id;
         if (listId == null) {
             res.status(500).json({ "error": "no list_id" })

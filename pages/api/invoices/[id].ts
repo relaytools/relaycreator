@@ -24,7 +24,7 @@ export default async function handle(req: any, res: any) {
         payment_hash: invoiceId,
     });
 
-    //console.log(checkinvoice);
+    console.log(checkinvoice);
     // if invoice is paid, update prisma
 
     const findOrder = await prisma.order.findFirst({
@@ -41,7 +41,8 @@ export default async function handle(req: any, res: any) {
         return
     }
 
-    if (checkinvoice.paid == true && findOrder.paid == false) {
+    /*
+    if (false == true && findOrder.paid == false) {
         await prisma.order.update({
             where: {
                 id: findOrder.id,
@@ -66,6 +67,8 @@ export default async function handle(req: any, res: any) {
         }
         res.status(200).json({ checkinvoice });
     }
+    */
+    res.status(200).json({ checkinvoice });
 }
 
 

@@ -49,13 +49,13 @@ export default async function handle(req: any, res: any) {
     const relay = await prisma.relay.findFirst({
         where: { id: req.query.id },
         include: {
-            white_list: {
+            allow_list: {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
                 }
             },
-            black_list: {
+            block_list: {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
