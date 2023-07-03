@@ -15,7 +15,7 @@ export default function EnableAllowList(props: React.PropsWithChildren<{
         const id = event.currentTarget.id
         console.log(event.currentTarget.id)
         // call to API to create a new blank AllowList and re-render page
-        const response = await fetch(`/api/relay/${id}/AllowListkeyword`, {
+        const response = await fetch(`/api/relay/${id}/allowlistkeyword`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
         });

@@ -20,25 +20,36 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
     const [reason, setReason] = useState("");
     const [newkeyword, setNewKeyword] = useState(false);
     const [kind, setKind] = useState("all messages must include this keyword (OR) another existing keyword")
+    const [deleted, setDeleted] = useState("")
+    const [added, setAdded] = useState("")
 
     const router = useRouter();
     let idkind = ""
-    if (props.kind == "AllowListed keywords ✅") {
-        idkind = "AllowList"
+    if (props.kind == "Allowed Keywords ✅") {
+        idkind = "allowlist"
     } else {
-        idkind = "BlockList"
+        idkind = "blocklist"
     }
 
     const handleDelete = async (event: any) => {
         event.preventDefault();
         console.log(event.currentTarget.id)
+        let deleteThisId = event.currentTarget.id
         // call to API to delete keyword
         const response = await fetch(`/api/relay/${props.relay_id}/${idkind}keyword?list_id=${event.currentTarget.id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
         });
-        router.push(`/curator?relay_id=${props.relay_id}`)
-        router.refresh()
+
+        // delete the entry from the props
+        let newlist: ListEntryKeyword[] = []
+        props.keywords.forEach((entry) => {
+            if (entry.id != deleteThisId) {
+                newlist.push(entry)
+            }
+        })
+        props.keywords = newlist
+        setDeleted(deleteThisId)
     }
 
     const handleSubmit = async (event: any) => {
@@ -50,11 +61,12 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ "keyword": keyword, "reason": reason })
         });
+
         if (response.ok) {
-            console.log("response was ok?")
+            const j = await response.json()
             setNewKeyword(false)
-            router.push(`/curator?relay_id=${props.relay_id}`)
-            router.refresh()
+            props.keywords.push({ "keyword": keyword, "reason": reason, "id": j.id })
+            setAdded(keyword)
         }
     }
     const handleCancel = async () => {
@@ -65,6 +77,8 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
+            <div className="hidden">{deleted}</div>
+            <div className="hidden">{added}</div>
             <div className="sm:flex sm:items-center">
 
             </div>
@@ -87,7 +101,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {props.keywords.map((entry) => (
-                                    <tr key={entry.keyword}>
+                                    <tr key={entry.id}>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             {entry.keyword}
                                         </td>

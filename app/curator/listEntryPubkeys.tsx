@@ -17,25 +17,35 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
     const [pubkey, setPubkey] = useState("");
     const [reason, setReason] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
+    const [deleted, setDeleted] = useState("")
+    const [added, setAdded] = useState("")
 
     const router = useRouter();
 
     let idkind = ""
-    if (props.kind == "AllowListed keywords ✅") {
-        idkind = "AllowList"
+    if (props.kind == "Allowed Pubkeys ✅") {
+        idkind = "allowlist"
     } else {
-        idkind = "BlockList"
+        idkind = "blocklist"
     }
 
     const handleDelete = async (event: any) => {
         event.preventDefault();
-        console.log(event.currentTarget.id)
+        const deleteThisId = event.currentTarget.id
         // call to API to delete keyword
         const response = await fetch(`/api/relay/${props.relay_id}/${idkind}pubkey?list_id=${event.currentTarget.id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
         });
-        router.push(`/curator?relay_id=${props.relay_id}`)
+        // delete the entry from the props
+        let newlist: ListEntryPubkey[] = []
+        props.pubkeys.forEach((entry) => {
+            if (entry.id != deleteThisId) {
+                newlist.push(entry)
+            }
+        })
+        props.pubkeys = newlist
+        setDeleted(deleteThisId)
     }
 
     const handleSubmit = async (event: any) => {
@@ -48,9 +58,12 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ "pubkey": pubkey, "reason": reason })
         });
+
         if (response.ok) {
+            const j = await response.json()
             setNewPubkey(false)
-            router.push(`/curator?relay_id=${props.relay_id}`)
+            props.pubkeys.push({ "pubkey": pubkey, "reason": reason, "id": j.id })
+            setAdded(pubkey)
         }
     }
 
@@ -60,10 +73,12 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
+            <div className="hidden">{deleted}</div>
+            <div className="hidden">{added}</div>
             <div className="mt-8 flow-root">
                 <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                        <table className="table table-md">
+                        <table className="table table-sm">
                             <thead>
                                 <tr>
                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-0">
@@ -79,7 +94,7 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
                             </thead>
                             <tbody>
                                 {props.pubkeys.map((entry) => (
-                                    <tr key={entry.pubkey}>
+                                    <tr key={entry.id}>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             {entry.pubkey}
                                         </td>
