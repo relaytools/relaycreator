@@ -27,14 +27,15 @@ export default async function handle(req: any, res: any) {
                     pubkey: pubkey,
                 }
             })
-            await prisma.moderator.create({
+            const newp = await prisma.moderator.create({
                 data: {
                     relayId: isMyRelay.id,
                     userId: newUser.id,
                 }
             })
+            res.status(200).json(newp)
         } else {
-            // user exists already, check and add as mod
+            // check if moderator record exists already
             const isExisting = await prisma.moderator.findFirst({
                 where: {
                     relayId: isMyRelay.id,
@@ -42,29 +43,24 @@ export default async function handle(req: any, res: any) {
                 },
             })
             if (!isExisting) {
-                await prisma.moderator.create({
+                const newp = await prisma.moderator.create({
                     data: {
                         relayId: isMyRelay.id,
                         userId: thisUser.id,
                     }
                 })
+                res.status(200).json(newp)
+            } else {
+                res.status(500).json({ "error": "moderator already exists" })
             }
         }
     } else if (req.method == "DELETE") {
         // delete moderator
-        const thisUser = await prisma.user.findFirst({
-            where: {
-                pubkey: pubkey,
-            }
-        })
-        if (thisUser == null) {
-            res.status(500).json({ "error": "user not found" })
-            return
-        }
+        const thisId = req.query.moderator_id;
         const deleteMe = await prisma.moderator.findFirst({
             where: {
                 relayId: { equals: isMyRelay.id },
-                userId: { equals: thisUser.id },
+                id: { equals: thisId },
             },
         })
         if (deleteMe == null) {
@@ -76,9 +72,9 @@ export default async function handle(req: any, res: any) {
                 id: deleteMe.id,
             }
         })
+        res.status(200).json({});
     } else {
         res.status(500).json({ "error": "method not allowed" })
     }
 
-    res.status(200).json({});
 }

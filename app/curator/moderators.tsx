@@ -8,6 +8,7 @@ export type User = {
 
 export type Moderator = {
     user: User;
+    id: string;
 }
 
 export default function Moderators(props: React.PropsWithChildren<{
@@ -17,33 +18,45 @@ export default function Moderators(props: React.PropsWithChildren<{
 
     const [pubkey, setPubkey] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
+    const [deleted, setDeleted] = useState("")
+    const [added, setAdded] = useState("")
 
     const router = useRouter();
 
     const handleDelete = async (event: any) => {
         event.preventDefault();
         console.log(event.currentTarget.id)
+        const deleteThisId = event.currentTarget.id
         // call to API to delete moderator
-        const response = await fetch(`/api/relay/${props.relay_id}/moderator?pubkey=${event.currentTarget.id}`, {
+        const response = await fetch(`/api/relay/${props.relay_id}/moderator?moderator_id=${event.currentTarget.id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
         });
-        router.push(`/curator?relay_id=${props.relay_id}`)
+        // delete the entry from the props
+        let newlist: Moderator[] = []
+        props.moderators.forEach((entry) => {
+            if (entry.id != deleteThisId) {
+                newlist.push(entry)
+            }
+        })
+        props.moderators = newlist
+        setDeleted(deleteThisId)
     }
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
-        const id = event.currentTarget.id
-        console.log(event.currentTarget.id)
         // call to API to add new keyword
         const response = await fetch(`/api/relay/${props.relay_id}/moderator`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ "pubkey": pubkey })
         });
+
         if (response.ok) {
+            const j = await response.json()
+            setAdded(j.id)
             setNewPubkey(false)
-            router.push(`/curator?relay_id=${props.relay_id}`)
+            props.moderators.push({ "id": j.id, "user": { "pubkey": pubkey } })
         }
     }
 
@@ -69,13 +82,13 @@ export default function Moderators(props: React.PropsWithChildren<{
                             </thead>
                             <tbody>
                                 {props.moderators.map((entry) => (
-                                    <tr>
+                                    <tr key={entry.id}>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             {entry.user.pubkey}
                                         </td>
                                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
 
-                                            <button onClick={handleDelete} className="btn btn-secondary" id={entry.user.pubkey}>Delete</button>
+                                            <button onClick={handleDelete} className="btn btn-secondary" id={entry.id}>Delete</button>
                                         </td>
                                     </tr>
                                 ))}

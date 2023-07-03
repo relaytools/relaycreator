@@ -32,8 +32,6 @@ export default async function Curator({
 
     // get the relay from the param
     const { relay_id } = searchParams
-    console.log(searchParams)
-    console.log(relay_id)
     if (relay_id == null) {
         return (
             <>
@@ -48,7 +46,7 @@ export default async function Curator({
         },
         include: {
             moderators: {
-                include: { user: true }
+                include: { user: true },
             },
             block_list: {
                 include: {
@@ -64,7 +62,6 @@ export default async function Curator({
             },
         }
     })
-
     console.log(relay)
 
     if (relay == null) {
@@ -94,6 +91,7 @@ export default async function Curator({
 
             <div className="divider">General Settings</div>
             <DefaultPolicy relay_id={relay_id} allow={relay.default_message_policy}></DefaultPolicy>
+
             <div className="divider">Moderators</div>
             {relay != null && relay.moderators != null &&
                 <Moderators moderators={relay.moderators} relay_id={relay_id}></Moderators>
