@@ -4,8 +4,8 @@ import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
 import ListEntryKeywords from "./listEntryKeywords"
 import ListEntryPubkeys from "./listEntryPubkeys"
-import EnableWhiteList from "./enableWhiteList"
-import EnableBlackList from "./enableBlackList"
+import EnableAllowList from "./enableAllowList"
+import EnableBlockList from "./enableBlockList"
 import DefaultPolicy from "./defaultPolicy"
 import Moderators from "./moderators"
 
@@ -50,13 +50,13 @@ export default async function Curator({
             moderators: {
                 include: { user: true }
             },
-            black_list: {
+            block_list: {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
                 },
             },
-            white_list: {
+            allow_list: {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
@@ -82,8 +82,12 @@ export default async function Curator({
                 <figure><Image src="/green-check.png" alt="relay" width={100} height={100} /></figure>
                 <div className="card-body">
                     <h2 className="card-title">{relay?.name}</h2>
-                    <p>details</p>
+                    <p>details:</p>
+                    <p>{relay.name}</p>
+                    <p>{"wss://" + relay.name + ".nostr1.com"}</p>
                     <div className="card-actions justify-end">
+
+                        <button className="btn btn-primary">Edit</button>
                     </div>
                 </div>
             </div>
@@ -97,28 +101,28 @@ export default async function Curator({
 
             <div className="divider">Lists</div>
 
-            {relay != null && relay.white_list == null &&
-                <EnableWhiteList relay={relay}></EnableWhiteList>
+            {relay != null && relay.allow_list == null &&
+                <EnableAllowList relay={relay}></EnableAllowList>
             }
 
-            {relay != null && relay.black_list == null &&
-                <EnableBlackList relay={relay}></EnableBlackList>
+            {relay != null && relay.block_list == null &&
+                <EnableBlockList relay={relay}></EnableBlockList>
             }
 
-            {relay != null && relay.white_list != null &&
-                <ListEntryKeywords keywords={relay.white_list.list_keywords} relay_id={relay_id} kind="Whitelisted keywords ✅"></ListEntryKeywords>
+            {relay != null && relay.allow_list != null &&
+                <ListEntryKeywords keywords={relay.allow_list.list_keywords} relay_id={relay_id} kind="AllowListed keywords ✅"></ListEntryKeywords>
             }
 
-            {relay != null && relay.black_list != null &&
-                <ListEntryKeywords keywords={relay.black_list.list_keywords} relay_id={relay_id} kind="Blacklisted keywords 🔨"></ListEntryKeywords>
+            {relay != null && relay.block_list != null &&
+                <ListEntryKeywords keywords={relay.block_list.list_keywords} relay_id={relay_id} kind="BlockListed keywords 🔨"></ListEntryKeywords>
             }
 
-            {relay != null && relay.white_list != null &&
-                <ListEntryPubkeys pubkeys={relay.white_list.list_pubkeys} relay_id={relay_id} kind="Whitelisted pubkeys ✅"></ListEntryPubkeys>
+            {relay != null && relay.allow_list != null &&
+                <ListEntryPubkeys pubkeys={relay.allow_list.list_pubkeys} relay_id={relay_id} kind="AllowListed pubkeys ✅"></ListEntryPubkeys>
             }
 
-            {relay != null && relay.black_list != null &&
-                <ListEntryPubkeys pubkeys={relay.black_list.list_pubkeys} relay_id={relay_id} kind="Blacklisted pubkeys 🔨"></ListEntryPubkeys>
+            {relay != null && relay.block_list != null &&
+                <ListEntryPubkeys pubkeys={relay.block_list.list_pubkeys} relay_id={relay_id} kind="BlockListed pubkeys 🔨"></ListEntryPubkeys>
             }
         </div>
     )

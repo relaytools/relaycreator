@@ -41,9 +41,10 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
             <div className="input-group">
                 <select className="select select-bordered"
                     onChange={event => handleChange(event.target.value)}
+                    defaultValue={isSelected("allow") ? "allow" : "deny"}
                 >
-                    <option id="setrelaypropsallow" selected={isSelected("allow")}>allow</option>
-                    <option id="setrelaypropsdeny" selected={isSelected("deny")}>deny</option>
+                    <option id="setrelaypropsallow">allow</option>
+                    <option id="setrelaypropsdeny">deny</option>
                 </select>
             </div>
         </div>

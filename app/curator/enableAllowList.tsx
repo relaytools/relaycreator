@@ -5,7 +5,7 @@ type Relay = {
     id: string;
 }
 
-export default function EnableWhiteList(props: React.PropsWithChildren<{
+export default function EnableAllowList(props: React.PropsWithChildren<{
     relay: Relay;
 }>) {
     const router = useRouter();
@@ -14,8 +14,8 @@ export default function EnableWhiteList(props: React.PropsWithChildren<{
         event.preventDefault();
         const id = event.currentTarget.id
         console.log(event.currentTarget.id)
-        // call to API to create a new blank whitelist and re-render page
-        const response = await fetch(`/api/relay/${id}/whitelistkeyword`, {
+        // call to API to create a new blank AllowList and re-render page
+        const response = await fetch(`/api/relay/${id}/AllowListkeyword`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
         });
@@ -28,9 +28,9 @@ export default function EnableWhiteList(props: React.PropsWithChildren<{
                 onClick={(e) => handleSubmit(e)}
                 id={props.relay.id}
                 type="button"
-                className="block rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
+                className="btn btn-primary"
             >
-                Enable Whitelist
+                Enable AllowList
             </button>
         </div>
     )

@@ -3,7 +3,7 @@ import { checkSessionForRelay } from "../../../../lib/checkSessionForRelay"
 import { getSession } from 'next-auth/react'
 
 export default async function handle(req: any, res: any) {
-    // check owner and relay, to create blank blacklist
+    // check owner and relay, to create blank BlockList
     const session = await getSession({ req });
 
     const isMyRelay = await checkSessionForRelay(req, res)
@@ -12,44 +12,44 @@ export default async function handle(req: any, res: any) {
     }
 
     if (req.method == "POST") {
-        const { keyword, reason } = req.body;
-        if (isMyRelay.black_list == null && keyword == null && reason == null) {
-            await prisma.blackList.create({
+        const { pubkey, reason } = req.body;
+        if (isMyRelay.block_list == null && pubkey == null && reason == null) {
+            await prisma.blockList.create({
                 data: {
                     relayId: isMyRelay.id,
                 }
             })
-        } else if (isMyRelay.black_list == null) {
-            await prisma.blackList.create({
+        } else if (isMyRelay.block_list == null) {
+            await prisma.blockList.create({
                 data: {
                     relayId: isMyRelay.id,
-                    list_keywords: {
+                    list_pubkeys: {
                         create: {
-                            keyword: keyword,
+                            pubkey: pubkey,
                             reason: reason,
                         },
                     },
                 }
             })
         } else {
-            await prisma.listEntryKeyword.create({
+            await prisma.listEntryPubkey.create({
                 data: {
-                    blackListId: isMyRelay.black_list.id,
-                    keyword: keyword,
+                    BlockListId: isMyRelay.block_list.id,
+                    pubkey: pubkey,
                     reason: reason,
                 }
             })
         }
     } else if (req.method == "PUT") {
-        // update whitelist
+        // update AllowList
     } else if (req.method == "DELETE") {
-        // delete whitelist
+        // delete AllowList
         const listId = req.query.list_id;
         if (listId == null) {
             res.status(500).json({ "error": "no list_id" })
             return
         }
-        await prisma.listEntryKeyword.delete({
+        await prisma.listEntryPubkey.delete({
             where: {
                 id: listId,
             }

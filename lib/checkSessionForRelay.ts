@@ -18,8 +18,8 @@ export async function checkSessionForRelay(req: any, res: any) {
         },
         include: {
             moderators: true,
-            black_list: true,
-            white_list: true,
+            block_list: true,
+            allow_list: true,
         }
     })
 

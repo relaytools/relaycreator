@@ -33,7 +33,7 @@ export default function ShowSession() {
     return (
         <div className="font-jetbrains navbar bg-base-100 border-b border-base-200 pb-12">
             <div className="flex-1">
-                <a href="/" className="btn btn-ghost normal-case text-xl">nostr21: curator</a>
+                <a href="/" className="btn btn-ghost normal-case text-xl">relay creator</a>
             </div>
 
             <div className="flex-none">
