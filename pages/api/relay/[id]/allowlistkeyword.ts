@@ -20,6 +20,7 @@ export default async function handle(req: any, res: any) {
                     relayId: isMyRelay.id,
                 }
             })
+            res.status(200).json({})
         } else if (isMyRelay.allow_list == null) {
             const newp = await prisma.allowList.create({
                 data: {
