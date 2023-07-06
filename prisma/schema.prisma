@@ -44,12 +44,13 @@ model Relay {
   name                   String      @db.VarChar(255)
   ownerId                String
   status                 String?     @db.VarChar(255)
-  //details                String?     @db.Text
   owner                  User        @relation(fields: [ownerId], references: [id])
   moderators             Moderator[]
   Order                  Order[]
   allow_list             AllowList?
   block_list             BlockList?
+  details                String?     @db.Text
+  domain                 String?     @db.VarChar(255)
   default_message_policy Boolean     @default(true)
   ip                     String?     @db.VarChar(255)
   capacity               Int?
