@@ -6,6 +6,8 @@ import prisma from '../../../../lib/prisma'
 // GET /api/sconfig/haproxy/:id
 // Download config file for haproxy for this server 
 export default async function handle(req: any, res: any) {
+
+	// disable login for now (no sensitive info here anyway)
 	const session = await getServerSession(req, res, authOptions)
 	if (session) {
 		// Signed in
@@ -68,7 +70,7 @@ export default async function handle(req: any, res: any) {
 		haproxy_subdomains_cfg = haproxy_subdomains_cfg + `
 		acl ${element.name} hdr(host) -i ${element.name}.${element.domain}
 		use_backend ${element.name} if ${element.name}
-		use_backend ${element.name} if host_ws domain-${counter}
+		use_backend ${element.name} if host_ws ${element.name}
 		use_backend ${element.name} if hdr_connection_upgrade hdr_upgrade_websocket ${element.name} 
 		`
 
