@@ -195,7 +195,7 @@ backend backend_static_index
 	mode http
 	http-request set-log-level silent
 	errorfile 503 /etc/haproxy/static/index.static.html
-    `
+`
 
 	res.statusCode = 200;
 	res.setHeader('Content-Type', 'application/octet-stream');
