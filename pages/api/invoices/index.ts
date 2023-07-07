@@ -66,11 +66,32 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+    // find a free port
+    const allRelays = await prisma.relay.findMany({
+        where: {
+            domain: "nostr1.com"
+        },
+        select: { "port": true }
+    })
+
+    let p = 0
+    allRelays.forEach((r: any) => {
+        if (r.port > p) {
+            p = r.port
+        }
+    })
+    p = p + 1
+
+    var currentdate = new Date();
     // create relay with user association
     const relayResult = await prisma.relay.create({
         data: {
             name: relayname,
             ownerId: useUser.id,
+            domain: "nostr1.com",
+            created_at: currentdate,
+            status: "waiting payment",
+            port: p,
         }
     })
 
