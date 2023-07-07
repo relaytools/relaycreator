@@ -55,6 +55,9 @@ model Relay {
   ip                     String?     @db.VarChar(255)
   capacity               Int?
   port                   Int?
+  created_at             DateTime?
+  profile_image          String?     @db.VarChar(2048)
+  banner_image           String?     @db.VarChar(2048)
 
   @@index([ownerId])
 }
