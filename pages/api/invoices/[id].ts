@@ -41,8 +41,7 @@ export default async function handle(req: any, res: any) {
         return
     }
 
-    /*
-    if (false == true && findOrder.paid == false) {
+    if (checkinvoice.paid == true) {
         await prisma.order.update({
             where: {
                 id: findOrder.id,
@@ -67,8 +66,6 @@ export default async function handle(req: any, res: any) {
         }
         res.status(200).json({ checkinvoice });
     }
-    */
-    res.status(200).json({ checkinvoice });
 }
 
 
