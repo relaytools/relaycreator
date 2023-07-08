@@ -90,7 +90,6 @@ export default async function handle(req: any, res: any) {
             ownerId: useUser.id,
             domain: "nostr1.com",
             created_at: currentdate,
-            status: "waiting payment",
             port: p,
         }
     })
