@@ -1,8 +1,10 @@
 import prisma from './prisma'
 import { getSession } from 'next-auth/react'
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "../pages/api/auth/[...nextauth]"
 
 export async function checkSessionForRelay(req: any, res: any) {
-    const session = await getSession({ req });
+    const session = await getServerSession(req, res, authOptions)
     if (!session || !session.user?.name) {
         res.status(403).json({ "error": "not authenticated" })
         return null
