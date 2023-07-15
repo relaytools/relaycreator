@@ -149,6 +149,7 @@ export default function SignupPage() {
                                                     id="relayname"
                                                     className="input input-bordered input-primary w-full max-w-xs"
                                                     placeholder={name}
+                                                    autoComplete="off"
                                                     value={name}
                                                     onChange={event => setRelayName(event.target.value)}
                                                 />
