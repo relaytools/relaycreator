@@ -57,7 +57,6 @@ export default function ShowSession() {
                         <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
                             <li className="border-b border-base-200"><SwitchTheme /></li>
                             <li><a href="/">Relays</a></li>
-                            <li><a href="/posts">Posts</a></li>
                             <li><a href="/invoices">Invoices</a></li>
                             <li className="border-b border-base-200"><a href="/signup">Sign-up</a></li>
                             <li>
