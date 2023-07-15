@@ -1,4 +1,3 @@
-import { getSession } from "next-auth/react";
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
 import prisma from '../../../../lib/prisma'
