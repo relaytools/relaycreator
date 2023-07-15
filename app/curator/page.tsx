@@ -8,6 +8,7 @@ import EnableAllowList from "./enableAllowList"
 import EnableBlockList from "./enableBlockList"
 import DefaultPolicy from "./defaultPolicy"
 import Moderators from "./moderators"
+import { nip19 } from 'nostr-tools'
 
 export default async function Curator({
     params,
@@ -79,9 +80,12 @@ export default async function Curator({
                 <figure><Image src="/green-check.png" alt="relay" width={100} height={100} /></figure>
                 <div className="card-body">
                     <h2 className="card-title">{relay?.name}</h2>
-                    <p>details:</p>
-                    <p>{relay.name}</p>
                     <p>{"wss://" + relay.name + ".nostr1.com"}</p>
+                    <div className="card-actions justify-begin">
+                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + relay.name + ".nostr1.com")} className="btn btn-secondary">
+                            open in relay explorer<span className="sr-only">, {relay.id}</span>
+                        </a>
+                    </div>
                     <div className="card-actions justify-end">
 
                         <button className="btn btn-primary">Edit</button>
