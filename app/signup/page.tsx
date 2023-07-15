@@ -103,13 +103,13 @@ export default function SignupPage() {
         // here double check name isn't taken via the api, if it's taken, the api will return error.  if it's available the api will
         // 'reserve it' to this user pubkey.. and return the order_id here. the next page, will lookup the order id and populate with invoice.
         const response = await fetch(`/api/invoices?relayname=${name}&pubkey=${pubkey}`)
-        const data = await response.json()
+        const newdata = await response.json()
 
         if (response.ok) {
-            router.push(`/invoices?relayname=${name}&pubkey=${pubkey}&order_id=${data.order_id}`);
+            router.push(`/invoices?relayname=${name}&pubkey=${pubkey}&order_id=${newdata.order_id}`);
         } else {
             setNameError("❌")
-            setNameErrorDescription(data.error)
+            setNameErrorDescription(newdata.error)
         }
     }
 
