@@ -38,8 +38,8 @@ export default async function Relays() {
                                 </p>
                             </div>
                             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                                <a href={`/signup`} className="text-indigo-400 hover:text-indigo-300">
-                                    Create Relay<span className="sr-only">, </span>
+                                <a href={`/signup`} className="btn btn-primary">
+                                    Create Relay
                                 </a>
                             </div>
                         </div>
