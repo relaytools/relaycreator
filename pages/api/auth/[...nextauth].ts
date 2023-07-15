@@ -1,14 +1,9 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import {
-    validateEvent,
     verifySignature,
-    signEvent,
-    getEventHash,
-    getPublicKey,
-    EventTemplate,
     Event,
-} from 'nostr-tools'
+} from "nostr-tools"
 import prisma from '../../../lib/prisma'
 
 function isWithinLast10Minutes(timestampString: string) {
