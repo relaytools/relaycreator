@@ -66,6 +66,11 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+    let useAmount = 21
+    if (process.env.INVOICE_AMOUNT != null) {
+        useAmount = parseInt(process.env.INVOICE_AMOUNT)
+    }
+
     // find a free port
     const allRelays = await prisma.relay.findMany({
         where: {
@@ -106,7 +111,7 @@ export default async function handle(req: any, res: any) {
     });
 
     const newInvoice = await wallet.createInvoice({
-        amount: 10,
+        amount: useAmount,
         memo: relayname + " " + pubkey,
         out: false,
     });
