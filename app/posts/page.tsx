@@ -9,7 +9,7 @@ import {
     generatePrivateKey,
     getPublicKey,
     getEventHash,
-    signEvent
+    signEvent,
 } from 'nostr-tools'
 import '/styles/globals.css'
 

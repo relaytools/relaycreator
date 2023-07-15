@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
 import Image from "next/image"
+import { nip19 } from 'nostr-tools'
 
 export default async function Relays() {
     const session = await getServerSession(authOptions)
@@ -48,12 +49,15 @@ export default async function Relays() {
                                     <figure><Image src="/green-check.png" alt="relay" width={100} height={100} /></figure>
                                     <div className="card-body">
                                         <h2 className="card-title">{relay.name}</h2>
-                                        <p>{relay.name}</p>
                                         <p>{"wss://" + relay.name + ".nostr1.com"}</p>
-                                        <p>{relay.id}</p>
+                                        <div className="card-actions justify-begin">
+                                            <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + relay.name + ".nostr1.com")} className="btn btn-secondary">
+                                                open in relay explorer<span className="sr-only">, {relay.id}</span>
+                                            </a>
+                                        </div>
                                         <div className="card-actions justify-end">
-                                            <a href={`/curator?relay_id=${relay.id}`} className="text-indigo-400 hover:text-indigo-300">
-                                                Details<span className="sr-only">, {relay.id}</span>
+                                            <a href={`/curator?relay_id=${relay.id}`} className="btn btn-primary">
+                                                settings<span className="sr-only">, {relay.id}</span>
                                             </a>
                                         </div>
                                     </div>
