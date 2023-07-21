@@ -18,10 +18,7 @@ export default function Moderators(props: React.PropsWithChildren<{
 
     const [pubkey, setPubkey] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
-    const [deleted, setDeleted] = useState("")
-    const [added, setAdded] = useState("")
-
-    const router = useRouter();
+    const [moderators, setModerators] = useState(props.moderators)
 
     const handleDelete = async (event: any) => {
         event.preventDefault();
@@ -34,13 +31,12 @@ export default function Moderators(props: React.PropsWithChildren<{
         });
         // delete the entry from the props
         let newlist: Moderator[] = []
-        props.moderators.forEach((entry) => {
+        moderators.forEach((entry) => {
             if (entry.id != deleteThisId) {
                 newlist.push(entry)
             }
         })
-        props.moderators = newlist
-        setDeleted(deleteThisId)
+        setModerators(newlist)
     }
 
     const handleSubmit = async (event: any) => {
@@ -54,9 +50,10 @@ export default function Moderators(props: React.PropsWithChildren<{
 
         if (response.ok) {
             const j = await response.json()
-            setAdded(j.id)
             setNewPubkey(false)
-            props.moderators.push({ "id": j.id, "user": { "pubkey": pubkey } })
+            const newMods = moderators
+            newMods.push({ "id": j.id, "user": { "pubkey": pubkey } })
+            setModerators(newMods)
         }
     }
 
@@ -81,7 +78,7 @@ export default function Moderators(props: React.PropsWithChildren<{
                                 </tr>
                             </thead>
                             <tbody>
-                                {props.moderators.map((entry) => (
+                                {moderators.map((entry) => (
                                     <tr key={entry.id}>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             {entry.user.pubkey}

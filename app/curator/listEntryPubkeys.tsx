@@ -1,6 +1,5 @@
 "use client"
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 type ListEntryPubkey = {
     pubkey: string;
@@ -17,10 +16,7 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
     const [pubkey, setPubkey] = useState("");
     const [reason, setReason] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
-    const [deleted, setDeleted] = useState("")
-    const [added, setAdded] = useState("")
-
-    const router = useRouter();
+    const [pubkeys, setPubkeys] = useState(props.pubkeys)
 
     let idkind = ""
     if (props.kind == "Allowed Pubkeys ✅") {
@@ -39,13 +35,12 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         });
         // delete the entry from the props
         let newlist: ListEntryPubkey[] = []
-        props.pubkeys.forEach((entry) => {
+        pubkeys.forEach((entry) => {
             if (entry.id != deleteThisId) {
                 newlist.push(entry)
             }
         })
-        props.pubkeys = newlist
-        setDeleted(deleteThisId)
+        setPubkeys(newlist)
     }
 
     const handleSubmit = async (event: any) => {
@@ -62,8 +57,7 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         if (response.ok) {
             const j = await response.json()
             setNewPubkey(false)
-            props.pubkeys.push({ "pubkey": pubkey, "reason": reason, "id": j.id })
-            setAdded(pubkey)
+            pubkeys.push({ "pubkey": pubkey, "reason": reason, "id": j.id })
         }
     }
 
@@ -73,8 +67,6 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="hidden">{deleted}</div>
-            <div className="hidden">{added}</div>
             <div className="mt-8 flow-root">
                 <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -93,7 +85,7 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
                                 </tr>
                             </thead>
                             <tbody>
-                                {props.pubkeys.map((entry) => (
+                                {pubkeys.map((entry) => (
                                     <tr key={entry.id}>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             {entry.pubkey}

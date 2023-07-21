@@ -1,14 +1,12 @@
 "use client"
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"
 
 export type ListEntryKeyword = {
     keyword: string;
     reason: string | null;
     id: string,
 }
-
 
 export default function ListEntryKeywords(props: React.PropsWithChildren<{
     keywords: ListEntryKeyword[];
@@ -20,10 +18,8 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
     const [reason, setReason] = useState("");
     const [newkeyword, setNewKeyword] = useState(false);
     const [kind, setKind] = useState("all messages must include this keyword (OR) another existing keyword")
-    const [deleted, setDeleted] = useState("")
-    const [added, setAdded] = useState("")
+    const [keywords, setKeywords] = useState(props.keywords)
 
-    const router = useRouter();
     let idkind = ""
     if (props.kind == "Allowed Keywords ✅") {
         idkind = "allowlist"
@@ -33,7 +29,6 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
 
     const handleDelete = async (event: any) => {
         event.preventDefault();
-        console.log(event.currentTarget.id)
         let deleteThisId = event.currentTarget.id
         // call to API to delete keyword
         const response = await fetch(`/api/relay/${props.relay_id}/${idkind}keyword?list_id=${event.currentTarget.id}`, {
@@ -43,13 +38,12 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
 
         // delete the entry from the props
         let newlist: ListEntryKeyword[] = []
-        props.keywords.forEach((entry) => {
+        keywords.forEach((entry) => {
             if (entry.id != deleteThisId) {
                 newlist.push(entry)
             }
         })
-        props.keywords = newlist
-        setDeleted(deleteThisId)
+        setKeywords(newlist)
     }
 
     const handleSubmit = async (event: any) => {
@@ -64,11 +58,13 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
 
         if (response.ok) {
             const j = await response.json()
+            const newKeywords = keywords
+            newKeywords.push({ "keyword": keyword, "reason": reason, "id": j.id })
+            setKeywords(newKeywords)
             setNewKeyword(false)
-            props.keywords.push({ "keyword": keyword, "reason": reason, "id": j.id })
-            setAdded(keyword)
         }
     }
+
     const handleCancel = async () => {
         setNewKeyword(false)
     }
@@ -77,8 +73,6 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="hidden">{deleted}</div>
-            <div className="hidden">{added}</div>
             <div className="sm:flex sm:items-center">
 
             </div>
@@ -100,7 +94,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                                {props.keywords.map((entry) => (
+                                {keywords.map((entry) => (
                                     <tr key={entry.id}>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             {entry.keyword}
@@ -136,8 +130,9 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                                                     value={reason}
                                                     onChange={event => setReason(event.target.value)}
                                                 />
-                                                {props.kind == "AllowListed keywords" &&
-                                                    <div>
+                                                {/* hiding this for now, too complicated? */}
+                                                {props.kind == "Allowed Keywords ✅" &&
+                                                    <div className="hidden">
                                                         {kinds.map((kind, id) => (
                                                             <label className="label cursor-pointer" key={"kind" + idkind + id}>
                                                                 <span className="label-text">{kind}</span>
