@@ -50,9 +50,7 @@ export default function Settings(props: React.PropsWithChildren<{
                         </a>
                     </div>
                     <div className="card-actions justify-end">
-
                         <button className="btn btn-primary">Edit</button>
-                        <button className="btn btn-primary">Delete</button>
                     </div>
                 </div>
             </div>
