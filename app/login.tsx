@@ -33,7 +33,7 @@ export default function Login() {
     const doNip07Login = async () => {
         //const pubKey = await (window as any).nostr.getPublicKey();
         let signThis = {
-            kind: 20069,
+            kind: 27235,
             created_at: Math.floor(Date.now() / 1000),
             tags: [],
             content: 'login to nostr21.com',

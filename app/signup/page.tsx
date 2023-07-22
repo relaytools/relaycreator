@@ -82,6 +82,12 @@ export default function SignupPage() {
         // use javascript regex to detect hostname from name
         const valid = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}$/.test(name);
 
+        // check blank
+        if (name == "") {
+            setNameErrorDescription("name cannot be blank")
+            return false
+        }
+
         if (valid) {
             setNameErrorDescription("")
         } else {

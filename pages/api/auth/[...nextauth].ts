@@ -70,7 +70,7 @@ export const authOptions: NextAuthOptions = {
 
 
                 var verifyThis: Event = {
-                    kind: 20069,
+                    kind: 27235,
                     created_at: parseInt(credentials.created_at),
                     tags: [],
                     content: credentials.content,
