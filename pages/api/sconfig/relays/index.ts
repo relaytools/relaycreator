@@ -10,7 +10,7 @@ export default async function handle(req: any, res: any) {
     const session = await getServerSession(req, res, authOptions)
     if (session) {
         // Signed in
-        console.log("Session", JSON.stringify(session, null, 2))
+        //console.log("Session", JSON.stringify(session, null, 2))
     } else {
         // Not Signed in
         res.status(404).json({ "error": "not signed in" })
@@ -27,9 +27,22 @@ export default async function handle(req: any, res: any) {
     const myUser = await prisma.user.findFirst({ where: { pubkey: session.user.name } })
 
     if (!myUser) {
-        res.status(404).json({ "error": "server not found" })
+        res.status(404).json({ "error": "user not found" })
         res.end()
         return
+    }
+
+    if (!process.env.DEPLOY_PUBKEY) {
+        console.log("ERROR: no DEPLOY_PUBKEY environment, unauthorized")
+        res.status(404).json({ "error": "unauthorized" })
+        res.end()
+        return
+    } else {
+        if (myUser.pubkey != process.env.DEPLOY_PUBKEY) {
+            res.status(404).json({ "error": "unauthorized" })
+            res.end()
+            return
+        }
     }
 
     const allRelays = await prisma.relay.findMany({

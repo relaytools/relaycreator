@@ -27,18 +27,23 @@ export default async function handle(req: any, res: any) {
 	const myUser = await prisma.user.findFirst({ where: { pubkey: session.user.name } })
 
 	if (!myUser) {
-		res.status(404).json({ "error": "server not found" })
+		res.status(404).json({ "error": "user not found" })
 		res.end()
 		return
 	}
 
-	/*
-	if (myUser.role != "machine") {
-		res.status(404).json({ "error": "no privileges" })
+	if (!process.env.DEPLOY_PUBKEY) {
+		console.log("ERROR: no DEPLOY_PUBKEY environment, unauthorized")
+		res.status(404).json({ "error": "missing DEPLOY_PUBKEY unauthorized" })
 		res.end()
 		return
+	} else {
+		if (myUser.pubkey != process.env.DEPLOY_PUBKEY) {
+			res.status(404).json({ "error": "unauthorized" })
+			res.end()
+			return
+		}
 	}
-	*/
 
 	// load the following from prisma:
 	// the hostnames that haproxy serves on this machine
@@ -46,9 +51,19 @@ export default async function handle(req: any, res: any) {
 	// the certificates locations
 	// default domain
 	let usethisdomain = "nostr1.com"
+	if (process.env.CREATOR_DOMAIN) {
+		usethisdomain = process.env.CREATOR_DOMAIN
+	}
+
+	let pemName = "nostr1.pem"
+	if (process.env.HAPROXY_PEM) {
+		pemName = process.env.HAPROXY_PEM
+	}
+
 	const fetchDomain = await prisma.relay.findMany({
 		where: {
-			domain: "nostr1.com"
+			domain: usethisdomain,
+			status: "provision"
 		},
 	})
 
@@ -150,7 +165,7 @@ frontend unsecured
 	redirect 		prefix https://${usethisdomain} code 301 
 
 frontend secured
-	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/nostr1.pem
+	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
 	mode			http
 	timeout			client   3600s
 	backlog			4096
@@ -177,7 +192,7 @@ backend main
 	${haproxy_backends_cfg}
 
 listen stats
-	bind 0.0.0.0:8888 ssl crt  /etc/haproxy/certs/nostr1.pem
+	bind 0.0.0.0:8888 ssl crt  /etc/haproxy/certs/${pemName}
         mode            	http
         stats           	enable
         option          	httplog

@@ -6,10 +6,12 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
-// two flows here:
+// two possible flows here:
+// updated: decided not to implement 1. (yet)
 // 1. user is not logged in, so we just need their nostr pubkey (by paste or by extension)
 //    - display a form to paste their pubkey + invoice
 //    - we assume they already submitted the name they wanted and it's available and reserved
+//    - display detailed relay settings to submit with payment (to avoid login)
 
 // 2. user IS logged in, so we use their pubkey from the session
 //    - display an invoice
@@ -97,7 +99,7 @@ export default function SignupPage() {
     }
 
     function isValidForm() {
-        if (pubkeyError == "✅" && nameError == "✅") {
+        if (pubkeyError == "✅" && nameError == "✅" && name != "") {
             return true
         } else {
             return false
