@@ -48,8 +48,8 @@ export default async function handle(req: any, res: any) {
     }
 
     const { relayname, pubkey } = req.query as { relayname: string, pubkey: string };
-    if (relayname == null) {
-        res.status(404).json({ "error": "no relayname" })
+    if (relayname == null || relayname == "") {
+        res.status(404).json({ "error": "enter a relay name" })
         return
     }
 

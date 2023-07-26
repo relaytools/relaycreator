@@ -80,8 +80,7 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 let veryOk = await verifySignature(verifyThis)
-                console.log(veryOk)
-
+                //console.log(veryOk)
 
                 if (!veryOk) {
                     return null
