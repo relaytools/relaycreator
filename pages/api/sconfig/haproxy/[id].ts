@@ -63,7 +63,7 @@ export default async function handle(req: any, res: any) {
 	const fetchDomain = await prisma.relay.findMany({
 		where: {
 			domain: usethisdomain,
-			status: "provision"
+			OR: [{ status: "provision" }, { status: "running" }]
 		},
 	})
 

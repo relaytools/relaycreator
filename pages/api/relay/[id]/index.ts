@@ -8,23 +8,20 @@ export default async function handle(req: any, res: any) {
 
     const isMyRelay = await checkSessionForRelay(req, res)
     if (isMyRelay == null) {
-        res.status(500).json({ "error": "unauthorized" })
         return
     }
 
-    if (req.method == "POST") {
-        const { default_message_policy } = req.body;
-        const update = await prisma.relay.update({
+    if (req.method == "DELETE") {
+        // delete relay
+        await prisma.relay.update({
             where: {
                 id: isMyRelay.id,
             },
             data: {
-                default_message_policy: default_message_policy,
+                status: "deleting"
             }
         })
-    } else {
-        res.status(500).json({ "error": "method not allowed" })
-        return
+        return res.status(200).json({})
     }
-    res.status(200).json({});
+    return res.status(500).json({ "error": "method not allowed" })
 }
