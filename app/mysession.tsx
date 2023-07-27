@@ -5,16 +5,24 @@ import Image from 'next/image';
 import SwitchTheme from './components/SwitchTheme';
 
 const doNip07Login = async () => {
-    //const pubKey = await (window as any).nostr.getPublicKey();
+    // call to api to get a LoginToken
+
+    const tokenResponse = await fetch(`/api/auth/logintoken`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+
+    const tokenData = await tokenResponse.json()
+    const token = tokenData.token
+
     let signThis = {
         kind: 27235,
         created_at: Math.floor(Date.now() / 1000),
         tags: [],
-        content: 'login to nostr21.com',
+        content: token,
     }
 
     let useMe = await (window as any).nostr.signEvent(signThis)
-    console.log(useMe)
 
     signIn("credentials", {
         kind: useMe.kind,
@@ -29,7 +37,6 @@ const doNip07Login = async () => {
 
 export default function ShowSession() {
     const { data: session, status } = useSession();
-
     return (
         <div className="font-jetbrains navbar bg-base-100 border-b border-base-200 pb-12">
             <div className="flex-1">
