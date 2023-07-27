@@ -107,3 +107,9 @@ model ListEntryKeyword {
   reason      String?    @db.VarChar(255)
   expires_at  DateTime?
 }
+
+model LoginToken {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  created_at DateTime
+}

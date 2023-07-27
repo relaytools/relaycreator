@@ -37,6 +37,13 @@ async function updateOrCreateUser(user_pubkey: string) {
     }
 }
 
+const isTokenCreatedInTheLastHour = (token: any): boolean => {
+    const ONE_HOUR_IN_MS = 60 * 60 * 1000;
+    const tokenCreatedAt = new Date(token.created_at).getTime();
+    const currentTime = Date.now();
+    return currentTime - tokenCreatedAt <= ONE_HOUR_IN_MS;
+};
+
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
@@ -68,6 +75,24 @@ export const authOptions: NextAuthOptions = {
                     return null
                 }*/
 
+                // find the token
+                const isToken = await prisma.loginToken.findFirst({
+                    where: {
+                        token: credentials.content,
+                    }
+                })
+
+                // token doesn't exist
+                if (isToken == null) {
+                    console.log("token doesnt exist")
+                    return null
+                }
+
+                // token expired
+                if (!isTokenCreatedInTheLastHour(isToken)) {
+                    console.log("token expired")
+                    return null
+                }
 
                 var verifyThis: Event = {
                     kind: 27235,
@@ -85,6 +110,9 @@ export const authOptions: NextAuthOptions = {
                 if (!veryOk) {
                     return null
                 }
+
+                // cleanup the token
+                await prisma.loginToken.delete({ where: { id: isToken.id } })
 
                 // if user is verified, paratroop into prisma and create a user (or check one is created)
                 updateOrCreateUser(credentials.pubkey)
