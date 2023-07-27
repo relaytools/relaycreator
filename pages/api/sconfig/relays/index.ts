@@ -55,6 +55,7 @@ export default async function handle(req: any, res: any) {
             name: true,
             port: true,
             domain: true,
+            status: true,
         }
     })
     res.status(200).json(allRelays)
