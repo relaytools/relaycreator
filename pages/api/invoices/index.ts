@@ -4,18 +4,6 @@ import { authOptions } from "../auth/[...nextauth]"
 import prisma from '../../../lib/prisma'
 
 export default async function handle(req: any, res: any) {
-    // here is where we rely on prisma, 
-
-    // we can check and store, the pubkey and the pending invoice payment_hash
-
-    // if the user already has an invoice pending, wait till it expires? stuff like that
-
-
-    // server side validation of relayname and pubkey
-    // using nostr-tools even
-
-    //TODO: require sign-in or not?
-
     const session = await getServerSession(req, res, authOptions)
     if (session) {
         // Signed in
@@ -98,7 +86,16 @@ export default async function handle(req: any, res: any) {
             port: p,
         }
     })
-
+    const newbl = await prisma.blockList.create({
+        data: {
+            relayId: relayResult.id,
+        }
+    })
+    const newal = await prisma.allowList.create({
+        data: {
+            relayId: relayResult.id,
+        }
+    })
     if (!relayResult) {
         res.status(404).json({ "error": "relay creation failed" })
         return
