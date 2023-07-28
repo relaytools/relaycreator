@@ -32,6 +32,16 @@ export default async function handle(req: any, res: any) {
 		return
 	}
 
+	let haproxyStatsUser = "haproxy"
+	let haproxyStatsPass = "haproxy"
+
+	if (process.env.HAPROXY_STATS_USER) {
+		haproxyStatsUser = process.env.HAPROXY_STATS_USER
+	}
+	if (process.env.HAPROXY_STATS_PASS) {
+		haproxyStatsPass = process.env.HAPROXY_STATS_PASS
+	}
+
 	if (!process.env.DEPLOY_PUBKEY) {
 		console.log("ERROR: no DEPLOY_PUBKEY environment, unauthorized")
 		res.status(404).json({ "error": "missing DEPLOY_PUBKEY unauthorized" })
@@ -98,25 +108,6 @@ backend ${element.name}
 	`
 
 	})
-
-	/*
-	// domains
-	const haproxy_subdomains_cfg_todo = `
-		acl domain-1 hdr(host) -i ${usethisdomain}
-		acl domain-2 hdr(host) -i franworld.${usethisdomain}
-		#use_backend backend-1 if domain-1
-		#use_backend backend-2 if domain-2
-
-		acl host_ws hdr_beg(Host) -i ws.
-		use_backend nostr1 if host_ws domain-1
-		use_backend franworld if host_ws domain-2
-		acl hdr_connection_upgrade hdr(Connection)  -i upgrade
-		acl hdr_upgrade_websocket  hdr(Upgrade)     -i websocket
-		use_backend nostr1 if hdr_connection_upgrade hdr_upgrade_websocket domain-1
-		use_backend franworld if hdr_connection_upgrade hdr_upgrade_websocket domain-2
-`
-*/
-
 
 	const haproxy_cfg = `
 global
@@ -200,7 +191,7 @@ listen stats
         stats          		uri /haproxy
         stats           	realm Haproxy\ Statistics
         stats           	refresh 5s
-        stats           	auth me:somesecretpass
+        stats           	auth ${haproxyStatsUser}:${haproxyStatsPass}
         timeout         	connect 5000ms
         timeout         	client 50000ms
         timeout         	server 50000ms
