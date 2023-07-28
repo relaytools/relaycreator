@@ -62,6 +62,10 @@ export default async function Relays() {
                                         <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + relay.name + ".nostr1.com")} className="btn btn-secondary">
                                             open in relay explorer<span className="sr-only">, {relay.id}</span>
                                         </a>
+                                        <a href={"/posts?relay=" + nip19.nrelayEncode("wss://" + relay.name + ".nostr1.com")} className="btn btn-secondary">
+                                            open in relay explorer (alpha)<span className="sr-only">, {relay.id}</span>
+                                        </a>
+
                                     </div>
                                     <div className="card-actions justify-end">
                                         <a href={`/curator?relay_id=${relay.id}`} className="btn btn-primary">
