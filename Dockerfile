@@ -6,7 +6,6 @@ WORKDIR /app
 # manual modification made to lnbits for paid option (using build system node_modules)
 
 COPY . .
-COPY env.production ./.env
 RUN npm i
 RUN npm run build
 
