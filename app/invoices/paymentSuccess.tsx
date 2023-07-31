@@ -1,9 +1,10 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import ZapAnimation from '../lightningsuccess/page'
+import ZapAnimation from '../lightningsuccess/lightning'
 
 export default function PaymentSuccess(props: React.PropsWithChildren<{
+    relay_id: string;
     payment_hash: string;
     payment_request: string;
 }>) {
@@ -25,14 +26,9 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
         return () => clearInterval(interval);
     }, []);
 
-    if (status) {
-        // success
-        //router.push(`/dashboard?success`)
-    }
-
     return (
         <>
-            {status && <div>success<ZapAnimation></ZapAnimation></div>}
+            {status && <div>success<ZapAnimation relay_id={props.relay_id}></ZapAnimation></div>}
             {!status && <div>waiting</div>}
         </>
     )

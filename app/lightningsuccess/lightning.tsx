@@ -1,11 +1,13 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'
-import lightningBolt from './bolt-icon-720.png';
-import greenCheck from './green-check.png';
 import './LightningScreen.css';
 
-export default function ZapAnimation() {
+export default function ZapAnimation(
+    props: React.PropsWithChildren<{
+        relay_id: string;
+    }>) {
+
     const [success, setSuccess] = useState(false);
     const router = useRouter();
 
@@ -13,7 +15,7 @@ export default function ZapAnimation() {
         // Simulate payment success after 3 seconds
         const timeoutId = setTimeout(() => {
             setSuccess(true);
-            router.push(`/`)
+            router.push(`/curator?relay_id=${props.relay_id}`)
         }, 3000);
         return () => clearTimeout(timeoutId);
     }, []);

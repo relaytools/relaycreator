@@ -1,14 +1,12 @@
 import prisma from '../../../../lib/prisma'
 import { checkSessionForRelay } from "../../../../lib/checkSessionForRelay"
-import { getSession } from 'next-auth/react'
 
 export default async function handle(req: any, res: any) {
     // check owner and relay, to create blank BlockList
-    const session = await getSession({ req });
 
     const isMyRelay = await checkSessionForRelay(req, res)
     if (isMyRelay == null) {
-        return
+        return res.status(401).json({ "error": "not authorized" })
     }
 
     if (req.method == "DELETE") {

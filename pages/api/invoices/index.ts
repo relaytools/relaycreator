@@ -121,7 +121,6 @@ export default async function handle(req: any, res: any) {
             paid: false,
             payment_hash: newInvoice.payment_hash,
             lnurl: newInvoice.payment_request,
-
         }
     })
     console.log("API CALL /invoices -> order created:")
