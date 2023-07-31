@@ -41,6 +41,18 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+    // update the expire date for this order 
+    if (findOrder.paid != true && findOrder.expires_at == null) {
+        await prisma.order.update({
+            where: {
+                id: findOrder.id,
+            },
+            data: {
+                expires_at: new Date(checkinvoice.details.expiry * 1000),
+            }
+        })
+    }
+
     if (checkinvoice.paid == true) {
         await prisma.order.update({
             where: {

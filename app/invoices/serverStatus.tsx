@@ -11,11 +11,60 @@ export default async function ServerStatus(searchParams: Record<string, string>)
 
     const session = await getServerSession(authOptions)
 
-    console.log(searchParams)
-    console.log(session)
-
     const { relayname, pubkey, order_id } = searchParams;
 
+    if (!relayname || !pubkey || !order_id) {
+        if (session && (session as any).user.name) {
+            // list the invoices for the account
+            const orders = await prisma.order.findMany({
+                where: {
+                    user: {
+                        pubkey: (session as any).user.name
+                    }
+                },
+                include: {
+                    relay: true,
+                }
+            })
+            return (
+                <div>
+                    <h1>Your Orders</h1>
+                    <div className="mt-8 flow-root">
+                        <div className="overflow-x-auto">
+                            <table className="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Relay Name</th>
+                                        <th>Payment Status</th>
+                                        <th>Paid at</th>
+                                        <th>Expires At</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {orders.map((order) => (
+                                        <tr>
+                                            <td>{order.id}</td>
+                                            <td>{order.relay.name}</td>
+                                            <td>{order.paid ? "paid" : "un-paid"}</td>
+                                            <td>{order.paid_at ? new Date(order.paid_at).toLocaleString() : ""}</td>
+                                            <td>{order.expires_at ? new Date(order.expires_at).toLocaleString() : ""}</td>
+                                            <td>
+                                                <button className="btn btn-secondary">show</button>
+                                                <button className="btn btn-secondary">delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+    }
     let useRelayName = "wtf-bro";
     if (relayname) {
         useRelayName = relayname
@@ -41,7 +90,10 @@ export default async function ServerStatus(searchParams: Record<string, string>)
     })
 
     const o = await prisma.order.findFirst({
-        where: { id: order_id }
+        where: { id: order_id },
+        include: {
+            relay: true,
+        }
     })
 
     if (o == null) {
@@ -49,7 +101,6 @@ export default async function ServerStatus(searchParams: Record<string, string>)
         return
     }
 
-    console.log(o)
     /*
     if (!process.env.LNBITS_ADMIN_KEY || !process.env.LNBITS_INVOICE_READ_KEY || !process.env.LNBITS_ENDPOINT) {
         console.log("ERROR: no LNBITS env vars")
@@ -90,7 +141,7 @@ export default async function ServerStatus(searchParams: Record<string, string>)
     return (
         <div>
             <PaymentStatus payment_hash={o.payment_hash} payment_request={o.lnurl} />
-            <PaymentSuccess payment_hash={o.payment_hash} payment_request={o.lnurl} />
+            <PaymentSuccess relay_id={o.relay.id} payment_hash={o.payment_hash} payment_request={o.lnurl} />
         </div>
     )
 }

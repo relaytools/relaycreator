@@ -1,17 +1,42 @@
 import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
-import Image from "next/image"
 import { nip19 } from 'nostr-tools'
+import Relay from "../components/relay"
+import PublicRelays from "./publicRelays"
+import MyRelays from "./myRelays"
 
 export default async function Relays() {
     const session = await getServerSession(authOptions)
 
+    const publicRelays = await prisma.relay.findMany({
+        where: {
+            status: "running",
+            listed_in_directory: true,
+        },
+        include: {
+            owner: true,
+            moderators: {
+                include: { user: true },
+            },
+            block_list: {
+                include: {
+                    list_keywords: true,
+                    list_pubkeys: true,
+                },
+            },
+            allow_list: {
+                include: {
+                    list_keywords: true,
+                    list_pubkeys: true,
+                },
+            },
+        }
+    })
+
     if (!session || !(session as any).user.name) {
         return (
-            <>
-                <div></div>
-            </>
+            <PublicRelays relays={publicRelays} />
         )
     }
 
@@ -19,90 +44,69 @@ export default async function Relays() {
         where: {
             pubkey: (session as any).user.name
         },
+    })
+
+    // not likely, since we're logged in
+    if (me == null) {
+        return (
+            <div>user not found?</div>
+        )
+    }
+
+    const myRelays = await prisma.relay.findMany({
+        where: {
+            ownerId: me.id,
+            status: "running",
+        },
         include: {
-            moderator: {
-                include: { relay: true }
+            owner: true,
+            moderators: {
+                include: { user: true },
             },
-            relays: {
-                where: {
-                    OR: [
-                        { status: "running" },
-                        { status: "provision" }
-                    ]
+            block_list: {
+                include: {
+                    list_keywords: true,
+                    list_pubkeys: true,
+                },
+            },
+            allow_list: {
+                include: {
+                    list_keywords: true,
+                    list_pubkeys: true,
+                },
+            },
+        }
+    })
+
+    const moderatedRelays = await prisma.moderator.findMany({
+        where: {
+            userId: me.id,
+        },
+        include: {
+            relay: {
+                include: {
+                    owner: true,
+                    moderators: {
+                        include: { user: true },
+                    },
+                    block_list: {
+                        include: {
+                            list_keywords: true,
+                            list_pubkeys: true,
+                        },
+                    },
+                    allow_list: {
+                        include: {
+                            list_keywords: true,
+                            list_pubkeys: true,
+                        },
+                    },
                 }
             }
         }
     })
 
     return (
-        <div className="mx-auto max-w-7xl">
-            <div className="py-10">
-                <div className="px-4 sm:px-6 lg:px-8">
-                    <div className="sm:flex sm:items-center">
-                        <div className="sm:flex-auto">
-                            <h1 className="text-base font-semibold leading-6">Relays (owner)</h1>
-                            <p className="mt-2 text-sm">
-                                A list of all the relays that you own.
-                            </p>
-                        </div>
-                        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                            <a href={`/signup`} className="btn btn-primary">
-                                Create Relay
-                            </a>
-                        </div>
-                    </div>
-                    <div className="mt-8 flow-root">
-                        {me && me.relays.map((relay) => (
-                            <div className="card card-side bg-base-100 shadow-xl outline">
-                                <figure><Image src="/green-check.png" alt="relay" width={100} height={100} /></figure>
-                                <div className="card-body">
-                                    <h2 className="card-title">{relay.name}</h2>
-                                    <p>{"wss://" + relay.name + ".nostr1.com"}</p>
-                                    <div className="card-actions justify-begin">
-                                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + relay.name + ".nostr1.com")} className="btn btn-secondary">
-                                            open in relay explorer<span className="sr-only">, {relay.id}</span>
-                                        </a>
-                                        <a href={"/posts?relay=" + nip19.nrelayEncode("wss://" + relay.name + ".nostr1.com")} className="btn btn-secondary">
-                                            open in relay explorer (alpha)<span className="sr-only">, {relay.id}</span>
-                                        </a>
-
-                                    </div>
-                                    <div className="card-actions justify-end">
-                                        <a href={`/curator?relay_id=${relay.id}`} className="btn btn-primary">
-                                            settings<span className="sr-only">, {relay.id}</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="sm:flex sm:items-center">
-                        <div className="sm:flex-auto">
-                            <h1 className="text-base font-semibold leading-6">Relays (moderator)</h1>
-                            <p className="mt-2 text-sm">
-                                A list of all the relays that you moderate.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="mt-8 flow-root">
-                        {me && me.moderator.map((mod) => (
-                            <div className="card card-side bg-base-100 shadow-xl outline">
-                                <figure><Image src="/green-check.png" alt="relay" width={100} height={100} /></figure>
-                                <div className="card-body">
-                                    <h2 className="card-title">{mod.relay.name}</h2>
-                                    <p>details</p>
-                                    <h2 className="card-title">{mod.relay.id}</h2>
-                                    <div className="card-actions justify-end">
-                                        <a href={`/curator?relay_id=${mod.relay.id}`} className="text-indigo-400 hover:text-indigo-300">
-                                            Details<span className="sr-only">, {mod.relay.id}</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
+        <MyRelays myRelays={myRelays} moderatedRelays={moderatedRelays} publicRelays={publicRelays} />
     )
 }

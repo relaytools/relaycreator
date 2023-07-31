@@ -52,6 +52,7 @@ model Relay {
   details                String?     @db.Text
   domain                 String?     @db.VarChar(255)
   default_message_policy Boolean     @default(true)
+  listed_in_directory    Boolean     @default(false)
   ip                     String?     @db.VarChar(255)
   capacity               Int?
   port                   Int?

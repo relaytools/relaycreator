@@ -26,7 +26,7 @@ export default async function Curator({
 
     // get the relay from the param
     const { relay_id } = searchParams
-    if (relay_id == null) {
+    if (relay_id == null || me == null) {
         return (
             <>
                 relay not found
@@ -39,6 +39,7 @@ export default async function Curator({
             id: relay_id,
         },
         include: {
+            owner: true,
             moderators: {
                 include: { user: true },
             },
@@ -56,9 +57,18 @@ export default async function Curator({
             },
         }
     })
-    console.log(relay)
+
 
     if (relay == null) {
+        return (
+            <>
+                relay not found
+            </>
+        )
+    }
+
+    // check that user is owner or moderator of this relay
+    if (relay.owner.id != me.id && relay.moderators.filter((mod) => mod.user.pubkey == me.pubkey).length == 0) {
         return (
             <>
                 relay not found

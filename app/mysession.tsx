@@ -61,7 +61,7 @@ export default function ShowSession() {
                             </div>
 
                         </label>
-                        <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                        <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]">
                             <li className="border-b border-base-200"><SwitchTheme /></li>
                             <li><a href="/">Relays</a></li>
                             <li><a href="/invoices">Invoices</a></li>
