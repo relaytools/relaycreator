@@ -138,7 +138,9 @@ export default function PostsPage() {
                 return profiles[i].content.name;
             }
         }
-        return pubkey;
+
+        const pubkeySubstring = "[" + pubkey.substring(0, 6) + "...]"
+        return pubkeySubstring;
     }
 
     const lookupProfileImg = (pubkey: string) => {
