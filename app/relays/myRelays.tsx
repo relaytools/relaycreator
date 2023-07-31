@@ -81,10 +81,10 @@ export default function MyRelays(
 
                                             <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxHeight: "200px", overflow: "auto" }}>{mod.relay.details || ""}</p>
                                             <div className="card-actions justify-begin">
-                                                <a href={"https://mod.relay..vercel.app/mod.relay." + nip19.nrelayEncode("wss://" + mod.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                                                <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + mod.relay.name + ".nostr1.com")} className="btn btn-secondary">
                                                     open in relay explorer<span className="sr-only">, {mod.relay.id}</span>
                                                 </a>
-                                                <a href={"/posts?mod.relay." + nip19.nrelayEncode("wss://" + mod.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                                                <a href={"/posts?relay=" + nip19.nrelayEncode("wss://" + mod.relay.name + ".nostr1.com")} className="btn btn-secondary">
                                                     open in relay explorer (alpha)<span className="sr-only">, {mod.relay.id}</span>
                                                 </a>
 
