@@ -204,6 +204,43 @@ export default function PostsPage() {
         return localTime;
     }
 
+    const handleSubmitPost = async (e: any) => {
+        e.preventDefault();
+
+        const form = e.target;
+        const post = form.elements[0].value;
+        if (session && session.user) {
+            const connectHere = relayInit(nrelaydata)
+            connectHere.on('connect', () => {
+                console.log(`connected to ${nrelaydata}`)
+            })
+            connectHere.on('error', () => {
+                console.log(`failed to connect to ${nrelaydata}`)
+            })
+            await connectHere.connect()
+            let event = {
+                kind: 1,
+                pubkey: session.user.name,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [],
+                content: post
+            }
+            let signedEvent = await (window as any).nostr.signEvent(event)
+
+            console.log(signedEvent)
+
+            const result = await connectHere.publish((signedEvent as any))
+            console.log(result)
+            connectHere.close()
+            //clear the form
+            form.elements[0].value = "";
+        } else {
+            form.elements[0].value = "";
+            form.elements[0].placeholder = "not logged in"
+        }
+
+    }
+
     return (
         <div>
             <ul role="list" className="text-xs">
@@ -213,6 +250,12 @@ export default function PostsPage() {
                     </li>
                 ))}
             </ul>
+            <div className="flex items-center justify-center">
+                <form onSubmit={(e) => handleSubmitPost(e)} className="flex items-center" >
+                    <input type="text" key="post1" placeholder="say something" className="input input-bordered input-primary w-full" />
+                    <button className="btn btn-primary">Post</button>
+                </form>
+            </div>
             {sortPosts(false).map((post) => (
                 <div className={chatStartOrEnd(post)}
                     onClick={handleClick}
