@@ -65,7 +65,7 @@ export default function ShowSession() {
                             <li className="border-b border-base-200"><SwitchTheme /></li>
                             <li><a href="/">Relays</a></li>
                             <li><a href="/invoices">Invoices</a></li>
-                            <li className="border-b border-base-200"><a href="/signup">Sign-up</a></li>
+                            <li className="border-b border-base-200"><a href="/signup">Create Relay</a></li>
                             <li>
                                 <a onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer">
                                     Sign Out

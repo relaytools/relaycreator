@@ -137,6 +137,7 @@ export default function SignupPage() {
                                 <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={100} height={100} />
                             </div>
                         </div>
+                        <p>Enter a relay name to create a relay for 21k sats</p>
                         <form className="space-y-6" action="#" method="POST">
                             <div className="mt-2 flex rounded-md shadow-sm">
 
