@@ -52,8 +52,9 @@ export default async function ServerStatus(searchParams: Record<string, string>)
                                             <td>{order.paid_at ? new Date(order.paid_at).toLocaleString() : ""}</td>
                                             <td>{order.expires_at ? new Date(order.expires_at).toLocaleString() : ""}</td>
                                             <td>
-                                                <button className="btn btn-secondary">show</button>
-                                                <button className="btn btn-secondary">delete</button>
+                                                {order.expires_at && order.expires_at > new Date() &&
+                                                    <a className="btn btn-secondary" href={`/invoices?relayname=${order.relay.name}&pubkey=${pubkey}&order_id=${order.id}`}>show</a>
+                                                }
                                             </td>
                                         </tr>
                                     ))}

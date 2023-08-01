@@ -84,6 +84,9 @@ export default function PaymentStatus(
                                 <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={100} height={100} />
                             </div>
                         </div>
+
+                        <p className="col-span-3 flex justify-center">This relay name has been reserved for you!</p>
+                        <p className="col-span-3 flex justify-center">Invoice will expire in 24 hours</p>
                         <form className="space-y-6" action="#" method="POST">
                             <div className="mt-2 flex rounded-md shadow-sm">
 
@@ -132,6 +135,8 @@ export default function PaymentStatus(
                                     Copy ⚡ invoice to clipboard
                                 </button>
                             </div>
+                            <p className="col-span-3 flex justify-center">When payment is complete your relay will come online in just a few minutes!</p>
+                            <p className="col-span-3 flex justify-center">You can see your orders on the invoices menu</p>
 
                         </form>
                     </div>
