@@ -56,7 +56,10 @@ export default async function Relays() {
     const myRelays = await prisma.relay.findMany({
         where: {
             ownerId: me.id,
-            status: "running",
+            OR: [
+                { status: "running" },
+                { status: "provision" },
+            ]
         },
         include: {
             owner: true,
