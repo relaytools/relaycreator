@@ -3,42 +3,70 @@ import { useSession } from 'next-auth/react'
 import { signIn, signOut } from "next-auth/react"
 import Image from 'next/image';
 import SwitchTheme from './components/SwitchTheme';
+import { useState } from 'react';
 
-const doNip07Login = async () => {
-    // call to api to get a LoginToken
 
-    const tokenResponse = await fetch(`/api/auth/logintoken`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-    });
-
-    const tokenData = await tokenResponse.json()
-    const token = tokenData.token
-
-    let signThis = {
-        kind: 27235,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [],
-        content: token,
-    }
-
-    let useMe = await (window as any).nostr.signEvent(signThis)
-
-    signIn("credentials", {
-        kind: useMe.kind,
-        created_at: useMe.created_at,
-        content: useMe.content,
-        pubkey: useMe.pubkey,
-        sig: useMe.sig,
-        id: useMe.id,
-        // callbackUrl: "/signup?relayname=" + name
-    })
-}
 
 export default function ShowSession() {
+    const doNip07Login = async () => {
+        // call to api to get a LoginToken
+
+        const tokenResponse = await fetch(`/api/auth/logintoken`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const tokenData = await tokenResponse.json()
+        const token = tokenData.token
+
+        let signThis = {
+            kind: 27235,
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [],
+            content: token,
+        }
+
+        try {
+            let useMe = await (window as any).nostr.signEvent(signThis)
+            signIn("credentials", {
+                kind: useMe.kind,
+                created_at: useMe.created_at,
+                content: useMe.content,
+                pubkey: useMe.pubkey,
+                sig: useMe.sig,
+                id: useMe.id,
+                // callbackUrl: "/signup?relayname=" + name
+            })
+        } catch {
+            console.log("error signing event")
+            setShowLoginHelp(true)
+        }
+    }
+
     const { data: session, status } = useSession();
+    const [showLoginHelp, setShowLoginHelp] = useState(false);
+
     return (
         <div className="font-jetbrains navbar bg-base-100 border-b border-base-200 pb-12">
+            {showLoginHelp &&
+                <dialog id="my_modal_5" className="modal modal-bottom modal-open sm:modal-middle">
+                    <form method="dialog" className="modal-box">
+                        <h3 className="font-bold text-lg">To sign-in you need a NIP-07 extension</h3>
+                        <p className="py-4">for iOS: Nostore </p>
+                        <a className="link link-primary" href="https://apps.apple.com/us/app/nostore/id1666553677">Nostore</a>
+                        <p className="py-4">for Android: Kiwi Browser with nos2x</p>
+                        <a className="link link-primary" href="https://play.google.com/store/apps/details?id=com.kiwibrowser.browser&pli=1">Kiwi Browser</a>
+                        <p className="py-4">for Desktop: Nos2x</p>
+                        <a className="link link-primary" href="https://chrome.google.com/webstore/detail/nos2x/kpgefcfmnafjgpblomihpgmejjdanjjp">Nos2x</a>
+                        <p className="py-4">for Desktop: GetAlby</p>
+                        <a className="link link-primary" href="https://chrome.google.com/webstore/detail/alby-bitcoin-lightning-wa/iokeahhehimjnekafflcihljlcjccdbe">GetAlby</a>
+                        <div className="modal-action">
+                            {/* if there is a button in form, it will close the modal */}
+                            <button className="btn" onClick={() => setShowLoginHelp(false)}>Close</button>
+                        </div>
+                    </form>
+                </dialog>
+            }
             <div className="flex-1">
                 <a href="/" className="btn btn-ghost normal-case text-xl">relay creator</a>
             </div>
