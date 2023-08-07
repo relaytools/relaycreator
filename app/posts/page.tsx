@@ -258,7 +258,7 @@ export default function PostsPage() {
                 </form>
             </div>
             {sortPosts(false).map((post) => (
-                <div className={chatStartOrEnd(post)}
+                <div key={"post" + post.id} className={chatStartOrEnd(post)}
                     onClick={handleClick}
                     id={post.id}>
                     <div className="chat-image avatar">
