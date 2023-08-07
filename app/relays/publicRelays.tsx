@@ -51,7 +51,7 @@ export default function PublicRelays(
 
             <div className="mt-8">
                 {results.map((relay) => (
-                    <Relay relay={relay} showEdit={false} showSettings={false} />
+                    <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} />
                 ))}
             </div>
         </div>
