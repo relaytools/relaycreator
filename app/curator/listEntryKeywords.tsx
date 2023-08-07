@@ -62,11 +62,15 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
             newKeywords.push({ "keyword": keyword, "reason": reason, "id": j.id })
             setKeywords(newKeywords)
             setNewKeyword(false)
+            setKeyword("")
+            setReason("")
         }
     }
 
     const handleCancel = async () => {
         setNewKeyword(false)
+        setKeyword("")
+        setReason("")
     }
 
     const kinds = ["all messages must include this keyword (OR) another existing keyword", "all messages must include keyword (AND)"]

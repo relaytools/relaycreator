@@ -58,11 +58,15 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
             const j = await response.json()
             setNewPubkey(false)
             pubkeys.push({ "pubkey": pubkey, "reason": reason, "id": j.id })
+            setPubkey("")
+            setReason("")
         }
     }
 
     const handleCancel = async () => {
         setNewPubkey(false)
+        setPubkey("")
+        setReason("")
     }
 
     return (
