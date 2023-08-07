@@ -18,15 +18,15 @@ export default function MyRelays(
         if (showMyRelays) {
             return (
                 <div>
-                    <input className="join-item btn btn-primary btn-active" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
-                    <input className="join-item btn" onClick={() => setShowMyRelays(false)} type="radio" name="options" aria-label="Public Relays" />
+                    <input key="shomyrelays1" className="join-item btn btn-primary btn-active" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
+                    <input key="showpublicrelays1" className="join-item btn" onClick={() => setShowMyRelays(false)} type="radio" name="options" aria-label="Public Relays" />
                 </div>
             )
         } else {
             return (
                 <div>
-                    <input className="join-item btn" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
-                    <input className="join-item btn btn-primary btn-active" onClick={() => setShowMyRelays(false)} type="radio" name="options" aria-label="Public Relays" />
+                    <input key="myrelays1" className="join-item btn" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
+                    <input key="publicrelays1" className="join-item btn btn-primary btn-active" onClick={() => setShowMyRelays(false)} type="radio" name="options" aria-label="Public Relays" />
                 </div>
             )
         }
@@ -57,7 +57,7 @@ export default function MyRelays(
                             </div>
                             <div className="mt-8 flow-root">
                                 {props.myRelays.map((relay) => (
-                                    <Relay relay={relay} showSettings={true} showEdit={false} />
+                                    <Relay key={relay.id} relay={relay} showSettings={true} showEdit={false} />
                                 ))}
                             </div>
                             <div className="sm:flex sm:items-center">
@@ -70,7 +70,7 @@ export default function MyRelays(
                             </div>
                             <div className="mt-8 flow-root">
                                 {props.moderatedRelays.map((mod) => (
-                                    <div className="card image-full w-full bg-base-100 shadow-xl mb-4 z-[0]">
+                                    <div key={"modrelay" + mod.id} className="card image-full w-full bg-base-100 shadow-xl mb-4 z-[0]">
                                         <figure className="max-h-[400px] w-full">
                                             <img src={mod.relay.banner_image || "/green-check.png"} className="object-cover w-full" alt="mod.relay" />
                                         </figure>
