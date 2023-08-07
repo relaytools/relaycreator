@@ -30,7 +30,7 @@ export default function Relay(
     }
 
     return (
-        <div>
+        <div id={props.relay.id + "rootview"}>
             <div className="card image-full w-full bg-base-100 shadow-xl mb-4 z-[0]">
                 <figure className="max-h-[400px] w-full">
                     <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover w-full" alt="relay" />
@@ -74,7 +74,7 @@ export default function Relay(
                     <label className="label">
                         <span className="label-text">Relay Profile</span>
                     </label>
-                    <textarea className="textarea textarea-bordered h-24"
+                    <textarea id={props.relay.id + "textareaedit"} className="textarea textarea-bordered h-24"
                         placeholder="description"
                         value={profileDetail || ""}
                         onChange={(e) => setProfileDetails(e.target.value)}>
@@ -82,7 +82,7 @@ export default function Relay(
                     <label className="label">
                         <span className="label-text">Banner image url</span>
                     </label>
-                    <input type="text" placeholder="enter image url" className="input input-bordered w-full"
+                    <input id={props.relay.id + "urlid"} type="text" placeholder="enter image url" className="input input-bordered w-full"
                         onChange={(e) => setProfileBanner(e.target.value)}
                         value={profileBanner || ""} />
                     <div className="flex justify-end gap-2">
