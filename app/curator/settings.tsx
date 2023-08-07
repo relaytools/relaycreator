@@ -60,7 +60,7 @@ export default function Settings(props: React.PropsWithChildren<{
                 <DefaultPolicy relay_id={props.relay.id} allow={props.relay.default_message_policy} listed={props.relay.listed_in_directory}></DefaultPolicy>
             </div>
 
-            <div className="divider">Moderators</div>
+
             {
                 props.relay != null && props.relay.moderators != null &&
                 <Moderators moderators={props.relay.moderators} relay_id={props.relay.id}></Moderators>
