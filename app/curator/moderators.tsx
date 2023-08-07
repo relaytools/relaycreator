@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { nip19 } from "nostr-tools";
 
 export type User = {
     pubkey: string;
@@ -19,6 +19,42 @@ export default function Moderators(props: React.PropsWithChildren<{
     const [pubkey, setPubkey] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
     const [moderators, setModerators] = useState(props.moderators)
+    const [pubkeyError, setPubkeyError] = useState("")
+    const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("")
+
+    function isValidForm() {
+        console.log("calling isValid form" + pubkeyError)
+        if (pubkeyError == "✅") {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    function setAndValidatePubkey(pubkey: string) {
+        setPubkey(pubkey)
+        // use javascript regex to detect if length is 64 characters
+
+        // check for hex chars
+        const validHex = /^[0-9a-fA-F]{64}$/.test(pubkey)
+        const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey)
+        //console.log(pubkey.length)
+        //const isLong = pubkey.length == 64
+
+        // use javascript regex to detect if pubkey starts with npub
+        //const validNpub = /^npub[0-9a-zA-z]{64}$/.test(pubkey)
+
+        if (validHex) {
+            setPubkeyError("✅")
+            setPubkeyErrorDescription("")
+        } else if (validNpub) {
+            setPubkeyError("✅")
+            setPubkeyErrorDescription("")
+        } else {
+            setPubkeyError("❌")
+            setPubkeyErrorDescription("key must be valid hex or npub")
+        }
+    }
 
     const handleDelete = async (event: any) => {
         event.preventDefault();
@@ -41,24 +77,34 @@ export default function Moderators(props: React.PropsWithChildren<{
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
+        const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey)
+        let submitHex: any
+        if (validNpub) {
+            const decoded = nip19.decode(pubkey)
+            submitHex = decoded.data
+        } else {
+            submitHex = pubkey
+        }
         // call to API to add new keyword
         const response = await fetch(`/api/relay/${props.relay_id}/moderator`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "pubkey": pubkey })
+            body: JSON.stringify({ "pubkey": submitHex })
         });
 
         if (response.ok) {
             const j = await response.json()
             setNewPubkey(false)
             const newMods = moderators
-            newMods.push({ "id": j.id, "user": { "pubkey": pubkey } })
+            newMods.push({ "id": j.id, "user": { "pubkey": submitHex } })
             setModerators(newMods)
+            setPubkey("")
         }
     }
 
     const handleCancel = async () => {
         setNewPubkey(false)
+        setPubkey("")
     }
 
     return (
@@ -100,13 +146,25 @@ export default function Moderators(props: React.PropsWithChildren<{
                                                     id="newpubkey"
                                                     className="input input-bordered input-primary w-full max-w-xs"
                                                     placeholder="add pubkey"
+                                                    autoComplete="off"
                                                     value={pubkey}
-                                                    onChange={event => setPubkey(event.target.value)}
+                                                    onChange={event => setAndValidatePubkey(event.target.value)}
                                                 />
-                                                <button onClick={handleSubmit} className="btn btn-primary">Add</button>
+                                                <button disabled={!isValidForm()} onClick={handleSubmit} className="btn btn-primary">Add</button>
                                                 <button onClick={handleCancel} className="btn btn-primary">Cancel</button>
+                                                <button
+                                                    type="button"
+                                                    disabled
+                                                    className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold ">
+                                                    {pubkeyError}
+                                                </button>
                                             </form>
+
+                                            <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                                                {pubkeyErrorDescription}
+                                            </span>
                                         </td>
+
                                     </tr>
                                 }
                             </tbody>
