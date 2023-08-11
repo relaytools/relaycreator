@@ -1,5 +1,8 @@
 "use client"
 import { useState } from "react";
+import NDK from "@nostr-dev-kit/ndk";
+import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk"
+import { useSession } from "next-auth/react";
 
 type ListEntryPubkey = {
     pubkey: string;
@@ -13,10 +16,21 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
     relay_id: string;
 }>) {
 
+    const { data: session, status } = useSession();
+
+    // listr.lol only publishes to a specific set of relays right now
+    const ndk = new NDK({ explicitRelayUrls: ["wss://nos.lol", "wss://relay.damus.io", "wss://relay.nostr.band", "wss://nostr21.com"] });
+
     const [pubkey, setPubkey] = useState("");
     const [reason, setReason] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
     const [pubkeys, setPubkeys] = useState(props.pubkeys)
+
+    let ndkevents: Set<NDKEvent> = new Set();
+    const blankevents: String[] = []
+
+    const [events, setEvents] = useState(ndkevents)
+    const [listr, setListr] = useState(blankevents)
 
     let idkind = ""
     if (props.kind == "Allowed Pubkeys ✅") {
@@ -63,6 +77,120 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         }
     }
 
+    const setNewPubkeyHandler = async () => {
+        setNewPubkey(true)
+        if (session && session.user != null && session.user.name != null) {
+            ndk.connect()
+            const filter: NDKFilter = { kinds: [30000, 10000, 3], authors: [session.user.name] }
+            // Will return all found events
+            const events = await ndk.fetchEvents(filter);
+            console.log(events)
+            const listNames = getListNames(events)
+            setListr(listNames)
+            setEvents(events)
+        }
+    }
+
+    function getListNames(list: Set<NDKEvent>) {
+        let dtags: string[] = []
+        list.forEach((l) => {
+            if (l.kind == 10000) {
+                dtags.push("mute")
+            } else if (l.kind == 3) {
+                dtags.push("follows")
+            } else if (l.kind == 30000) {
+                const names = l.getMatchingTags("d")
+                dtags.push(names[0][1])
+            }
+        })
+        return dtags
+    }
+
+    function getPubkeysFromList(listName: string) {
+        let stringPubkeysFromList: string[] = []
+        events.forEach((n) => {
+            if (n.kind == 30000) {
+                const name = n.getMatchingTags("d")
+                if (name[0][1] == listName) {
+                    const pubkeysFromList = n.getMatchingTags("p")
+                    pubkeysFromList.forEach((pk) => {
+                        stringPubkeysFromList.push(pk[1])
+                    })
+                }
+            } else if (n.kind == 10000 && listName == "mute") {
+                const pubkeysFromList = n.getMatchingTags("p")
+                pubkeysFromList.forEach((pk) => {
+                    stringPubkeysFromList.push(pk[1])
+                })
+            } else if (n.kind == 3 && listName == "follows") {
+                const pubkeysFromList = n.getMatchingTags("p")
+                pubkeysFromList.forEach((pk) => {
+                    stringPubkeysFromList.push(pk[1])
+                })
+            }
+        })
+        console.log(stringPubkeysFromList)
+        return stringPubkeysFromList
+    }
+
+    function getPubkeyCount(listName: string) {
+        let count = 0
+        events.forEach((n) => {
+            if (n.kind == 30000) {
+                const name = n.getMatchingTags("d")
+                if (name[0][1] == listName) {
+                    const pubkeysFromList = n.getMatchingTags("p")
+                    count = pubkeysFromList.length
+                }
+            } else if (n.kind == 10000 && listName == "mute") {
+                const pubkeysFromList = n.getMatchingTags("p")
+                count = pubkeysFromList.length
+            } else if (n.kind == 3 && listName == "follows") {
+                const pubkeysFromList = n.getMatchingTags("p")
+                count = pubkeysFromList.length
+            }
+
+        })
+        return count
+    }
+
+    const handleAddList = async (e: any) => {
+        e.preventDefault();
+        const listName = e.currentTarget.id
+        const postThese = getPubkeysFromList(listName)
+        // de-dupe with current pubkeys
+        let newPubkeys: string[] = []
+        for (const pk of postThese) {
+            let found = false
+            for (const p of pubkeys) {
+                if (p.pubkey == pk) {
+                    found = true
+                }
+            }
+            if (!found) {
+                newPubkeys.push(pk)
+            }
+        }
+        // post to API, pubkeys with reason set to listname
+        const thisReason = "list:" + listName
+        const response = await fetch(`/api/relay/${props.relay_id}/${idkind}pubkeys`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "pubkeys": newPubkeys, "reason": thisReason })
+        });
+        if (response.ok) {
+            const j = await response.json()
+            console.log(j)
+            for (const pk of j.pubkeys) {
+                pubkeys.push({ "pubkey": pk.pubkey, "reason": thisReason, "id": pk.id })
+            }
+        }
+
+        setNewPubkey(false)
+        setPubkey("")
+        setReason("")
+    }
+
     const handleCancel = async () => {
         setNewPubkey(false)
         setPubkey("")
@@ -103,7 +231,6 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
                                 ))}
 
                                 {newpubkey &&
-
                                     <tr>
                                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0">
                                             <form className="space-y-6" action="#" method="POST">
@@ -131,6 +258,14 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
                                         </td>
                                     </tr>
                                 }
+                                {newpubkey && listr.map((l, i) => (
+                                    <tr key={"tr" + l + i}>
+                                        <td>
+                                            <button id={l.toString()} onClick={(e) => handleAddList(e)} className="btn btn-secondary">Add from list: {l} ({getPubkeyCount(l.toString())})</button>
+                                        </td>
+                                    </tr>
+                                ))}
+
                             </tbody>
                         </table>
                     </div>
@@ -140,7 +275,7 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
             {!newpubkey &&
                 <div className="">
                     <button
-                        onClick={() => setNewPubkey(true)}
+                        onClick={() => setNewPubkeyHandler()}
                         type="button"
                         className="btn btn-primary"
                     >
