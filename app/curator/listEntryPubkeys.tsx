@@ -2,6 +2,7 @@
 import { useState } from "react";
 import NDK from "@nostr-dev-kit/ndk";
 import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk"
+import { Kind } from "nostr-tools"
 import { useSession } from "next-auth/react";
 
 type ListEntryPubkey = {
@@ -81,7 +82,10 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         setNewPubkey(true)
         if (session && session.user != null && session.user.name != null) {
             ndk.connect()
-            const filter: NDKFilter = { kinds: [30000, 10000, 3], authors: [session.user.name] }
+
+            const kind30000: Kind = 30000 as Kind;
+            const kind10000: Kind = 10000 as Kind;
+            const filter: NDKFilter = { kinds: [kind30000, kind10000, 3], authors: [session.user.name] }
             // Will return all found events
             const events = await ndk.fetchEvents(filter);
             console.log(events)
