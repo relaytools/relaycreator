@@ -4,8 +4,7 @@ import { signIn, signOut } from "next-auth/react"
 import Image from 'next/image';
 import SwitchTheme from './components/SwitchTheme';
 import { useState } from 'react';
-
-
+import LogoComponent from './components/logoComponent';
 
 export default function ShowSession() {
     const doNip07Login = async () => {
@@ -68,7 +67,9 @@ export default function ShowSession() {
                 </dialog>
             }
             <div className="flex-1">
-                <a href="/" className="btn btn-ghost normal-case text-xl">relay creator</a>
+                <span className="w-12">
+                    <LogoComponent /></span>
+                <a href="/" className="btn btn-ghost normal-case text-xl">relay.tools</a>
             </div>
 
             <div className="flex-none">
@@ -77,9 +78,8 @@ export default function ShowSession() {
                         onClick={doNip07Login}
                         className="btn btn-ghost ml-2"
                     >
-                        <span className="mr-2">nip-07</span>
+                        <span className="mr-2">Sign-in</span>
                         <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={30} height={30} />
-                        <span className="ml-2">Sign In</span>
                     </button>
                 ) : (
                     <div className="dropdown dropdown-end">
