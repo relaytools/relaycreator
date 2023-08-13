@@ -37,7 +37,7 @@ export default function PublicRelays(
 
             <div className="join">
 
-                <input className="join-item btn" type="radio" name="options" aria-label="Public Relays" />
+                <input className="join-item btn btn-primary" type="radio" name="options" aria-label="Public Relays" />
 
                 <div>
 
