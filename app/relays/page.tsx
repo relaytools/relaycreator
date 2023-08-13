@@ -1,10 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
-import { nip19 } from 'nostr-tools'
-import Relay from "../components/relay"
 import PublicRelays from "./publicRelays"
 import MyRelays from "./myRelays"
+import CreateRelay from "./createRelay"
 
 export default async function Relays() {
     const session = await getServerSession(authOptions)
@@ -36,7 +35,12 @@ export default async function Relays() {
 
     if (!session || !(session as any).user.name) {
         return (
-            <PublicRelays relays={publicRelays} />
+            <div>
+                <CreateRelay />
+
+                <PublicRelays relays={publicRelays} />
+
+            </div>
         )
     }
 
@@ -109,7 +113,16 @@ export default async function Relays() {
         }
     })
 
+    let showSignup = false
+    if (myRelays.length == 0 && moderatedRelays.length == 0) {
+        showSignup = true
+    }
+
+
     return (
-        <MyRelays myRelays={myRelays} moderatedRelays={moderatedRelays} publicRelays={publicRelays} />
+        <div>
+            {showSignup && <CreateRelay />}
+            <MyRelays myRelays={myRelays} moderatedRelays={moderatedRelays} publicRelays={publicRelays} />
+        </div>
     )
 }

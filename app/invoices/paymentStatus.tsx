@@ -4,6 +4,9 @@ import React from 'react'
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import Bolt11Invoice from './invoice'
+import LogoComponent from '../components/logoComponent';
+import TextStringWaitingForPayment from '../components/textStringWaitingForPayment';
+import { IoLogoGithub } from 'react-icons/io5';
 
 // two flows here:
 // 1. user is not logged in, so we just need their nostr pubkey (by paste or by extension)
@@ -73,76 +76,41 @@ export default function PaymentStatus(
 
     return (
 
-        <div>
-            <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
-
-                <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-
-                    <div className="py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                        <div className="mt-6 grid grid-cols-3 gap-3">
-                            <div className="col-span-3 flex justify-center">
-                                <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={100} height={100} />
+        <div className="min-h-screen font-jetbrains">
+            <div className="">
+                <div className="flex items-center justify-center h-screen">
+                    <div className=" ">
+                        <div className="relative pb-10">
+                            <div className="flex justify-center items-center text-center">
+                                <div className="text-2xl text-left">Invoice</div>
+                                <div className="w-20">
+                                    <LogoComponent />
+                                </div>
+                                <div className="text-2xl text-right">21k sats</div>
                             </div>
                         </div>
-
-                        <p className="col-span-3 flex justify-center">This relay name has been reserved for you!</p>
-                        <p className="col-span-3 flex justify-center">Invoice will expire in 24 hours</p>
-                        <form className="space-y-6" action="#" method="POST">
-                            <div className="mt-2 flex rounded-md shadow-sm">
-
-
-                                <div>
-                                    <label htmlFor="pubkey" className="block text-sm font-medium leading-6 text-gray-900">
-                                    </label>
-                                    <div className="relative flex flex-grow items-stretch focus-within:z-10">
-                                        <label htmlFor="relayname" className="block text-sm font-medium leading-6 text-gray-900">
-                                        </label>
-                                        <div className="mt-2 flex rounded-md shadow-sm">
-                                            <div className="relative flex flex-grow items-stretch focus-within:z-10">
-                                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    name="relayname"
-                                                    id="relayname"
-                                                    className="input input-bordered input-primary w-full max-w-xs"
-                                                    readOnly={true}
-                                                    value={relayname}
-                                                />
-                                            </div>
-                                            <button
-                                                type="button"
-                                                className="btn btn-outline btn-primary">
-                                                .nostr1.com
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-
-                            </div>
-
-                            <div className="col-span-3 flex justify-center">
-                                <Bolt11Invoice payment_request={props.payment_request} />
-                            </div>
-                            <div>
-                                <button
-                                    onClick={(e) => copyToClipboard(e, props.payment_request)}
-                                    type="submit"
-                                    className="flex w-full justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300"
-                                >
-                                    Copy ⚡ invoice to clipboard
-                                </button>
-                            </div>
-                            <p className="col-span-3 flex justify-center">When payment is complete your relay will come online in just a few minutes!</p>
-                            <p className="col-span-3 flex justify-center">You can see your orders on the invoices menu</p>
-
-                        </form>
+                        <div className="text-2xl text-center pb-4">New Relay</div>
+                        <div className="text-2xl text-center border rounded-r-md rounded-l-md border-gray-300 px-3 pt-5 pb-5">{relayname}.nostr1.com</div>
+                        <div className="col-span-3 flex justify-center">
+                            <Bolt11Invoice payment_request={props.payment_request} />
+                        </div>
+                        <div>
+                            <button
+                                onClick={(e) => copyToClipboard(e, props.payment_request)}
+                                type="submit"
+                                className="flex w-full justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300"
+                            >
+                                Copy ⚡ invoice to clipboard
+                            </button>
+                        </div>
+                        <TextStringWaitingForPayment />
+                        <div>
+                            <div>relay.tools 2023 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
+                        </div>
                     </div>
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
 
     )
 

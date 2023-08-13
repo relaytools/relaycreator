@@ -29,23 +29,12 @@ export default function PublicRelays(
 
     return (
         <div className="flow-root mt-8 mb-8 px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-center">
-                <a href={`/signup`} className="btn btn-primary">
-                    Create Relay
-                </a>
-            </div>
-
             <div className="join">
-
                 <input className="join-item btn btn-primary" type="radio" name="options" aria-label="Public Relays" />
-
                 <div>
-
                     <div>
                         <input className="input input-bordered join-item" placeholder="Search" onChange={(e) => handleSearch(e)} />
-
                     </div>
-
                 </div>
             </div>
 
