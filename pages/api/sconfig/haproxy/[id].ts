@@ -156,7 +156,7 @@ frontend unsecured
 	redirect 		prefix https://${usethisdomain} code 301 
 
 frontend secured
-	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
+	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName} crt /etc/haproxy/certs/relay.tools.pem
 	mode			http
 	timeout			client   3600s
 	backlog			4096

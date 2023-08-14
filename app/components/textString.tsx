@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 
 const TextString: React.FC = () => {
-    const items = ['Spooling up computer workers...', 'Wireframing NIP-420...', 'Forming Essential Gigabytes...', 'Summoning Curation Daemon... ', 'Force Deleting Twitter...', 'Emailing Grandma...', 'Writing Cringe Loading Screen Text...'];
+    const items = ['Spooling up computer workers...', 'Wireframing NIP-420...', 'Forming Essential Gigabytes...', 'Summoning Curation Daemon... ', 'Force Deleting Twitter...', 'Emailing Grandma\'s Npub...', 'Writing Cringe Loading Screen Text...'];
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
