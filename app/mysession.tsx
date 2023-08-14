@@ -66,8 +66,6 @@ export default function ShowSession() {
                 </dialog>
             }
             <div className="flex-1">
-                <span className="w-12">
-                    <LogoComponent /></span>
                 <a href="/" className="btn btn-ghost normal-case text-xl">relay.tools</a>
             </div>
 
