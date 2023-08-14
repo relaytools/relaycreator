@@ -116,9 +116,6 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                 <div className="flex items-center justify-center h-screen">
                     <div className=" ">
                         <div>
-                            <label htmlFor="" className="block text-sm font-medium leading-6 text-gray-900">
-
-                            </label>
                             <div className="mt-2 flex rounded-md shadow-sm">
                                 <input
                                     type="text"
@@ -130,7 +127,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                     value={name}
                                     onChange={event => setRelayName(event.target.value)}
                                 />
-                                <span className="inline-flex items-center  border border-l-0 border-gray-300 px-3 text-gray-500 sm:text-sm">
+                                <span className="inline-flex items-center  border border-l-0 border-gray-300 px-3 sm:text-sm">
                                     .nostr1.com
                                 </span>
                                 <button className="btn btn-primary inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 sm:text-sm"
