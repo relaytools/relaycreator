@@ -1,11 +1,9 @@
 "use client"
-import React, { useState, useEffect } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 
 export default function LogoComponent() {
 
-    let colors = ['#444', '#555', '#666', '#777', '#888'];
-    const [currentColorIndex, setCurrentColorIndex] = useState(0);
+    const colors = ['#444', '#555', '#666', '#777', '#888'];
 
     const paths = [
         'M 37.334763 48.052872 L 127.456238 138.085022 L 169.97142 95.569839 L 213.469101 139.067535 L 225.973557 126.384422 L 170.953918 71.454086 L 131.386215 111.379059 L 52.876026 32.690247 L 73.954987 11.343338 C 73.954987 11.343338 31.798319 26.824554 10.896749 74.490891 Z',
@@ -48,7 +46,7 @@ export default function LogoComponent() {
                     key={`path-${index + 1}`}
                     id={`Path-${index + 1}`}
                     fill="none"
-                    stroke={colors[(currentColorIndex + index) % colors.length]}
+                    stroke={colors[(index) % colors.length]}
                     strokeWidth="2"
                     d={path}
                     style={pathAnimation}
