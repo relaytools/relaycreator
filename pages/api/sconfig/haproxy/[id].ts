@@ -153,7 +153,7 @@ frontend unsecured
 	bind 0.0.0.0:80 name http
 	mode 		        http
 	timeout 		client 86400000
-	redirect 		prefix https://${usethisdomain} code 301 
+	redirect 		prefix https://relay.tools code 301 
 
 frontend secured
 	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName} crt /etc/haproxy/certs/relay.tools.pem
