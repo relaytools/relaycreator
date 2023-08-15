@@ -5,6 +5,7 @@ import { IoArrowForwardOutline, IoLogoGithub } from 'react-icons/io5';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import NoSSRWrapper from "../components/noSSRWrapper";
 
 export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();
@@ -144,7 +145,9 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                             {nameErrorDescription}
                         </span>
                         <div className="p-6">
-                            <LogoComponent />
+                            <NoSSRWrapper>
+                                <LogoComponent />
+                            </NoSSRWrapper>
                         </div>
                         <TextString />
                         <div>
