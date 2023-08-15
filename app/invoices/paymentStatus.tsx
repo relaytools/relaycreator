@@ -7,6 +7,7 @@ import Bolt11Invoice from './invoice'
 import LogoComponent from '../components/logoComponent';
 import TextStringWaitingForPayment from '../components/textStringWaitingForPayment';
 import { IoLogoGithub } from 'react-icons/io5';
+import NoSSRWrapper from '../components/noSSRWrapper'
 
 // two flows here:
 // 1. user is not logged in, so we just need their nostr pubkey (by paste or by extension)
@@ -84,7 +85,9 @@ export default function PaymentStatus(
                             <div className="flex justify-center items-center text-center">
                                 <div className="text-2xl text-left">Invoice</div>
                                 <div className="w-20">
-                                    <LogoComponent />
+                                    <NoSSRWrapper>
+                                        <LogoComponent />
+                                    </NoSSRWrapper>
                                 </div>
                                 <div className="text-2xl text-right">21k sats</div>
                             </div>
