@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
-import LNBits from 'lnbits'
 import PaymentStatus from "./paymentStatus"
 import PaymentSuccess from "./paymentSuccess"
 import prisma from '../../lib/prisma'
@@ -45,7 +44,7 @@ export default async function ServerStatus(searchParams: Record<string, string>)
 
                                 <tbody>
                                     {orders.map((order) => (
-                                        <tr>
+                                        <tr key={order.id + "rowkey"}>
                                             <td>{order.id}</td>
                                             <td>{order.relay.name}</td>
                                             <td>{order.paid ? "paid" : "un-paid"}</td>
