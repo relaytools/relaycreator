@@ -34,7 +34,7 @@ export default async function handle(req: any, res: any) {
         for (const pk of pubkeys) {
             const newp = await prisma.listEntryPubkey.create({
                 data: {
-                    AllowListId: block_list.id,
+                    BlockListId: block_list.id,
                     pubkey: pk,
                     reason: reason,
                 }

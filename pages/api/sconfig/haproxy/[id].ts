@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../../auth/[...nextauth]"
 import prisma from '../../../../lib/prisma'
+import { use } from "react"
 
 // GET /api/sconfig/haproxy/:id
 // Download config file for haproxy for this server 
@@ -92,10 +93,15 @@ export default async function handle(req: any, res: any) {
 	// each domain
 	fetchDomain.forEach((element, counter) => {
 		haproxy_subdomains_cfg = haproxy_subdomains_cfg + `
-		acl ${element.name} hdr(host) -i ${element.name}.${element.domain}
-		use_backend ${element.name} if ${element.name}
+		acl ${element.name + "_root"} path_beg -i /
+		acl ${element.name} hdr(Host) -i ${element.name}.${element.domain}
+		acl ${element.name + "_nostrjson"} req.hdr(Accept) -i application/nostr+json
+		#acl ${element.name + "_static1"} path_beg -i /_next/
+		#acl ${element.name + "_static2"} path_beg -i /fonts/
+		#acl ${element.name + "_static3"} path_beg -i /api/auth/session
 		use_backend ${element.name} if host_ws ${element.name}
 		use_backend ${element.name} if hdr_connection_upgrade hdr_upgrade_websocket ${element.name} 
+		http-request set-path /api/relay/${element.id}/nostrjson if ${element.name} ${element.name + "_root"} ${element.name + "_nostrjson"}
 		`
 
 		haproxy_backends_cfg = haproxy_backends_cfg + `
@@ -157,6 +163,7 @@ frontend unsecured
 
 frontend secured
 	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName} crt /etc/haproxy/certs/relay.tools.pem
+
 	mode			http
 	timeout			client   3600s
 	backlog			4096

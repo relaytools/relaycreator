@@ -3,7 +3,6 @@ import { useSession } from 'next-auth/react'
 import { signIn, signOut } from "next-auth/react"
 import Image from 'next/image';
 import { useState } from 'react';
-import LogoComponent from './components/logoComponent';
 
 export default function ShowSession() {
     const doNip07Login = async () => {
@@ -76,13 +75,13 @@ export default function ShowSession() {
                         className="btn btn-ghost ml-2"
                     >
                         <span className="mr-2">Sign-in</span>
-                        <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={30} height={30} />
+                        <Image src="/nostrlogo1.png" alt="nip07" width={30} height={30} />
                     </button>
                 ) : (
                     <div className="dropdown dropdown-end">
                         <label tabIndex={0} className="btn cursor-pointer mask mask-squircle">
                             <div className="w-10 rounded-full">
-                                <Image src="nostr_logo_prpl_wht_rnd.svg" alt="nip07" width={100} height={100} />
+                                <Image src="/nostrlogo1.png" alt="nip07" width={100} height={100} />
                             </div>
 
                         </label>

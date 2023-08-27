@@ -5,32 +5,10 @@ import EnableAllowList from "./enableAllowList"
 import EnableBlockList from "./enableBlockList"
 import DefaultPolicy from "./defaultPolicy"
 import Moderators from "./moderators"
-import { Prisma } from "@prisma/client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Relay from "../components/relay"
-
-const relayWithEverything = Prisma.validator<Prisma.RelayArgs>()({
-    include: {
-        moderators: {
-            include: { user: true },
-        },
-        block_list: {
-            include: {
-                list_keywords: true,
-                list_pubkeys: true,
-            },
-        },
-        allow_list: {
-            include: {
-                list_keywords: true,
-                list_pubkeys: true,
-            },
-        },
-    }
-})
-
-type RelayWithEverything = Prisma.RelayGetPayload<typeof relayWithEverything>
+import { RelayWithEverything } from "../components/relayWithEverything"
 
 export default function Settings(props: React.PropsWithChildren<{
     relay: RelayWithEverything;
