@@ -29,6 +29,10 @@ export async function middleware(req: NextRequest) {
     if (PUBLIC_FILE.test(url.pathname) || url.pathname.includes('_next') || url.pathname.includes('/api/')) return;
 
     const host = req.headers.get('host');
+
+    // Skip root domains
+    if (host == "relay.tools" || host == "nostr1.com") return;
+
     const subdomain = getValidSubdomain(host);
     if (subdomain) {
         // Subdomain available, rewriting
