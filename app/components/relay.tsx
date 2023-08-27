@@ -29,6 +29,8 @@ export default function Relay(
         setEdited(true)
     }
 
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
+
     return (
         <div id={props.relay.id + "rootview"}>
             <div className="card image-full w-full bg-base-100 shadow-xl mb-4 z-[0]">
@@ -45,7 +47,7 @@ export default function Relay(
                         <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
                             open in relay explorer<span className="sr-only">, {props.relay.id}</span>
                         </a>
-                        <a href={"/posts?relay=" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                        <a href={rootDomain + "/posts?relay=" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
 

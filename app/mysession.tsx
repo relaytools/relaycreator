@@ -43,6 +43,9 @@ export default function ShowSession() {
     const { data: session, status } = useSession();
     const [showLoginHelp, setShowLoginHelp] = useState(false);
 
+    // using absolute urls so that we can serve subdomain landing pages
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
+
     return (
         <div className="font-jetbrains navbar bg-base-100 border-b border-base-200 pb-4">
             {showLoginHelp &&
@@ -65,7 +68,7 @@ export default function ShowSession() {
                 </dialog>
             }
             <div className="flex-1">
-                <a href="/" className="btn btn-ghost normal-case text-xl">relay.tools</a>
+                <a href={rootDomain + "/"} className="btn btn-ghost normal-case text-xl">relay.tools</a>
             </div>
 
             <div className="flex-none">
@@ -86,9 +89,9 @@ export default function ShowSession() {
 
                         </label>
                         <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]">
-                            <li><a href="/">Relays</a></li>
-                            <li><a href="/invoices">Invoices</a></li>
-                            <li className="border-b border-base-200"><a href="/signup">Create Relay</a></li>
+                            <li><a href={rootDomain + "/"}>Relays</a></li>
+                            <li><a href={rootDomain + "/invoices"}>Invoices</a></li>
+                            <li className="border-b border-base-200"><a href={rootDomain + "/signup"}>Create Relay</a></li>
                             <li>
                                 <a onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer">
                                     Sign Out
