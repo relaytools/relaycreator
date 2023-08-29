@@ -147,16 +147,16 @@ relay {
 
     numThreads {
         # Ingester threads: route incoming requests, validate events/sigs (restart required)
-        ingester = 21 
+        ingester = 3
 
         # reqWorker threads: Handle initial DB scan for events (restart required)
-        reqWorker = 21 
+        reqWorker = 3
 
         # reqMonitor threads: Handle filtering of new events (restart required)
-        reqMonitor = 21 
+        reqMonitor = 3
 
-        # yesstr threads: Experimental yesstr protocol (restart required)
-        yesstr = 1
+        # negentropy threads: Handle negentropy protocol messages (restart required)
+        negentropy = 2
     }
 }
 
