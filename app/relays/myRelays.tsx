@@ -57,7 +57,7 @@ export default function MyRelays(
                             </div>
                             <div className="mt-8 flow-root">
                                 {props.myRelays.map((relay) => (
-                                    <Relay key={relay.id} relay={relay} showSettings={true} showEdit={false} />
+                                    <Relay key={relay.id} relay={relay} showSettings={true} showEdit={false} showDetail={false} showExplorer={false} />
                                 ))}
                             </div>
                             <div className="sm:flex sm:items-center">

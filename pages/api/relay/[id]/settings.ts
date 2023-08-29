@@ -10,16 +10,17 @@ export default async function handle(req: any, res: any) {
     }
 
     if (req.method == "POST") {
-        const { default_message_policy } = req.body;
         const update = await prisma.relay.update({
             where: {
                 id: isMyRelay.id,
             },
             data: {
-                default_message_policy: default_message_policy,
+                default_message_policy: req.body.default_message_policy,
                 listed_in_directory: req.body.listed_in_directory,
                 details: req.body.details,
                 banner_image: req.body.banner_image,
+                payment_required: req.body.payment_required,
+                payment_amount: parseInt(req.body.payment_amount),
             }
         })
     } else {

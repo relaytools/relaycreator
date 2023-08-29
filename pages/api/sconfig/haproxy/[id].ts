@@ -9,10 +9,8 @@ export default async function handle(req: any, res: any) {
 
 	// disable login for now (no sensitive info here anyway)
 	const session = await getServerSession(req, res, authOptions)
-	if (session) {
-		// Signed in
-		console.log("Session", JSON.stringify(session, null, 2))
-	} else {
+
+	if (!session) {
 		// Not Signed in
 		res.status(404).json({ "error": "not signed in" })
 		res.end()
@@ -78,8 +76,6 @@ export default async function handle(req: any, res: any) {
 		},
 	})
 
-	console.log(fetchDomain)
-
 	// top level
 	let haproxy_subdomains_cfg = `
 		acl host_ws hdr_beg(Host) -i ws.
@@ -96,9 +92,6 @@ export default async function handle(req: any, res: any) {
 		acl ${element.name + "_root"} path_beg -i /
 		acl ${element.name} hdr(Host) -i ${element.name}.${element.domain}
 		acl ${element.name + "_nostrjson"} req.hdr(Accept) -i application/nostr+json
-		#acl ${element.name + "_static1"} path_beg -i /_next/
-		#acl ${element.name + "_static2"} path_beg -i /fonts/
-		#acl ${element.name + "_static3"} path_beg -i /api/auth/session
 		use_backend ${element.name} if host_ws ${element.name}
 		use_backend ${element.name} if hdr_connection_upgrade hdr_upgrade_websocket ${element.name} 
 		http-request set-path /api/relay/${element.id}/nostrjson if ${element.name} ${element.name + "_root"} ${element.name + "_nostrjson"}

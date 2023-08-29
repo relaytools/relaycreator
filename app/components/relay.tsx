@@ -8,6 +8,8 @@ export default function Relay(
         relay: RelayWithEverything;
         showEdit: boolean;
         showSettings: boolean;
+        showDetail: boolean;
+        showExplorer: boolean;
     }>) {
 
     const [profileDetail, setProfileDetails] = useState(props.relay.details)
@@ -43,15 +45,24 @@ export default function Relay(
                     <p>{"wss://" + props.relay.name + ".nostr1.com"}</p>
 
                     <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxHeight: "200px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
-                    <div className="card-actions justify-begin">
-                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
-                            open in relay explorer<span className="sr-only">, {props.relay.id}</span>
-                        </a>
-                        <a href={rootDomain + "/posts?relay=" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
-                            open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
-                        </a>
+                    {props.showExplorer &&
+                        <div className="card-actions justify-begin">
+                            <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                                open in relay explorer<span className="sr-only">, {props.relay.id}</span>
+                            </a>
+                            <a href={rootDomain + "/posts?relay=" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                                open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
+                            </a>
 
-                    </div>
+                        </div>
+                    }
+                    {props.showDetail &&
+                        <div className="card-actions justify-end">
+                            <a href={"https://" + props.relay.name + "." + props.relay.domain} className="btn btn-primary">
+                                show details<span className="sr-only">, {props.relay.id}</span>
+                            </a>
+                        </div>
+                    }
                     {props.showSettings &&
                         <div className="card-actions justify-end">
                             <a href={`/curator?relay_id=${props.relay.id}`} className="btn btn-primary">
@@ -63,7 +74,7 @@ export default function Relay(
                         <div className="card-actions justify-end">
                             <button className="btn btn-primary"
                                 onClick={() => setEditing(true)}>
-                                Edit
+                                edit details
                             </button>
                         </div>
                     }

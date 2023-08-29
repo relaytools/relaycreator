@@ -3,7 +3,7 @@ import Image from 'next/image';
 import React from 'react'
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import Bolt11Invoice from './invoice'
+import Bolt11Invoice from '../components/invoice'
 import LogoComponent from '../components/logoComponent';
 import TextStringWaitingForPayment from '../components/textStringWaitingForPayment';
 import { IoLogoGithub } from 'react-icons/io5';
