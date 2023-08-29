@@ -88,7 +88,7 @@ relay {
         name = "${thisRelay.name}"
 
         # NIP-11: Detailed information about relay, free-form
-        description = "${thisRelay.details}"
+        description = "managed by relay.tools"
 
         # NIP-11: Administrative nostr pubkey, for contact purposes
         pubkey = "${thisRelay.owner.pubkey}"
