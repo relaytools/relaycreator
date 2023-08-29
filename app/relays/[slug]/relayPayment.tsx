@@ -37,6 +37,9 @@ export default function RelayPayment(props: React.PropsWithChildren<{
     }
 
     function isValidForm() {
+        if (pubkey == "") {
+            return false
+        }
         if (pubkeyError == "✅") {
             return true
         } else {
