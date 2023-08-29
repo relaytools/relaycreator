@@ -20,7 +20,7 @@ export default function Relay(
     const handleSubmitEdit = async (event: any) => {
         event.preventDefault();
         // call to API to save relay details 
-        const profileDetailsObj = { details: profileDetail, banner_image: profileBanner };
+        const profileDetailsObj = { details: profileDetail, banner_image: profileBanner, payment_amount: props.relay.payment_amount };
         const profileDetailsJson = JSON.stringify(profileDetailsObj);
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
