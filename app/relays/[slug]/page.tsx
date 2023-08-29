@@ -2,9 +2,17 @@ import prisma from '../../../lib/prisma'
 import Relay from '../../components/relay'
 import Terms from '../../components/terms'
 import RelayDetail from '../../components/relayDetail'
+import RelayPayment from './relayPayment'
 
-export default async function Relays({ params }: { params: { slug: string } }) {
+export default async function Relays({
+    params,
+    searchParams
+}: {
+    params: { slug: string }
+    searchParams: { [key: string]: string | undefined }
+}) {
     const { slug } = params;
+    const { successpayment } = searchParams;
 
     const relay = await prisma.relay.findFirst({
         where: {
@@ -40,7 +48,9 @@ export default async function Relays({ params }: { params: { slug: string } }) {
 
     return (
         <div>
-            <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} />
+            <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} showDetail={false} showExplorer={true} />
+            {successpayment && <div>you've paid for this relay! Welcome.</div>}
+            {relay.payment_required && !successpayment && <RelayPayment relay={relay} />}
             <RelayDetail relay={relay} />
             <Terms />
         </div>

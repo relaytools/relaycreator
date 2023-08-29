@@ -30,12 +30,12 @@ export default function Settings(props: React.PropsWithChildren<{
 
     return (
         <div className="">
-            <Relay relay={props.relay} showEdit={true} showSettings={false} />
+            <Relay relay={props.relay} showEdit={true} showSettings={false} showDetail={true} showExplorer={true} />
 
             <div className="badge badge-neutral mt-4">status: {props.relay.status}</div>
             <div className="divider mt-4">General Settings</div>
             <div className="mt-4">
-                <DefaultPolicy relay_id={props.relay.id} allow={props.relay.default_message_policy} listed={props.relay.listed_in_directory}></DefaultPolicy>
+                <DefaultPolicy relay_id={props.relay.id} pay={props.relay.payment_required} amount={props.relay.payment_amount.toString()} allow={props.relay.default_message_policy} listed={props.relay.listed_in_directory}></DefaultPolicy>
             </div>
 
 

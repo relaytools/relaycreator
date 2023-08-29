@@ -5,7 +5,7 @@ import './LightningScreen.css';
 
 export default function ZapAnimation(
     props: React.PropsWithChildren<{
-        relay_id: string;
+        redirect_to: string;
     }>) {
 
     const [success, setSuccess] = useState(false);
@@ -15,7 +15,8 @@ export default function ZapAnimation(
         // Simulate payment success after 3 seconds
         const timeoutId = setTimeout(() => {
             setSuccess(true);
-            router.push(`/curator?relay_id=${props.relay_id}`)
+            //router.push(`/curator?relay_id=${props.relay_id}`)
+            router.push(props.redirect_to)
         }, 3000);
         return () => clearTimeout(timeoutId);
     }, []);

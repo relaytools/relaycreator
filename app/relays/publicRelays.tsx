@@ -1,6 +1,4 @@
-
 "use client"
-import { nip19 } from "nostr-tools"
 import { RelayWithEverything } from "../components/relayWithEverything"
 import { useState } from "react"
 import Relay from "../components/relay"
@@ -40,7 +38,7 @@ export default function PublicRelays(
 
             <div className="mt-8">
                 {results.map((relay) => (
-                    <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} />
+                    <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} />
                 ))}
             </div>
         </div>

@@ -39,26 +39,43 @@ model Order {
   @@index([userId])
 }
 
+model ClientOrder {
+  id           String    @id @default(cuid())
+  relay        Relay     @relation(fields: [relayId], references: [id])
+  relayId      String
+  pubkey       String    @db.VarChar(255)
+  paid         Boolean   @default(false)
+  payment_hash String    @db.VarChar(64)
+  lnurl        String    @db.VarChar(1024)
+  expires_at   DateTime?
+  paid_at      DateTime?
+
+  @@index([relayId])
+}
+
 model Relay {
-  id                     String      @id @default(cuid())
-  name                   String      @db.VarChar(255)
+  id                     String        @id @default(cuid())
+  name                   String        @db.VarChar(255)
   ownerId                String
-  status                 String?     @db.VarChar(255)
-  owner                  User        @relation(fields: [ownerId], references: [id])
+  status                 String?       @db.VarChar(255)
+  owner                  User          @relation(fields: [ownerId], references: [id])
   moderators             Moderator[]
   Order                  Order[]
+  ClientOrder            ClientOrder[]
   allow_list             AllowList?
   block_list             BlockList?
-  details                String?     @db.Text
-  domain                 String?     @db.VarChar(255)
-  default_message_policy Boolean     @default(true)
-  listed_in_directory    Boolean     @default(false)
-  ip                     String?     @db.VarChar(255)
+  details                String?       @db.Text
+  domain                 String?       @db.VarChar(255)
+  default_message_policy Boolean       @default(true)
+  listed_in_directory    Boolean       @default(false)
+  payment_required       Boolean       @default(false)
+  payment_amount         Int           @default(21)
+  ip                     String?       @db.VarChar(255)
   capacity               Int?
   port                   Int?
   created_at             DateTime?
-  profile_image          String?     @db.VarChar(2048)
-  banner_image           String?     @db.VarChar(2048)
+  profile_image          String?       @db.VarChar(2048)
+  banner_image           String?       @db.VarChar(2048)
 
   @@index([ownerId])
 }
