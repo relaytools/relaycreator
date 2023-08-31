@@ -31,6 +31,8 @@ export default async function handle(req: any, res: any) {
         nostrjson["fees"] = {
             "admission": [{ "amount": relay.payment_amount * 1000, "unit": "msats" }],
         }
+    } else {
+        nostrjson["limitation"] = { "payment_required": false }
     }
 
     nostrjson["limitation"]["max_message_length"] = 262200
