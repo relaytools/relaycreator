@@ -29,7 +29,7 @@ export default async function handle(req: any, res: any) {
         nostrjson["limitation"] = { "payment_required": true }
         nostrjson["payments_url"] = "https://" + relay.name + "." + relay.domain
         nostrjson["fees"] = {
-            "admission": [{ "amount": relay.payment_amount, "unit": "sats" }],
+            "admission": [{ "amount": relay.payment_amount * 1000, "unit": "msats" }],
         }
     }
 
