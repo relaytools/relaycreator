@@ -98,7 +98,7 @@ relay {
     }
 
     # Maximum accepted incoming websocket frame size (should be larger than max event and yesstr msg) (restart required)
-    maxWebsocketPayloadSize = 131072
+    maxWebsocketPayloadSize = 262200
 
     # Websocket-level PING message frequency (should be less than any reverse proxy idle timeouts) (restart required)
     autoPingSeconds = 55
