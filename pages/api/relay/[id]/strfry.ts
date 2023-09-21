@@ -104,7 +104,7 @@ relay {
     autoPingSeconds = 55
 
     # If TCP keep-alive should be enabled (detect dropped connections to upstream reverse proxy)
-    enableTcpKeepalive = false
+    enableTcpKeepalive = true
 
     # How much uninterrupted CPU time a REQ query should get during its DB scan
     queryTimesliceBudgetMicroseconds = 10000

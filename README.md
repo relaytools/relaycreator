@@ -29,6 +29,6 @@ There is much to do, I know.  If you're interested in helping with the project l
 - [ ] Add more documentation
 - [ ] UI tweaks for responsive/mobile
 - [ ] Login via mobile DM
-- [ ] Fix flicker on theme switch
+- [x] Fix flicker on theme switch
 - [ ] Relay directory and advertisement
 - [ ] ...
