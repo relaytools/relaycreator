@@ -6,7 +6,7 @@ export default async function handle(req: any, res: any) {
     // check owner and relay, to create blank AllowList
     const session = await getSession({ req });
 
-    const isMyRelay = await checkSessionForRelay(req, res)
+    const isMyRelay = await checkSessionForRelay(req, res, true)
     if (isMyRelay == null) {
         return
     }

@@ -3,7 +3,7 @@ import { getSession } from 'next-auth/react'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../pages/api/auth/[...nextauth]"
 
-export async function checkSessionForRelay(req: any, res: any) {
+export async function checkSessionForRelay(req: any, res: any, modAllow: boolean = false) {
     const session = await getServerSession(req, res, authOptions)
     if (!session || !session.user?.name) {
         res.status(403).json({ "error": "not authenticated" })
@@ -37,15 +37,41 @@ export async function checkSessionForRelay(req: any, res: any) {
     })
 
     if (!relayOwner) {
-        res.status(404).json({ "error": "relay not found" })
+        res.status(404).json({ "error": "relay owner not found" })
         return null
     }
 
+    // if not the owner, check if moderator
     if (isMyRelay.ownerId != relayOwner.id) {
-        res.status(403).json({ "error": "not your relay" })
-        return null
-    } else {
-        // continue
+        if(modAllow) {
+            const umod = await prisma.user.findFirst({
+                where: {
+                    pubkey: session.user.name,
+                }
+            })
+            // user for moderator not found
+            if(umod == null) {
+                res.status(404).json({ "error": "moderator user not found" })
+                return null
+            } else {
+                const relayMod = await prisma.moderator.findFirst({
+                    where: {
+                        relayId: req.query.id,
+                        userId: umod.id,
+                    }
+                })
+                // user found but is not a moderator on this relay
+                if(relayMod == null) {
+                    res.status(404).json({ "error": "not your relay" })
+                    return null
+                }
+            }
+        // only checks for owner failed
+        } else {
+            res.status(404).json({ "error": "not your relay" })
+            return null
+        }
     }
+
     return isMyRelay
 }
