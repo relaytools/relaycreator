@@ -3,7 +3,7 @@ import { checkSessionForRelay } from "../../../../lib/checkSessionForRelay"
 
 export default async function handle(req: any, res: any) {
     // check owner and relay, to create blank BlockList
-    const isMyRelay = await checkSessionForRelay(req, res)
+    const isMyRelay = await checkSessionForRelay(req, res, true)
     if (isMyRelay == null) {
         return
     }
