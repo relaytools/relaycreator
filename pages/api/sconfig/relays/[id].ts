@@ -22,7 +22,11 @@ export default async function handle(req: any, res: any) {
                 }
             },
             owner: true,
-            moderators: true,
+            moderators: {
+                include: {
+                    user: { select: { pubkey: true } }
+                }
+            },
         }
     })
 
