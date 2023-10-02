@@ -5,6 +5,7 @@ export default function Home() {
     <>
       {/* @ts-expect-error Server Component */}
       <Relays></Relays>
+
     </>
   )
 }

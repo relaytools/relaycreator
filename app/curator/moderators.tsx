@@ -35,15 +35,10 @@ export default function Moderators(props: React.PropsWithChildren<{
     function setAndValidatePubkey(pubkey: string) {
         setPubkey(pubkey)
         // use javascript regex to detect if length is 64 characters
-
         // check for hex chars
         const validHex = /^[0-9a-fA-F]{64}$/.test(pubkey)
+        // check for npub
         const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey)
-        //console.log(pubkey.length)
-        //const isLong = pubkey.length == 64
-
-        // use javascript regex to detect if pubkey starts with npub
-        //const validNpub = /^npub[0-9a-zA-z]{64}$/.test(pubkey)
 
         if (validHex) {
             setPubkeyError("✅")

@@ -35,16 +35,15 @@ export default function Relay(
 
     return (
         <div id={props.relay.id + "rootview"}>
-            <div className="card image-full w-full bg-base-100 shadow-xl mb-4 z-[0]">
-                <figure className="max-h-[400px] w-full">
-                    <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover w-full" alt="relay" />
+            <div className="card image-full bg-base-50 shadow-xl mb-4 z-[0]">
+                <figure className="">
+                    <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover" alt="relay" />
                 </figure>
 
                 <div className="card-body">
-                    <h2 className="card-title">{props.relay.name}</h2>
-                    <p>{"wss://" + props.relay.name + ".nostr1.com"}</p>
-
-                    <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxHeight: "200px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
+                    <h2 className="card-title max-w-[320px]" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{props.relay.name}</h2>
+                    <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                    <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                     {props.showExplorer &&
                         <div className="card-actions justify-begin">
                             <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
@@ -82,7 +81,8 @@ export default function Relay(
 
             </div>
 
-            {editing &&
+            {
+                editing &&
                 <div className="form-control mt-4">
                     <label className="label">
                         <span className="label-text">Relay Profile</span>
@@ -104,6 +104,6 @@ export default function Relay(
                     </div>
                 </div>
             }
-        </div>
+        </div >
     )
 }

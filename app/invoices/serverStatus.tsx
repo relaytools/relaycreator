@@ -90,13 +90,13 @@ export default async function ServerStatus(searchParams: Record<string, string>)
 
     const paymentsEnabled = (process.env.PAYMENTS_ENABLED == "true")
 
-    if(paymentsEnabled) {
-    return (
-        <div>
-            <PaymentStatus payment_hash={o.payment_hash} payment_request={o.lnurl} />
-            <PaymentSuccess relay_id={o.relay.id} payment_hash={o.payment_hash} payment_request={o.lnurl} />
-        </div>
-    )
+    if (paymentsEnabled) {
+        return (
+            <div>
+                <PaymentStatus payment_hash={o.payment_hash} payment_request={o.lnurl} />
+                <PaymentSuccess signed_in={session && (session as any).user.name} relay_name={o.relay.name} relay_id={o.relay.id} payment_hash={o.payment_hash} payment_request={o.lnurl} />
+            </div>
+        )
     } else {
         return (
             <div>

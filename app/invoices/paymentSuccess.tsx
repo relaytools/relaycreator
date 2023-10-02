@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import ZapAnimation from '../lightningsuccess/lightning'
 
 export default function PaymentSuccess(props: React.PropsWithChildren<{
+    signed_in: boolean;
+    relay_name: string;
     relay_id: string;
     payment_hash: string;
     payment_request: string;
@@ -25,7 +27,8 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
 
     return (
         <>
-            {status && <div>success<ZapAnimation redirect_to={`/curator?relay_id=${props.relay_id}`}></ZapAnimation></div>}
+            {status && props.signed_in && <div>success<ZapAnimation redirect_to={`/curator?relay_id=${props.relay_id}`}></ZapAnimation></div>}
+            {status && !props.signed_in && <div>success<ZapAnimation redirect_to={`https://${props.relay_name}.nostr1.com`}></ZapAnimation></div>}
             {!status && <div>waiting</div>}
         </>
     )
