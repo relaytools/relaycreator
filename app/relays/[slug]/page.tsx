@@ -16,7 +16,14 @@ export default async function Relays({
 
     const relay = await prisma.relay.findFirst({
         where: {
-            status: "running",
+            OR: [
+                {
+                    status: "running",
+                },
+                {
+                    status: "provision",
+                },
+            ],
             //listed_in_directory: true,
             name: slug,
         },

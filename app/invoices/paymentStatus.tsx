@@ -84,7 +84,7 @@ export default function PaymentStatus(
                         <div className="relative pb-10">
                             <div className="flex justify-center items-center text-center">
                                 <div className="text-2xl text-left">Invoice</div>
-                                <div className="w-20">
+                                <div className="w-10">
                                     <NoSSRWrapper>
                                         <LogoComponent />
                                     </NoSSRWrapper>
@@ -92,7 +92,7 @@ export default function PaymentStatus(
                                 <div className="text-2xl text-right">21k sats</div>
                             </div>
                         </div>
-                        <div className="text-2xl text-center pb-4">New Relay</div>
+                        <div className="text-2xl text-center">for</div>
                         <div className="text-2xl text-center border rounded-r-md rounded-l-md border-gray-300 px-3 pt-5 pb-5">{relayname}.nostr1.com</div>
                         <div className="col-span-3 flex justify-center">
                             <Bolt11Invoice payment_request={props.payment_request} />
