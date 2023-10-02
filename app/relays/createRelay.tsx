@@ -112,9 +112,9 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     }
 
     return (
-        <div className="min-h-screen font-jetbrains">
+        <div className="font-jetbrains">
             <div className="">
-                <div className="flex items-center justify-center h-screen">
+                <div className="flex items-center justify-center">
                     <div className=" ">
                         <div>
                             <div className="mt-2 flex rounded-md shadow-sm">

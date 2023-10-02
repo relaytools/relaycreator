@@ -4,6 +4,7 @@ import prisma from '../../lib/prisma'
 import PublicRelays from "./publicRelays"
 import MyRelays from "./myRelays"
 import CreateRelay from "./createRelay"
+import HelpfulInfo from "./helpfulInfo"
 
 export default async function Relays() {
     const session = await getServerSession(authOptions)
@@ -33,10 +34,14 @@ export default async function Relays() {
         }
     })
 
+    let showSignup = false
+
     if (!session || !(session as any).user.name) {
         return (
             <div>
-                <CreateRelay />
+
+                {showSignup && <CreateRelay />}
+                {!showSignup && <HelpfulInfo />}
 
                 <PublicRelays relays={publicRelays} />
 
@@ -113,15 +118,15 @@ export default async function Relays() {
         }
     })
 
-    let showSignup = false
-    if (myRelays.length == 0 && moderatedRelays.length == 0) {
-        showSignup = true
-    }
 
+    if (myRelays.length == 0 && moderatedRelays.length == 0) {
+        showSignup = false
+    }
 
     return (
         <div>
             {showSignup && <CreateRelay />}
+            {!showSignup && <HelpfulInfo />}
             <MyRelays myRelays={myRelays} moderatedRelays={moderatedRelays} publicRelays={publicRelays} />
         </div>
     )

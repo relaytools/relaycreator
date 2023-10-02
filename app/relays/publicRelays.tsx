@@ -26,17 +26,18 @@ export default function PublicRelays(
     }
 
     return (
-        <div className="flow-root mt-8 mb-8 px-4 sm:px-6 lg:px-8">
-            <div className="join">
-                <input className="join-item btn btn-primary" type="radio" name="options" aria-label="Public Relays" />
+        <div className="font-jetbrains low-root mt-8 mb-8 px-4 sm:px-6 lg:px-8">
+            <div className="lg:grid lg:grid-flow-row">
+                <h1 className="text-3xl mb-5">Explore public relays</h1>
+                <div className="text-sm mb-5">Search and browse relays that are advertising to the public.  Check out their teams and mission statements and browse each relays content.</div>
                 <div>
                     <div>
-                        <input className="input input-bordered join-item" placeholder="Search" onChange={(e) => handleSearch(e)} />
+                        <input className="input input-bordered" placeholder="Search" onChange={(e) => handleSearch(e)} />
                     </div>
                 </div>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-8 lg:grid lg:grid-cols-3 gap-4 sm:flex sm:flex-col">
                 {results.map((relay) => (
                     <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} />
                 ))}
