@@ -53,10 +53,10 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
             <div className="mt-2 flex rounded-md w-full items-center">
                 <span className="w-full bg-gradient-to-r from-gray-200 to-gray-100 items-center h-5 px-3 sm:text-sm">
                 </span>
-                <button className="btn btn-primary inline-flex items-center rounded-md border border-l-0 border-gray-300 px-3 sm:text-sm"
+                <a href={`/signup`} className="btn btn-primary inline-flex items-center rounded-md border border-l-0 border-gray-300 px-3 sm:text-sm"
                 >
                     Start a relay<span className="fl pl-2"><IoArrowForwardOutline /></span>
-                </button>
+                </a>
             </div>
         </div>
     )
