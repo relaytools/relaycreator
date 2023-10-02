@@ -3,6 +3,7 @@ import authOptions from "../../pages/api/auth/[...nextauth]"
 import PaymentStatus from "./paymentStatus"
 import PaymentSuccess from "./paymentSuccess"
 import prisma from '../../lib/prisma'
+import ZapAnimation from "../lightningsuccess/lightning"
 
 export const dynamic = 'force-dynamic';
 
@@ -75,20 +76,6 @@ export default async function ServerStatus(searchParams: Record<string, string>)
         usePubkey = pubkey
     }
 
-    const userWithOrder = await prisma.user.findFirst({
-        where: {
-            pubkey: usePubkey,
-            orders: {
-                some: {
-                    id: order_id,
-                }
-            }
-        },
-        include: {
-            orders: true,
-        }
-    })
-
     const o = await prisma.order.findFirst({
         where: { id: order_id },
         include: {
@@ -101,47 +88,20 @@ export default async function ServerStatus(searchParams: Record<string, string>)
         return
     }
 
-    /*
-    if (!process.env.LNBITS_ADMIN_KEY || !process.env.LNBITS_INVOICE_READ_KEY || !process.env.LNBITS_ENDPOINT) {
-        console.log("ERROR: no LNBITS env vars")
-        return
-    }
+    const paymentsEnabled = (process.env.PAYMENTS_ENABLED == "true")
 
-    const { wallet } = LNBits({
-        adminKey: process.env.LNBITS_ADMIN_KEY,
-        invoiceReadKey: process.env.LNBITS_INVOICE_READ_KEY,
-        endpoint: process.env.LNBITS_ENDPOINT,
-    });
-
-    const newInvoice = await wallet.createInvoice({
-        amount: 10,
-        memo: relayname + " " + pubkey,
-        out: false,
-    });
-    */
-
-
-    //console.log(newInvoice);
-
-    // inside here we will:
-
-    // validate the pubkey we have, is ok
-    // validate the name is a hostname
-
-    // if the user has a session:
-    // write their user to the prisma db
-    // create invoice and add all the payment stuff to the db
-
-    // if the user doesn't have a session:
-    // write their user to the db, but mark it as un-verified
-    // create invoice and all the payment stuff to the db
-
-    // what do we return here?  maybe we poll the api.. hmm!
-
+    if(paymentsEnabled) {
     return (
         <div>
             <PaymentStatus payment_hash={o.payment_hash} payment_request={o.lnurl} />
             <PaymentSuccess relay_id={o.relay.id} payment_hash={o.payment_hash} payment_request={o.lnurl} />
         </div>
     )
+    } else {
+        return (
+            <div>
+                <ZapAnimation redirect_to={`/curator?relay_id=${o.relayId}`}></ZapAnimation>
+            </div>
+        )
+    }
 }
