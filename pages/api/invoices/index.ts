@@ -49,9 +49,13 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+
     if (!process.env.LNBITS_ADMIN_KEY || !process.env.LNBITS_INVOICE_READ_KEY || !process.env.LNBITS_ENDPOINT) {
         console.log("ERROR: no LNBITS env vars")
-        return
+        if (process.env.PAYMENTS_ENABLED == "true") {
+            res.status(500).json({ "error": "payments enabled, but no lnbits vars found" })
+            return
+        }
     }
 
     let useAmount = 21
@@ -77,12 +81,17 @@ export default async function handle(req: any, res: any) {
 
     var currentdate = new Date();
     // create relay with user association
+    let useStatus = null;
+    if (process.env.PAYMENTS_ENABLED != "true") {
+        useStatus = "provision"
+    }
     const relayResult = await prisma.relay.create({
         data: {
             name: relayname,
             ownerId: useUser.id,
             domain: "nostr1.com",
             created_at: currentdate,
+            status: useStatus,
             port: p,
         }
     })
@@ -101,32 +110,45 @@ export default async function handle(req: any, res: any) {
         return
     }
 
-    const { wallet } = LNBits({
-        adminKey: process.env.LNBITS_ADMIN_KEY,
-        invoiceReadKey: process.env.LNBITS_INVOICE_READ_KEY,
-        endpoint: process.env.LNBITS_ENDPOINT,
-    });
+    if (process.env.PAYMENTS_ENABLED == "true" && process.env.LNBITS_ADMIN_KEY && process.env.LNBITS_INVOICE_READ_KEY && process.env.LNBITS_ENDPOINT) {
+        const { wallet } = LNBits({
+            adminKey: process.env.LNBITS_ADMIN_KEY,
+            invoiceReadKey: process.env.LNBITS_INVOICE_READ_KEY,
+            endpoint: process.env.LNBITS_ENDPOINT,
+        });
 
-    const newInvoice = await wallet.createInvoice({
-        amount: useAmount,
-        memo: relayname + " " + pubkey,
-        out: false,
-    });
+        const newInvoice = await wallet.createInvoice({
+            amount: useAmount,
+            memo: relayname + " " + pubkey,
+            out: false,
+        });
 
-    const orderCreated = await prisma.order.create({
-        data: {
-            relayId: relayResult.id,
-            userId: useUser.id,
-            status: "pending",
-            paid: false,
-            payment_hash: newInvoice.payment_hash,
-            lnurl: newInvoice.payment_request,
-        }
-    })
-    console.log("API CALL /invoices -> order created:")
-    console.log(orderCreated);
+        const orderCreated = await prisma.order.create({
+            data: {
+                relayId: relayResult.id,
+                userId: useUser.id,
+                status: "pending",
+                paid: false,
+                payment_hash: newInvoice.payment_hash,
+                lnurl: newInvoice.payment_request,
+            }
+        })
+        res.status(200).json({ order_id: orderCreated.id });
+    } else {
+        const orderCreated = await prisma.order.create({
+            data: {
+                relayId: relayResult.id,
+                userId: useUser.id,
+                status: "paid",
+                paid: true,
+                payment_hash: "0000",
+                lnurl: "0000",
+            }
+        })
 
-    const order_id = orderCreated.id
+        res.status(200).json({ order_id: orderCreated.id });
 
-    res.status(200).json({ order_id: order_id });
+    }
+
+
 }

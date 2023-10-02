@@ -25,10 +25,10 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 There is much to do, I know.  If you're interested in helping with the project let me know!
 
 - [ ] Create a docker-compose setup for easy development
-- [ ] Make development possible w/out LNBITS
+- [x] Make development possible w/out LNBITS
 - [ ] Add more documentation
 - [ ] UI tweaks for responsive/mobile
 - [ ] Login via mobile DM
 - [x] Fix flicker on theme switch
-- [ ] Relay directory and advertisement
+- [x] Relay directory and advertisement
 - [ ] ...
