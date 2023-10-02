@@ -31,25 +31,30 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
         <div className="font-jetbrains flex flex-col justify-center items-center">
             <h1 className="justify-center text-3xl text-primary">The fastest and easiest way to create nostr relays</h1>
             <div className="mt-2 lg:grid lg:grid-cols-3 lg:gap-2 sm:flex sm:flex-col sm:gap-4">
-                <div className="card w-96 bg-base-100">
+                <div className="card w-96 bg-base-100 hidden lg:block">
                     <div className="card-body">
                         <h2 className="card-title">What is Nostr?</h2>
-                        <p>Nostr is a protocol that involves servers and clients.  The servers in nostr are called relays.  You can connect to any numer of relays from your favorite client.  (link for more info)</p>
+                        <p>Nostr is a protocol that involves servers and clients.  The servers in nostr are called 'relays'.  The clients in nostr are called 'apps'.</p>
                     </div>
                 </div>
-                <div className="card w-96 bg-base-100">
+                <div className="card w-96 bg-base-100 hidden lg:block">
                     <div className="card-body">
-                        <h2 className="card-title">Why relay tools</h2>
-                        <p>Relay.tools is a web based control panel and deployment system for relays.
-
-                            The web UI provides easy relay creation, moderation capabilities, spam prevention, filtering rules and best practice settings.
+                        <h2 className="card-title">Discover, Create, Join</h2>
+                        <p>
+                            You can discover new relays to connect to.
+                            You can create new relays. You can join a relay as a paid member or a moderator.
                         </p>
                     </div>
                 </div>
                 <div className="card w-96 bg-base-100">
                     <div className="card-body">
-                        <h2 className="card-title">How it works</h2>
-                        <p>You can start by creating a relay.  Relays cost 21k sats / month and can be paid for using the lightning network.</p>
+                        <h2 className="card-title">relay creator</h2>
+
+                        <p>ready right now?</p>
+                        <p>pick a name, create the relay, it's simple and quick</p>
+                        <p>pricing: 21,000 sats/month</p>
+                        <p></p>
+                        <p><a className="link" href="/faq">learn more</a></p>
                     </div>
                 </div>
             </div>

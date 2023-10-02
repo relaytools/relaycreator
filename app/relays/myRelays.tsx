@@ -35,7 +35,7 @@ export default function MyRelays(
 
     return (
         <div>
-            <div className="mx-auto max-w-7xl mt-4">
+            <div className="font-jetbrains mx-auto max-w-7xl mt-4">
                 <div className="join px-4 sm:px-6 lg:px-8">
                     {selectTypeRelays()}
                 </div>
@@ -44,7 +44,7 @@ export default function MyRelays(
                         <div className="px-4 sm:px-6 lg:px-8">
                             <div className="sm:flex sm:items-center">
                                 <div className="sm:flex-auto">
-                                    <h1 className="font-semibold leading-6 text-3xl">Relays (owner)</h1>
+                                    <h1 className="font-semibold leading-6 text-2xl">Relays (owner)</h1>
                                     <p className="mt-2 text-sm">
                                         A list of all the relays that you own.
                                     </p>
@@ -59,7 +59,7 @@ export default function MyRelays(
                             </div>
                             <div className="sm:flex sm:items-center">
                                 <div className="sm:flex-auto">
-                                    <h1 className="text-3xl font-semibold leading-6">Relays (moderator)</h1>
+                                    <h1 className="text-2xl font-semibold leading-6">Relays (moderator)</h1>
                                     <p className="mt-2 text-sm">
                                         A list of all the relays that you moderate.
                                     </p>

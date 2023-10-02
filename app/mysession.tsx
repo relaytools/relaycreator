@@ -84,7 +84,7 @@ export default function ShowSession() {
                     <div className="dropdown dropdown-end">
                         <label tabIndex={0} className="btn cursor-pointer mask mask-squircle">
                             <div className="w-10 rounded-full">
-                                <Image src="/nostrlogo1.png" alt="nip07" width={100} height={100} />
+                                <Image src="/menu-icon.svg" alt="logged in" width={100} height={100} />
                             </div>
 
                         </label>
