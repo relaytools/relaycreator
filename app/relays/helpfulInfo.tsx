@@ -29,8 +29,8 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
     }
 
     return (
-        <div className="font-jetbrains flex flex-col justify-center items-center">
-            <h1 className="justify-center text-3xl text-primary">"relays are best served hot"</h1>
+        <div className="">
+            <h1 className="text-3xl text-primary text-center">"relays are best served hot"</h1>
             <div className="mt-2 lg:grid lg:grid-cols-3 lg:gap-2 sm:flex sm:flex-col sm:gap-4">
                 <div className="card w-96 bg-base-100 hidden lg:block">
                     <div className="card-body">
@@ -50,18 +50,16 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
                 <div className="card w-96 bg-base-100">
                     <div className="card-body">
                         <h2 className="card-title">products: relay creator</h2>
-                        <p>pick a name, create the relay, it's simple and quick</p>
+                        <p>create relays of any <a className="link link-secondary" href="/faq">type</a> quickly and easily</p>
                         <p>pricing: 21,000 sats/month</p>
-                        <p></p>
                         <p><a className="link" href="/faq">learn more</a></p>
-                        <a href="https://github.com/relaytools"><IoLogoGithub /></a>
                     </div>
                 </div>
             </div>
             <div className="mt-2 flex rounded-md w-full items-center">
                 <span className="w-full bg-gradient-to-r from-gray-200 to-gray-100 items-center h-5 px-3 sm:text-sm">
                 </span>
-                <a href={`/signup`} className="btn btn-primary inline-flex items-center rounded-md border border-l-0 border-gray-300 px-3 sm:text-sm"
+                <a href={`/signup`} className="btn btn-primary inline-flex text-center rounded-md border border-l-0 border-gray-300 px-3 sm:text-sm"
                 >
                     Create a relay<span className="fl pl-2"><IoArrowForwardOutline /></span>
                 </a>

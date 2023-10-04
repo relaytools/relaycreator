@@ -123,6 +123,16 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                     name="company-website"
                                     id="company-website"
                                     className="input block w-full min-w-0 flex-1 rounded-none rounded-l-md border-0 py-1.5 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 text-right"
+                                    placeholder="ete your pubkeu"
+                                    autoComplete="off"
+                                    value={name}
+                                    onChange={event => setRelayName(event.target.value)}
+                                />
+                                <input
+                                    type="text"
+                                    name="company-website"
+                                    id="company-website"
+                                    className="input block w-full min-w-0 flex-1 rounded-none rounded-l-md border-0 py-1.5 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 text-right"
                                     placeholder="mynewrelay"
                                     autoComplete="off"
                                     value={name}

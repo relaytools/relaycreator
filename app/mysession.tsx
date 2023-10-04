@@ -16,10 +16,16 @@ export default function ShowSession() {
         const tokenData = await tokenResponse.json()
         const token = tokenData.token
 
+        // we could support keys.band by requesting the pubkey,
+        // for now we will wait and see if upstream accepts the pull request to not require this:
+        // https://github.com/toastr-space/keys-band/pull/13
+        //const thisPubkeyRes = await (window as any).nostr.getPublicKey()
+
         let signThis = {
             kind: 27235,
             created_at: Math.floor(Date.now() / 1000),
             tags: [],
+            //   pubkey: thisPubkeyRes,
             content: token,
         }
 
@@ -71,15 +77,55 @@ export default function ShowSession() {
                 <a href={rootDomain + "/"} className="btn btn-ghost normal-case text-xl">relay.tools</a>
             </div>
 
+
+
             <div className="flex-none">
                 {!session ? (
-                    <button
-                        onClick={doNip07Login}
-                        className="btn btn-ghost ml-2"
-                    >
-                        <span className="mr-2">Sign-in</span>
-                        <Image src="/nostrlogo1.png" alt="nip07" width={30} height={30} />
-                    </button>
+
+                    <div className="flex">
+                        <a href={rootDomain + "/"} className="btn btn-ghost normal-case text-lg hidden lg:flex">home</a>
+                        <a href={rootDomain + "/faq"} className="btn btn-ghost normal-case text-lg hidden lg:flex">faq</a>
+                        <a href={rootDomain + "/#"} className="btn btn-ghost normal-case text-lg hidden lg:flex">explorer</a>
+
+                        <span className="text-center items-center hidden lg:flex">
+                            <button
+                                onClick={doNip07Login}
+                                className="btn btn-ghost ml-2"
+                            >
+                                sign-in
+                                <Image alt="nostr" src="/nostr_logo_prpl_wht_rnd.svg" width={38} height={38}></Image>
+                            </button>
+                        </span>
+
+
+                        <div className="dropdown dropdown-end lg:hidden">
+
+                            <label tabIndex={0} className="btn cursor-pointer mask mask-squircle">
+                                <div className="w-10 rounded-full">
+                                    <Image src="/menu-icon-priority.png" alt="menu" width={100} height={100} />
+                                </div>
+
+                            </label>
+                            <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]">
+                                <li><a href={rootDomain + "/"}>Faq</a></li>
+                                <li><a href={rootDomain + "/#"}>Explorer</a></li>
+                                <li className="border-b border-base-200"><a href={rootDomain + "/signup"}>Create Relay</a></li>
+                                <li>
+                                    <span className="text-center items-center">
+                                        <button
+                                            onClick={doNip07Login}
+                                            className="btn btn-ghost ml-2"
+                                        >
+                                            sign-in
+                                            <Image alt="nostr" src="/nostr_logo_prpl_wht_rnd.svg" width={38} height={38}></Image>
+                                        </button>
+                                    </span>
+                                </li>
+
+                            </ul>
+                        </div>
+
+                    </div>
                 ) : (
                     <div className="dropdown dropdown-end">
                         <label tabIndex={0} className="btn cursor-pointer mask mask-squircle">
