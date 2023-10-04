@@ -28,8 +28,8 @@ export default function PublicRelays(
     return (
         <div className="">
             <div className="lg:grid lg:grid-flow-row">
-                <h1 className="text-3xl mb-5">Explore public relays</h1>
-                <div className="text-sm mb-5">Search and browse relays that are advertising to the public.  Check out their teams and mission statements and browse each relays content.</div>
+                <h1 className="text-3xl mb-5 mt-4">Explore relays</h1>
+                <div className="text-sm mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>
                 <div>
                     <div>
                         <input className="input input-bordered" placeholder="Search" onChange={(e) => handleSearch(e)} />

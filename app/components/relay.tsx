@@ -35,13 +35,13 @@ export default function Relay(
 
     return (
         <div id={props.relay.id + "rootview"}>
-            <div className="card image-full max-h-[320px] min-h-[320px] bg-base-50 shadow-xl mb-4 z-[0]">
+            <div className="card image-full max-h-[320px] min-h-[320px] max-w-[320px] min-w-[320px] bg-base-50 shadow-xl mb-4 z-[0]">
                 <figure className="">
-                    <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover w-[400px]" alt="relay" />
+                    <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover w-[320px]" alt="relay" />
                 </figure>
 
                 <div className="card-body">
-                    <h2 className="card-title max-w-[400px]" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{props.relay.name}</h2>
+                    <h2 className="card-title max-w-[320px]" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{props.relay.name}</h2>
                     <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
                     <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                     {props.showExplorer &&
