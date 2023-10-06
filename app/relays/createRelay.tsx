@@ -143,7 +143,6 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                 </div>
                 <div className="flex flex-col">
                     <div className="mt-2 flex-col-3 rounded-md shadow-sm text-center">
-                        <label className="label">choose a relay url/name</label>
 
                         <div className="flex-col">
                             <div className="flex-col-3 px-3 sm:text-sm">
