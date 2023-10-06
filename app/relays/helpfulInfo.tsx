@@ -34,8 +34,8 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
             <div className="mt-2 lg:grid lg:grid-cols-3 lg:gap-2 sm:flex sm:flex-col sm:gap-4">
                 <div className="card w-96 bg-base-100 hidden lg:block">
                     <div className="card-body">
-                        <h2 className="card-title">What is Nostr?</h2>
-                        <p>Nostr is a protocol that involves servers and clients.  The servers in nostr are called 'relays'.  The clients in nostr are called 'apps'.</p>
+                        <h2 className="card-title">Why relays?</h2>
+                        <p></p>
                     </div>
                 </div>
                 <div className="card w-96 bg-base-100 hidden lg:block">

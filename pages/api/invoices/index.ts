@@ -10,32 +10,33 @@ export default async function handle(req: any, res: any) {
         console.log("Session", JSON.stringify(session, null, 2))
     } else {
         // Not Signed in
-        res.status(404).json({ "error": "not signed in" })
+        //res.status(404).json({ "error": "not signed in" })
+        //res.end()
+        //return
+    }
+
+    const { relayname, pubkey } = req.query as { relayname: string, pubkey: string };
+
+    if (pubkey == null) {
+        res.status(404).json({ "error": "not signed in or no pubkey" })
         res.end()
         return
     }
 
-    if (session == null || session.user?.name == null) {
-        res.status(404).json({ "error": "not signed in" })
-        res.end()
-        return
-    }
-
-    const myUser = await prisma.user.findFirst({ where: { pubkey: session.user.name } })
+    const myUser = await prisma.user.findFirst({ where: { pubkey: pubkey } })
 
     var useUser
 
     if (!myUser) {
         useUser = await prisma.user.create({
             data: {
-                pubkey: session.user.name,
+                pubkey: pubkey,
             },
         })
     } else {
         useUser = myUser
     }
 
-    const { relayname, pubkey } = req.query as { relayname: string, pubkey: string };
     if (relayname == null || relayname == "") {
         res.status(404).json({ "error": "enter a relay name" })
         return
