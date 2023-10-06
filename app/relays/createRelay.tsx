@@ -123,14 +123,24 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
         <div className="font-jetbrains">
             <div className="flex flex-col">
                 <div className="flex items-center justify-center flex-col">
+                    <div className="card w-96 bg-base-100">
+                        <div className="card-body">
+                            <h2 className="card-title">relay creator</h2>
+                            <p>create relays of any type quickly and easily</p>
+                            <p>pricing: 21,000 sats/month</p>
+                        </div>
+                    </div>
+
+
                     <div className="flex flex-col-2">
+
                         <label className="label">pubkey</label>
                         <input
                             type="text"
                             name="pubkey"
                             id="newpubkey"
                             className="input input-bordered input-primary w-full max-w-xs"
-                            placeholder="login or paste pubkey"
+                            placeholder="sign-in or paste pubkey"
                             autoComplete="off"
                             value={pubkey}
                             onChange={event => setAndValidatePubkey(event.target.value)}
@@ -143,7 +153,6 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                 </div>
                 <div className="flex flex-col">
                     <div className="mt-2 flex-col-3 rounded-md shadow-sm text-center">
-
                         <div className="flex-col">
                             <div className="flex-col-3 px-3 sm:text-sm">
                                 <input
@@ -171,14 +180,18 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                     <span className="flex items-center font-medium tracking-wide text-red-600 text-xs mt-1 ml-1">
                         {nameErrorDescription}
                     </span>
-                    <div className="p-6">
+                    <div className="p-6 flex items-center justify-center">
                         <NoSSRWrapper>
-                            <LogoComponent />
+                            <div className=" max-h-[400px]">
+                                <LogoComponent />
+                            </div>
                         </NoSSRWrapper>
                     </div>
-                    <TextString />
+                    <div className="flex items-center justify-center">
+                        <TextString />
+                    </div>
                     <div>
-                        <div>relay.tools 2023 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
+                        <div className="flex items-center justify-center text-center">relay.tools 2023 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
                     </div>
                 </div>
             </div>
