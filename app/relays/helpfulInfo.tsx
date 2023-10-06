@@ -30,7 +30,7 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
 
     return (
         <div className="font-jetbrains">
-            <h1 className="text-3xl text-primary text-center">"relays are best served hot"</h1>
+            <h1 className="text-3xl text-primary text-center">why am i so bad at slogans</h1>
             <div className="mt-2 lg:grid lg:grid-cols-3 lg:gap-2 sm:flex sm:flex-col sm:gap-4">
                 <div className="card w-96 bg-base-100 hidden lg:block">
                     <div className="card-body">
@@ -49,10 +49,11 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
                 </div>
                 <div className="card w-96 bg-base-100">
                     <div className="card-body">
-                        <h2 className="card-title">products: relay creator</h2>
-                        <p>create relays of any <a className="link link-secondary" href="/faq">type</a> quickly and easily</p>
+                        <h2 className="card-title">relay creator</h2>
+                        <p>create relays of any type quickly and easily</p>
                         <p>pricing: 21,000 sats/month</p>
-                        <p><a className="link" href="/faq">learn more</a></p>
+                        <h2 className="card-title">open source</h2>
+                        <a className="link" href="https://github.com/relaytools">github</a>
                     </div>
                 </div>
             </div>

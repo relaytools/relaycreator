@@ -35,9 +35,9 @@ export default function Relay(
 
     return (
         <div id={props.relay.id + "rootview"}>
-            <div className="card image-full max-h-[320px] min-h-[320px] max-w-[320px] min-w-[320px] bg-base-50 shadow-xl mb-4 z-[0]">
+            <div className="card image-full bg-base-50 shadow-xl mb-4 z-[0]">
                 <figure className="">
-                    <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover w-[320px]" alt="relay" />
+                    <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover" alt="relay" />
                 </figure>
 
                 <div className="card-body">

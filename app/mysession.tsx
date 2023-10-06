@@ -53,7 +53,7 @@ export default function ShowSession() {
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
 
     return (
-        <div className="font-jetbrains navbar bg-base-100 border-b border-base-200 pb-4">
+        <div className="font-jetbrains navbar bg-base-100 flex">
             {showLoginHelp &&
                 <dialog id="my_modal_5" className="modal modal-bottom modal-open sm:modal-middle">
                     <form method="dialog" className="modal-box">
