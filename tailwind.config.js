@@ -26,6 +26,7 @@ module.exports = {
         light: {
 
           "primary": "#ff007c",
+          //"primary": "#6c4ab6",
           "secondary": "#8d72e1",
           "accent": "#8d9eff",
           "neutral": "#1E293B",
@@ -45,8 +46,8 @@ module.exports = {
       },
       {
         dark: {
-
           "primary": "#ff007c",
+          //"primary": "#6c4ab6",
           "secondary": "#8d72e1",
           "accent": "#8d9eff",
           "neutral": "#1E293B",
@@ -68,6 +69,33 @@ module.exports = {
           "--tab-radius": "0.5rem", // border radius of tabs
         },
       },
+      "cupcake",
+      "bumblebee",
+      "emerald",
+      "corporate",
+      "synthwave",
+      "retro",
+      "cyberpunk",
+      "valentine",
+      "halloween",
+      "garden",
+      "forest",
+      "aqua",
+      "lofi",
+      "pastel",
+      "fantasy",
+      "wireframe",
+      "black",
+      "luxury",
+      "dracula",
+      "cmyk",
+      "autumn",
+      "business",
+      "acid",
+      "lemonade",
+      "night",
+      "coffee",
+      "winter"
     ],
   },
 }

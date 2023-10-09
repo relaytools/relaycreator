@@ -130,9 +130,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                             <p>pricing: 21,000 sats/month</p>
                         </div>
                     </div>
-
-
-                    <div className="flex flex-col-2">
+                    <div className="flex flex-col-2 mb-2">
 
                         <label className="label">pubkey</label>
                         <input
@@ -159,14 +157,14 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                     type="text"
                                     name="company-website"
                                     id="company-website"
-                                    className="input rounded-none rounded-l-md border-0 py-1.5 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+                                    className="input input-primary text-center border-0 py-1.5 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
                                     placeholder="mynewrelay"
                                     autoComplete="off"
                                     value={name}
                                     onChange={event => setRelayName(event.target.value)}
                                 />
                                 <button className="btn disabled">.nostr1.com</button>
-                                <button className="btn btn-primary items-center rounded-r-md border border-l-0 border-gray-300 px-3 sm:text-sm"
+                                <button className="btn btn-primary items-center rounded-r-md eborder border-l-0 border-gray-300 px-3 sm:text-sm mt-2"
                                     onClick={handleSubmit}
                                     disabled={!isValidForm}
                                 >
@@ -182,7 +180,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                     </span>
                     <div className="p-6 flex items-center justify-center">
                         <NoSSRWrapper>
-                            <div className=" max-h-[400px]">
+                            <div className=" max-h-[200px]">
                                 <LogoComponent />
                             </div>
                         </NoSSRWrapper>

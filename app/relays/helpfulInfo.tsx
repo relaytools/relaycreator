@@ -30,12 +30,12 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
 
     return (
         <div className="font-jetbrains">
-            <h1 className="text-3xl text-primary text-center">why am i so bad at slogans</h1>
+            <h1 className="text-3xl text-primary text-center">need relays?  you've come to the right place</h1>
             <div className="mt-2 lg:grid lg:grid-cols-3 lg:gap-2 sm:flex sm:flex-col sm:gap-4">
                 <div className="card w-96 bg-base-100 hidden lg:block">
                     <div className="card-body">
                         <h2 className="card-title">What is nostr?</h2>
-                        <p>Nostr is a magical journey where we discover how to take control over our social media experience. It is a protocol and not a platform. Learn more in our faq about how relays play a part in the nostr ecosystem.</p>
+                        <p>Nostr is a magical journey where we discover how to take control over our social media experience. Relays are an important part of the nostr ecosystem.</p>
                     </div>
                 </div>
                 <div className="card w-96 bg-base-100 hidden lg:block">

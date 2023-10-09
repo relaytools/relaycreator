@@ -19,6 +19,7 @@ export default function ShowSession() {
         // we could support keys.band by requesting the pubkey,
         // for now we will wait and see if upstream accepts the pull request to not require this:
         // https://github.com/toastr-space/keys-band/pull/13
+        // now tracking issue in Spring as well.
         //const thisPubkeyRes = await (window as any).nostr.getPublicKey()
 
         let signThis = {
@@ -84,7 +85,7 @@ export default function ShowSession() {
 
                     <div className="flex">
                         <a href={rootDomain + "/"} className="btn btn-ghost normal-case text-lg hidden lg:flex">home</a>
-                        <a href={rootDomain + "/faq"} className="btn btn-ghost normal-case text-lg hidden lg:flex">faq</a>
+                        <a href={"https://github.com/relaytools/relaycreator/blob/f253d2aa81bf385816f750f730c687c96b61ce6e/design/UserStories.md"} className="btn btn-ghost normal-case text-lg hidden lg:flex">faq</a>
                         <a href={rootDomain + "/#"} className="btn btn-ghost normal-case text-lg hidden lg:flex">explorer</a>
 
                         <span className="text-center items-center hidden lg:flex">

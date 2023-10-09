@@ -47,17 +47,17 @@ export default function Settings(props: React.PropsWithChildren<{
             <div className="divider">Lists</div>
 
             {
-                props.relay != null && props.relay.allow_list == null &&
+                props.relay != null && props.relay.allow_list == null && !props.relay.default_message_policy &&
                 <EnableAllowList relay={props.relay}></EnableAllowList>
             }
 
             {
-                props.relay != null && props.relay.allow_list != null &&
+                props.relay != null && props.relay.allow_list != null && !props.relay.default_message_policy &&
                 <ListEntryKeywords keywords={props.relay.allow_list.list_keywords} relay_id={props.relay.id} kind="Allowed Keywords ✅"></ListEntryKeywords>
             }
 
             {
-                props.relay != null && props.relay.allow_list != null &&
+                props.relay != null && props.relay.allow_list != null && !props.relay.default_message_policy &&
                 <ListEntryPubkeys pubkeys={props.relay.allow_list.list_pubkeys} relay_id={props.relay.id} kind="Allowed Pubkeys ✅"></ListEntryPubkeys>
             }
 
