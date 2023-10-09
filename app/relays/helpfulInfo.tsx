@@ -2,7 +2,6 @@
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { IoArrowForwardOutline } from 'react-icons/io5';
-import { IoLogoGithub } from 'react-icons/io5';
 
 export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();

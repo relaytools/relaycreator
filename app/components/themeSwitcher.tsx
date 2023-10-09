@@ -41,7 +41,7 @@ export default function ThemeSwitcher({
             {isLoading ? (
                 <span className="loading loading-spinner text-primary" />
             ) : (
-                currentTheme == "dark" ? (<FiMoon />) : (<div>{currentTheme}</div>)
+                currentTheme == "dark" ? (<FiMoon />) : (<FiSun />)
             )}
         </button>
     )
