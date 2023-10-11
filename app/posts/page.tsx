@@ -54,12 +54,20 @@ export default function PostsPage() {
 
     const searchParams = useSearchParams()
     var relayparam: any
+    var relayLimit: any
     if (searchParams == null) {
         relayparam = nip19.nrelayEncode("wss://nostr21.com")
+        relayLimit = 100
     } else {
         relayparam = searchParams.get('relay')
         if (relayparam == null) {
             relayparam = nip19.nrelayEncode("wss://nostr21.com")
+        }
+        const c = searchParams.get('limit')
+        if (c == null) {
+            relayLimit = 100
+        } else {
+            relayLimit = parseInt(c)
         }
     }
 
@@ -75,13 +83,13 @@ export default function PostsPage() {
             relay.on('connect', () => {
                 console.log(`connected to ${relay.url}`)
                 addToStatus(relayUrl + ": connected")
-                let sub = relay.sub([{ kinds: [1], limit: 10 }])
+                let sub = relay.sub([{ kinds: [1], limit: relayLimit }])
                 sub.on('event', (event: any) => {
-                    console.log('got event:', event);
+                    //console.log('got event:', event);
                     if (lookupProfileName(event.pubkey) == event.pubkey) {
                         let profileSub = relay.sub([{ kinds: [0], limit: 1, authors: [event.pubkey] }])
                         profileSub.on('event', (pevent: any) => {
-                            console.log('got profile event:', pevent);
+                            //console.log('got profile event:', pevent);
                             profileSub.unsub()
                             addProfile(pevent)
                         })
@@ -134,7 +142,7 @@ export default function PostsPage() {
     const lookupProfileName = (pubkey: string) => {
         for (let i = 0; i < profiles.length; i++) {
             if (profiles[i].pubkey == pubkey) {
-                console.log("found profile name " + profiles[i].content.name)
+                //console.log("found profile name " + profiles[i].content.name)
                 return profiles[i].content.name;
             }
         }
@@ -242,6 +250,10 @@ export default function PostsPage() {
 
     }
 
+    const handleClickMessage = async (e: any) => {
+
+    }
+
     return (
         <div>
             <ul role="list" className="text-xs">
@@ -260,7 +272,7 @@ export default function PostsPage() {
             {sortPosts(false).map((post) => (
                 <div key={"post" + post.id} className={chatStartOrEnd(post)}
                     onClick={handleClick}
-                    id={post.id}>
+                    id={"eventid:" + post.id + ";pubkey:" + post.pubkey}>
                     <div className="chat-image avatar">
                         {lookupProfileImg(post.pubkey)}
                     </div>

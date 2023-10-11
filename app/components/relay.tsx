@@ -10,6 +10,7 @@ export default function Relay(
         showSettings: boolean;
         showDetail: boolean;
         showExplorer: boolean;
+        showCopy: boolean;
     }>) {
 
     const [profileDetail, setProfileDetails] = useState(props.relay.details)
@@ -32,55 +33,79 @@ export default function Relay(
     }
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
-
     return (
-        <div id={props.relay.id + "rootview"}>
-            <div className="card image-full bg-base-50 shadow-xl mb-4 z-[0]">
-                <figure className="">
-                    <img src={edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")} className="object-cover" alt="relay" />
-                </figure>
+        <div id={props.relay.id + "rootview"} className="">
+            {props.showDetail &&
+                <a href={"https://" + props.relay.name + "." + props.relay.domain} className="">
+                    <div className="card w-96 shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                        backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
+                        textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
+                    }}>
+                        <div className="card-body items-center justify-end">
+                            <div className="card h-48 w-96"></div>
+                            <div className="card h-48 w-96">
+                                <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
+                                    <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <div className="card-body">
-                    <h2 className="card-title max-w-[320px]" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{props.relay.name}</h2>
-                    <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
-                    <p className="description mb5" style={{ whiteSpace: "pre-wrap", maxWidth: "320px", maxHeight: "200px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
-                    {props.showExplorer &&
-                        <div className="card-actions justify-begin">
-                            <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
-                                open in relay explorer<span className="sr-only">, {props.relay.id}</span>
-                            </a>
-                            <a href={rootDomain + "/posts?relay=" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
-                                open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
-                            </a>
 
+                </a>
+            }
+            {props.showCopy &&
+                <a href="#" className="">
+                    <div className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                        backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
+                        textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
+                    }}>
+                        <div className="card-body items-center justify-end">
+                            <div className="card h-48 w-96"></div>
+                            <div className="card h-48 w-96">
+                                <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
+                                    <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
+                                </div>
+                            </div>
                         </div>
-                    }
-                    {props.showDetail &&
-                        <div className="card-actions justify-end">
-                            <a href={"https://" + props.relay.name + "." + props.relay.domain} className="btn btn-primary">
-                                show details<span className="sr-only">, {props.relay.id}</span>
-                            </a>
+                    </div>
+
+
+                </a>
+            }
+            {props.showSettings &&
+                <a href={`/curator?relay_id=${props.relay.id}`} className="">
+                    <div className="card w-96 shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                        backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
+                        textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
+                    }}>
+                        <div className="card-body items-center justify-end">
+                            <div className="card h-48 w-96"></div>
+                            <div className="card h-48 w-96">
+                                <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
+                                    <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
+                                </div>
+                            </div>
                         </div>
-                    }
-                    {props.showSettings &&
-                        <div className="card-actions justify-end">
-                            <a href={`/curator?relay_id=${props.relay.id}`} className="btn btn-primary">
-                                settings<span className="sr-only">, {props.relay.id}</span>
-                            </a>
-                        </div>
-                    }
-                    {props.showEdit &&
-                        <div className="card-actions justify-end">
-                            <button className="btn btn-primary"
-                                onClick={() => setEditing(true)}>
-                                edit details
-                            </button>
-                        </div>
-                    }
+                    </div>
+
+
+                </a>
+            }
+            {props.showEdit &&
+                <div className="justify-center mt-2">
+                    <button className="btn btn-primary"
+                        onClick={() => setEditing(true)}>
+                        edit details
+                    </button>
                 </div>
-
-            </div>
-
+            }
             {
                 editing &&
                 <div className="form-control mt-4">
@@ -104,6 +129,24 @@ export default function Relay(
                     </div>
                 </div>
             }
-        </div >
+            {props.showExplorer &&
+                <div>
+                    <div className="justify-center mt-2">
+                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                            open in relay explorer<span className="sr-only">, {props.relay.id}</span>
+                        </a>
+                    </div>
+                    <div className="justify-center mt-2">
+                        <a href={rootDomain + "/posts?relay=" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                            open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
+                        </a>
+                    </div>
+                </div>
+            }
+
+
+
+        </div>
+
     )
 }
