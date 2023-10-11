@@ -22,6 +22,7 @@ module.exports = {
     utils: true,
     base: true,
     themes: [
+      'halloween',
       {
         light: {
 

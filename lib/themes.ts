@@ -1,4 +1,5 @@
 const Themes = [
+    'halloween',
     'light',
     'dark',
 ]
