@@ -55,7 +55,7 @@ export default async function Relays({
 
     return (
         <div>
-            <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} showDetail={false} showExplorer={true} />
+            <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} showDetail={false} showCopy={true} showExplorer={true} />
             {successpayment && <div>you've paid for this relay! Welcome.</div>}
             {relay.payment_required && !successpayment && <RelayPayment relay={relay} />}
             <RelayDetail relay={relay} />

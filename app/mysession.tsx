@@ -20,13 +20,14 @@ export default function ShowSession() {
         // for now we will wait and see if upstream accepts the pull request to not require this:
         // https://github.com/toastr-space/keys-band/pull/13
         // now tracking issue in Spring as well.
-        //const thisPubkeyRes = await (window as any).nostr.getPublicKey()
+        // adding additional call to support new signing clients -- until we can get bugs fixed upstream
+        const thisPubkeyRes = await (window as any).nostr.getPublicKey()
 
         let signThis = {
             kind: 27235,
             created_at: Math.floor(Date.now() / 1000),
             tags: [],
-            //   pubkey: thisPubkeyRes,
+            pubkey: thisPubkeyRes,
             content: token,
         }
 

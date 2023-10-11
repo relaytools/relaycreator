@@ -43,7 +43,11 @@ export default function MyRelays(
                     <div>
                         <div className="mt-8 lg:grid lg:grid-cols-3 gap-4 sm:flex sm:flex-col">
                             {props.myRelays.map((relay) => (
-                                <Relay key={relay.id} relay={relay} showSettings={true} showEdit={false} showDetail={false} showExplorer={false} />
+                                <Relay key={relay.id} relay={relay} showSettings={true} showEdit={false} showDetail={false} showExplorer={false} showCopy={false} />
+                            ))}
+
+                            {props.moderatedRelays.map((relay) => (
+                                <Relay key={relay.id} relay={relay.relay} showSettings={true} showEdit={false} showDetail={false} showExplorer={false} showCopy={false} />
                             ))}
                         </div>
                     </div>
