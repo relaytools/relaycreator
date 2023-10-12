@@ -46,6 +46,7 @@ export default function Relay(
                 <a href={"https://" + props.relay.name + "." + props.relay.domain} className="">
                     <div className="card w-96 shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                         backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
+                        backgroundSize: "cover",
                         textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
                     }}>
                         <div className="card-body items-center justify-end">
@@ -67,6 +68,7 @@ export default function Relay(
             {props.showCopy &&
                 <div onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + ".nostr1.com"))} className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                     backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
+                    backgroundSize: "cover",
                     textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
                 }}>
                     <div className="card-body items-center justify-end">
@@ -86,6 +88,7 @@ export default function Relay(
                 <a href={`/curator?relay_id=${props.relay.id}`} className="">
                     <div className="card w-96 shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                         backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
+                        backgroundSize: "cover",
                         textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
                     }}>
                         <div className="card-body items-center justify-end">
