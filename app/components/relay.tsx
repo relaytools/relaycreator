@@ -3,6 +3,13 @@ import { nip19 } from "nostr-tools"
 import { RelayWithEverything } from "./relayWithEverything"
 import { useState } from "react"
 
+function copyToClipboard(e: any, bolt: string) {
+    e.preventDefault()
+    navigator.clipboard.writeText(bolt).then(() => {
+        console.log('Copied to clipboard!');
+    });
+}
+
 export default function Relay(
     props: React.PropsWithChildren<{
         relay: RelayWithEverything;
@@ -56,27 +63,25 @@ export default function Relay(
 
                 </a>
             }
+
             {props.showCopy &&
-                <a href="#" className="">
-                    <div className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
-                        backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
-                        textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
-                    }}>
-                        <div className="card-body items-center justify-end">
-                            <div className="card h-48 w-96"></div>
-                            <div className="card h-48 w-96">
-                                <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
-                                    <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
-                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
-                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
-                                </div>
+                <div onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + ".nostr1.com"))} className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                    backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
+                    textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
+                }}>
+                    <div className="card-body items-center justify-end">
+                        <div className="card h-48 w-96"></div>
+                        <div className="card h-48 w-96">
+                            <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
+                                <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
+                                <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                                <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                             </div>
                         </div>
                     </div>
-
-
-                </a>
+                </div>
             }
+
             {props.showSettings &&
                 <a href={`/curator?relay_id=${props.relay.id}`} className="">
                     <div className="card w-96 shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
@@ -98,6 +103,18 @@ export default function Relay(
 
                 </a>
             }
+            {props.showCopy &&
+                <div>
+                    <div className="justify-center mt-2">
+                        <button className="btn btn-notice"
+                            onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + ".nostr1.com"))}>
+                            copy to clipboard
+                        </button>
+                    </div>
+                </div>
+
+            }
+
             {props.showEdit &&
                 <div className="justify-center mt-2">
                     <button className="btn btn-primary"
