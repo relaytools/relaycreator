@@ -37,6 +37,7 @@ export default function PostsPage() {
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [relayStatus, setRelayStatus] = useState(["initializing"]);
     const [showPost, setShowPost] = useState<Event>();
+    const [showImages, setShowImages] = useState(false);
 
     async function addToStatus(message: string) {
         setRelayStatus(arr => [...arr, message]);
@@ -212,6 +213,26 @@ export default function PostsPage() {
         return sortedPosts;
     };
 
+    const parseOutAndShowLinks = (content: string) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const urls: string[] = [];
+        content.replace(urlRegex, (url: string) => {
+            urls.push(url);
+            return url;
+        });
+        return urls;
+    };
+
+    const parseOutAndShowImages = (content: string) => {
+        const urlRegex = /(https?:\/\/[^\s]+?\.(jpg|png|gif|jpeg))/g;
+        const urls: string[] = [];
+        content.replace(urlRegex, (url: string) => {
+            urls.push(url)
+            return url;
+        });
+        return urls;
+    };
+
     const showLocalTime = (unixTime: any) => {
         const date = new Date(unixTime * 1000); // Convert to milliseconds
         const localTime = date.toLocaleString(); // Format as local time string
@@ -271,56 +292,67 @@ export default function PostsPage() {
                 </form>
             </div>
             {showPost != undefined &&
-                <dialog id="my_modal_5" className="modal modal-bottom modal-open sm:modal-middle">
-                    <form method="dialog" className="modal-box">
-                        <h1 className="font-bold text-sm">pubkey: {showPost.pubkey}</h1>
-                        <h1 className="font-bold text-sm">event id: {showPost.id}</h1>
-                        <div key={"post" + showPost.id} className={chatStartOrEnd(showPost)}>
-                            <div className="chat-image avatar">
-                                {lookupProfileImg(showPost.pubkey)}
-                            </div>
-                            <div className="chat-header">
-                                <div className="flex items-center space-x-2">
-                                    <div className="hover:text-white">{lookupProfileName(showPost.pubkey)}</div>
-                                    <time className="text-xs text-notice opacity-80">{lookupNip05(showPost.pubkey)}</time>
+                <div className="font-jetbrains bg-base-100 flex">
+                    <dialog key={"my_modal_5" + showPost.id} className="modal modal-top modal-open sm:modal-middle max-w-screen h-auto">
+                        <form method="dialog" className="modal-box w-full">
+                            <div key={"post" + showPost.id} className={chatStartOrEnd(showPost) + " max-w-screen overflow-hidden"}>
+                                <div className="chat-image avatar">
+                                    {lookupProfileImg(showPost.pubkey)}
+                                </div>
+                                <div className="chat-header">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="hover:text-white overflow-x-auto">{lookupProfileName(showPost.pubkey)}</div>
+                                        <time className="text-xs text-notice opacity-80">{lookupNip05(showPost.pubkey)}</time>
+                                    </div>
+                                </div>
+
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-scroll max-w-screen">{showPost.content}</div>
+                                <div className="chat-footer opacity-50">
+                                    {showLocalTime(showPost.created_at)}
                                 </div>
                             </div>
 
-                            <div className="chat-bubble chat-bubble-gray-100 text-white selectable">{showPost.content}</div>
-                            <div className="chat-footer opacity-50">
-                                {showLocalTime(showPost.created_at)}
+                            {parseOutAndShowLinks(showPost.content).map((url) => (
+                                <div key={"2" + url}>
+                                    <a href={url} className="link link-primary">{url}</a>
+                                </div>
+                            ))}
+
+                            {showImages && parseOutAndShowImages(showPost.content).map((url) => (
+                                <div key={"1" + url}>
+                                    <img src={url} className="max-w-screen h-auto overflow-hidden"></img>
+                                </div>
+                            ))}
+                            <div className="btn" onClick={() => setShowImages(!showImages)}>show images</div>
+
+                            <div className="modal-action">
+                                {/* if there is a button in form, it will close the modal */}
+                                <button className="btn" onClick={() => setShowPost(undefined)}>Actions</button>
                             </div>
-                        </div>
-                        <div className="modal-action">
-                            {/* if there is a button in form, it will close the modal */}
-                            <button className="btn" onClick={() => setShowPost(undefined)}>Block Pubkey</button>
-                        </div>
-                        <div className="modal-action">
-                            {/* if there is a button in form, it will close the modal */}
-                            <button className="btn" onClick={() => setShowPost(undefined)}>Block Event</button>
-                        </div>
-                        <div className="modal-action">
-                            {/* if there is a button in form, it will close the modal */}
-                            <button className="btn" onClick={() => setShowPost(undefined)}>Close</button>
-                        </div>
-                    </form>
-                </dialog>
+                            <div className="modal-action">
+                                {/* if there is a button in form, it will close the modal */}
+                                <button className="btn" onClick={() => setShowPost(undefined)}>Close</button>
+                            </div>
+                        </form>
+                    </dialog>
+                </div>
             }
             {sortPosts(false).map((post) => (
-                <div key={"post" + post.id} className={chatStartOrEnd(post)}
+                <div key={"post" + post.id} className={chatStartOrEnd(post) + " max-w-screen overflow-hidden"}
                     onClick={(e) => handleClick(e, post)}
                     id={"eventid:" + post.id + ";pubkey:" + post.pubkey}>
+
                     <div className="chat-image avatar">
                         {lookupProfileImg(post.pubkey)}
                     </div>
-                    <div className="chat-header">
+                    <div className="chat-header max-w-screen overflow-hidden">
                         <div className="flex items-center space-x-2">
-                            <div className="hover:text-white">{lookupProfileName(post.pubkey)}</div>
+                            <div className="hover:text-white max-w-screen overflow-hidden">{lookupProfileName(post.pubkey)}</div>
                             <time className="text-xs text-notice opacity-80">{lookupNip05(post.pubkey)}</time>
                         </div>
                     </div>
 
-                    <div className="chat-bubble chat-bubble-gray-100 text-white selectable">{post.content}</div>
+                    <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden">{post.content}</div>
                     <div className="chat-footer opacity-50">
                         {showLocalTime(post.created_at)}
                     </div>
