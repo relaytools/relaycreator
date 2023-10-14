@@ -213,6 +213,11 @@ export default function PostsPage() {
         return sortedPosts;
     };
 
+    const showContentWithoutLinks = (content: string) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return content.replace(urlRegex, "");
+    }
+
     const parseOutAndShowLinks = (content: string) => {
         const urlRegex = /(https?:\/\/[^\s]+)/g;
         const urls: string[] = [];
@@ -222,6 +227,11 @@ export default function PostsPage() {
         });
         return urls;
     };
+    const showLocalTime = (unixTime: any) => {
+        const date = new Date(unixTime * 1000); // Convert to milliseconds
+        const localTime = date.toLocaleString(); // Format as local time string
+        return localTime;
+    }
 
     const parseOutAndShowImages = (content: string) => {
         const urlRegex = /(https?:\/\/[^\s]+?\.(jpg|png|gif|jpeg))/g;
@@ -233,11 +243,69 @@ export default function PostsPage() {
         return urls;
     };
 
-    const showLocalTime = (unixTime: any) => {
-        const date = new Date(unixTime * 1000); // Convert to milliseconds
-        const localTime = date.toLocaleString(); // Format as local time string
-        return localTime;
+    const findReply = (eventId: string) => {
+        console.log(posts.length)
+        let foundpost: any
+        posts.forEach((post) => {
+            if (post.id == eventId) {
+                console.log("foundreply")
+                foundpost = post
+            }
+
+        })
+        if (foundpost != undefined) {
+            return (
+                <div key={"replyfoundpost" + foundpost.id} className={chatStartOrEnd(foundpost) + " max-w-screen overflow-hidden"}
+                    onClick={(e) => handleClick(e, foundpost)}
+                >
+                    <div className="chat-image avatar">
+                        {lookupProfileImg(foundpost.pubkey)}
+                    </div>
+                    <div className="chat-header">
+                        <div className="flex items-center space-x-2">
+                            <div className="hover:text-white overflow-x-auto">{lookupProfileName(foundpost.pubkey)}</div>
+                            <time className="text-xs text-notice opacity-80">{lookupNip05(foundpost.pubkey)}</time>
+                        </div>
+                    </div>
+
+                    <div className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-auto max-w-screen">{showContentWithoutLinks(foundpost.content)}</div>
+                    <div className="chat-footer opacity-50">
+                        {showLocalTime(foundpost.created_at)}
+                    </div>
+                </div>
+            )
+        } else {
+            return (<></>)
+        }
     }
+
+    const isReply = (post: Event) => {
+        let etags: string[] = []
+        post.tags.forEach((t: any) => {
+            if (t[0] == "e") {
+                etags.push(t);
+            }
+        })
+        let ptags: string[] = []
+        post.tags.forEach((t: any) => {
+            if (t[0] == "p") {
+                ptags.push(t);
+            }
+        })
+
+        return (
+            <div>
+                {etags.map((tag: any) => (
+                    <div key={"tage" + tag}>
+                        {findReply(tag[1])}
+                    </div>
+                ))}
+            </div>
+
+        )
+    }
+
+
 
     const handleSubmitPost = async (e: any) => {
         e.preventDefault();
@@ -294,7 +362,10 @@ export default function PostsPage() {
             {showPost != undefined &&
                 <div className="font-jetbrains bg-base-100 flex">
                     <dialog key={"my_modal_5" + showPost.id} className="modal modal-top modal-open sm:modal-middle max-w-screen h-auto">
+
                         <form method="dialog" className="modal-box w-full">
+
+                            <div>{isReply(showPost)}</div>
                             <div key={"post" + showPost.id} className={chatStartOrEnd(showPost) + " max-w-screen overflow-hidden"}>
                                 <div className="chat-image avatar">
                                     {lookupProfileImg(showPost.pubkey)}
@@ -306,7 +377,7 @@ export default function PostsPage() {
                                     </div>
                                 </div>
 
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-scroll max-w-screen">{showPost.content}</div>
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-auto max-w-screen">{showContentWithoutLinks(showPost.content)}</div>
                                 <div className="chat-footer opacity-50">
                                     {showLocalTime(showPost.created_at)}
                                 </div>
