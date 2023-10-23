@@ -21,6 +21,7 @@ export default function ShowSession() {
         // https://github.com/toastr-space/keys-band/pull/13
         // now tracking issue in Spring as well.
         // adding additional call to support new signing clients -- until we can get bugs fixed upstream
+        // oct-20 update, attempting to re-enable one event sign-in
         const thisPubkeyRes = await (window as any).nostr.getPublicKey()
 
         let signThis = {

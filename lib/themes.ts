@@ -1,7 +1,6 @@
 const Themes = [
-    'halloween',
-    'light',
     'dark',
+    'light',
 ]
 
 export default Themes

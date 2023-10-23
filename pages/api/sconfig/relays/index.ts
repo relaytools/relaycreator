@@ -10,7 +10,7 @@ export default async function handle(req: any, res: any) {
     const session = await getServerSession(req, res, authOptions)
     if (session) {
         // Signed in
-        //console.log("Session", JSON.stringify(session, null, 2))
+        //console.log("strfrycheck Session", JSON.stringify(session, null, 2))
     } else {
         // Not Signed in
         res.status(404).json({ "error": "not signed in" })
