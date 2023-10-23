@@ -38,6 +38,7 @@ export default function PostsPage() {
     const [relayStatus, setRelayStatus] = useState(["initializing"]);
     const [showPost, setShowPost] = useState<Event>();
     const [showImages, setShowImages] = useState(false);
+    const [replyPost, setReplyPost] = useState("");
 
     async function addToStatus(message: string) {
         setRelayStatus(arr => [...arr, message]);
@@ -46,6 +47,26 @@ export default function PostsPage() {
     const addPost = (e: any) => {
         const newPost: Event = e;
         setPosts(prevPosts => [newPost, ...prevPosts]);
+    }
+
+    const removePost = (e: any) => {
+        var setNewPosts: Event[] = []
+        posts.forEach((post) => {
+            if (post.id != e.id) {
+                setNewPosts.push(post)
+            }
+        })
+        setPosts(setNewPosts)
+    }
+
+    const removePostPubkey = (e: any) => {
+        var setNewPosts: Event[] = []
+        posts.forEach((post) => {
+            if (post.pubkey != e.pubkey) {
+                setNewPosts.push(post)
+            }
+        })
+        setPosts(setNewPosts)
     }
 
     const addProfile = (e: any) => {
@@ -57,6 +78,8 @@ export default function PostsPage() {
     const searchParams = useSearchParams()
     var relayparam: any
     var relayLimit: any
+    var relay_id: any
+    var modActions: any
     if (searchParams == null) {
         relayparam = nip19.nrelayEncode("wss://nostr21.com")
         relayLimit = 100
@@ -71,6 +94,8 @@ export default function PostsPage() {
         } else {
             relayLimit = parseInt(c)
         }
+        relay_id = searchParams.get('relay_id')
+        modActions = searchParams.get('mod')
     }
 
     let { type, data } = nip19.decode(relayparam)
@@ -114,32 +139,16 @@ export default function PostsPage() {
             await relay.connect();
         }
         grabStuff(nrelaydata)
-        //grabStuff("wss://nostr21.com")
-        //    .catch(console.error);
-        /*
-    grabStuff("wss://relay.damus.io")
-        .catch(console.error);
-    grabStuff("wss://relay.nostr.info")
-        .catch(console.error);
-    grabStuff("wss://nostr-relay.wlvs.space")
-        .catch(console.error);
-    grabStuff("wss://rsslay.fiatjaf.com")
-        .catch(console.error);
-    grabStuff("wss://expensive-relay.fiatjaf.com")
-        .catch(console.error);
-    grabStuff("wss://nostr-relay.freeberty.net")
-        .catch(console.error);
-    grabStuff("wss://nostrrr.bublina.eu.org")
-        .catch(console.error);
-    grabStuff("wss://nostr.bitcoiner.social")
-        .catch(console.error);
-    grabStuff("wss://astral.ninja")
-        .catch(console.error);
-    grabStuff("wss://nostr-pub.semisol.dev")
-        .catch(console.error);
-        */
-
     }, []);
+
+    function summarizePubkey(pubkey: string): string {
+        if (pubkey.length <= 60) {
+          return pubkey;
+        }
+        const firstFour = pubkey.substring(0, 4);
+        const lastFour = pubkey.substring(pubkey.length - 4);
+        return `${firstFour}...${lastFour}`;
+    }
 
     const lookupProfileName = (pubkey: string) => {
         for (let i = 0; i < profiles.length; i++) {
@@ -263,12 +272,12 @@ export default function PostsPage() {
                     </div>
                     <div className="chat-header">
                         <div className="flex items-center space-x-2">
-                            <div className="hover:text-white overflow-x-auto">{lookupProfileName(foundpost.pubkey)}</div>
+                            <div className="hover:text-white overflow-x-auto">{summarizePubkey(lookupProfileName(foundpost.pubkey))}</div>
                             <time className="text-xs text-notice opacity-80">{lookupNip05(foundpost.pubkey)}</time>
                         </div>
                     </div>
 
-                    <div className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-auto max-w-screen">{showContentWithoutLinks(foundpost.content)}</div>
+                    <div style={{ whiteSpace: "pre-wrap", overflow: "auto" }} className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-auto max-w-screen">{showContentWithoutLinks(foundpost.content)}</div>
                     <div className="chat-footer opacity-50">
                         {showLocalTime(foundpost.created_at)}
                     </div>
@@ -305,7 +314,131 @@ export default function PostsPage() {
         )
     }
 
+    const handleReply = async () => {
+        if (session && session.user && showPost != undefined) {
+            const connectHere = relayInit(nrelaydata)
+            connectHere.on('connect', () => {
+                console.log(`connected to ${nrelaydata}`)
+            })
+            connectHere.on('error', () => {
+                console.log(`failed to connect to ${nrelaydata}`)
+            })
+            await connectHere.connect()
+            let event = {
+                kind: 1,
+                pubkey: session.user.name,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [["p", showPost.pubkey], ["e", showPost.id]],
+                content: replyPost
+            }
+            let signedEvent = await (window as any).nostr.signEvent(event)
 
+            console.log(signedEvent)
+
+            const result = await connectHere.publish((signedEvent as any))
+            console.log(result)
+            connectHere.close()
+            //clear the form
+            setShowPost(undefined)
+        } else {
+            console.log("not logged in")
+        }
+    }
+
+    // todo, delete from view
+    const handleDeleteEvent = async () => {
+        if (session && session.user && showPost != undefined) {
+            const connectHere = relayInit(nrelaydata)
+            connectHere.on('connect', () => {
+                console.log(`connected to ${nrelaydata}`)
+            })
+            connectHere.on('error', () => {
+                console.log(`failed to connect to ${nrelaydata}`)
+            })
+            await connectHere.connect()
+            let event = {
+                kind: 1984,
+                pubkey: session.user.name,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [["e", showPost.id]],
+                content: ""
+            }
+
+            let signedEvent = await (window as any).nostr.signEvent(event)
+
+            console.log(signedEvent)
+
+            const result = await connectHere.publish((signedEvent as any))
+            console.log(result)
+            removePost(showPost)
+            connectHere.close()
+            //clear the form
+            setShowPost(undefined)
+        } else {
+            console.log("not logged in")
+        }
+    }
+
+    const handleBlockPubkey = async () => {
+        if (session && session.user && showPost != undefined && relay_id != undefined) {
+            // call to API to add new keyword
+            const response = await fetch(`/api/relay/${relay_id}/blocklistpubkey`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "pubkey": showPost.pubkey, "reason": "" })
+            });
+    
+            if (response.ok) {
+                const j = await response.json()
+            }
+        }
+    }
+    
+    const handleBlockAndDelete = async () => {
+        // delete part
+        if (session && session.user && showPost != undefined) {
+            // deleting phase
+            const connectHere = relayInit(nrelaydata)
+            connectHere.on('connect', () => {
+                console.log(`connected to ${nrelaydata}`)
+            })
+            connectHere.on('error', () => {
+                console.log(`failed to connect to ${nrelaydata}`)
+            })
+            await connectHere.connect()
+            let event = {
+                kind: 1984,
+                pubkey: session.user.name,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [["p", showPost.pubkey]],
+                content: ""
+            }
+
+            let signedEvent = await (window as any).nostr.signEvent(event)
+
+            console.log(signedEvent)
+
+            const result = await connectHere.publish((signedEvent as any))
+            console.log(result)
+            connectHere.close()
+
+            // blocking phase
+            handleBlockPubkey()
+
+            // remove from UI
+            removePostPubkey(showPost)
+            //clear the form
+            setShowPost(undefined)
+        } else {
+            console.log("not logged in")
+        }
+
+    }
+
+    const handleClosePost = async () => {
+        setShowPost(undefined)
+        setShowImages(false)
+    }
 
     const handleSubmitPost = async (e: any) => {
         e.preventDefault();
@@ -344,6 +477,20 @@ export default function PostsPage() {
 
     }
 
+    const detectImages = (content: string) => {
+        const urlRegex = /(https?:\/\/[^\s]+?\.(jpg|png|gif|jpeg))/g;
+        const urls: string[] = [];
+        content.replace(urlRegex, (url: string) => {
+            urls.push(url)
+            return url;
+        });
+        if (urls.length > 0) {
+            return true
+        } else {
+            return false
+        }
+    }
+
     return (
         <div>
             <ul role="list" className="text-xs">
@@ -353,7 +500,7 @@ export default function PostsPage() {
                     </li>
                 ))}
             </ul>
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center mb-2">
                 <form onSubmit={(e) => handleSubmitPost(e)} className="flex items-center" >
                     <input type="text" key="post1" placeholder="say something" className="input input-bordered input-primary w-full" />
                     <button className="btn btn-primary">Post</button>
@@ -365,19 +512,23 @@ export default function PostsPage() {
 
                         <form method="dialog" className="modal-box w-full">
 
+                            <div className="flex justify-end">
+                                <div className="btn" onClick={() => handleClosePost()}>X</div>
+                            </div>
                             <div>{isReply(showPost)}</div>
-                            <div key={"post" + showPost.id} className={chatStartOrEnd(showPost) + " max-w-screen overflow-hidden"}>
+                            <div key={"post" + showPost.id} className={chatStartOrEnd(showPost) + "max-w-screen overflow-hidden"}>
                                 <div className="chat-image avatar">
                                     {lookupProfileImg(showPost.pubkey)}
                                 </div>
                                 <div className="chat-header">
                                     <div className="flex items-center space-x-2">
-                                        <div className="hover:text-white overflow-x-auto">{lookupProfileName(showPost.pubkey)}</div>
+                                        <div className="hover:text-white overflow-x-auto">{summarizePubkey(lookupProfileName(showPost.pubkey))}</div>
                                         <time className="text-xs text-notice opacity-80">{lookupNip05(showPost.pubkey)}</time>
                                     </div>
                                 </div>
 
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-auto max-w-screen">{showContentWithoutLinks(showPost.content)}</div>
+
+                                <div style={{ whiteSpace: "pre-wrap", overflow: "auto" }} className="chat-bubble text-white selectable overflow-x-auto max-w-screen ">{showContentWithoutLinks(showPost.content)}</div>
                                 <div className="chat-footer opacity-50">
                                     {showLocalTime(showPost.created_at)}
                                 </div>
@@ -389,20 +540,41 @@ export default function PostsPage() {
                                 </div>
                             ))}
 
-                            {showImages && parseOutAndShowImages(showPost.content).map((url) => (
-                                <div key={"1" + url}>
-                                    <img src={url} className="max-w-screen h-auto overflow-hidden"></img>
+                            {detectImages(showPost.content) && 
+                                <div>
+                                    {showImages && parseOutAndShowImages(showPost.content).map((url) => (
+                                        <div key={"1" + url}>
+                                            <img src={url} className="max-w-screen h-auto overflow-hidden"></img>
+                                        </div>
+                                    ))}
+                                    <span className="flex justify-between mt-4">
+                                        <div className="btn mb-4" onClick={() => setShowImages(!showImages)}>show images</div>
+                                    </span>
                                 </div>
-                            ))}
-                            <div className="btn" onClick={() => setShowImages(!showImages)}>show images</div>
+                            }
 
-                            <div className="modal-action">
-                                {/* if there is a button in form, it will close the modal */}
-                                <button className="btn" onClick={() => setShowPost(undefined)}>Actions</button>
+                            <div className="flex items-center justify-center mb-4 mt-2">
+                                <input onChange={(e) => setReplyPost(e.target.value)} type="text" key="replypost" placeholder="send reply" className="input input-bordered input-primary w-full" />
+                                <button className="btn btn-primary" onClick={() => handleReply()}>reply</button>
                             </div>
-                            <div className="modal-action">
-                                {/* if there is a button in form, it will close the modal */}
-                                <button className="btn" onClick={() => setShowPost(undefined)}>Close</button>
+
+                            {modActions &&
+                                <div>
+                                    <div className="w-full bg-gradient-to-r from-gray-600 to-gray-900 items-center h-5 px-3 sm:text-sm text-center mb-4">- actions - </div>
+                                    <div className="mb-4">
+                                        <button className="btn" onClick={() => handleDeleteEvent()}>delete event</button>
+                                    </div>
+                                    <div className="mb-4">
+                                        <button className="btn" onClick={() => handleBlockPubkey()}>block pubkey</button>
+                                    </div>
+                                    <div className="mb-4">
+                                        <button className="btn" onClick={() => handleBlockAndDelete()}>block & delete pubkey</button>
+                                    </div>
+                                </div>
+                            }
+
+                            <div className="flex justify-center">
+                            <div className="flex justify-end btn" onClick={() => handleClosePost()}>next</div>
                             </div>
                         </form>
                     </dialog>
@@ -423,7 +595,7 @@ export default function PostsPage() {
                         </div>
                     </div>
 
-                    <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden">{post.content}</div>
+                    <div style={{ whiteSpace: "pre-wrap", overflow: "auto" }} className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden">{post.content}</div>
                     <div className="chat-footer opacity-50">
                         {showLocalTime(post.created_at)}
                     </div>

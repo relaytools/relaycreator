@@ -18,6 +18,7 @@ export default function Relay(
         showDetail: boolean;
         showExplorer: boolean;
         showCopy: boolean;
+        modActions?: boolean;
     }>) {
 
     const [profileDetail, setProfileDetails] = useState(props.relay.details)
@@ -152,15 +153,26 @@ export default function Relay(
             {props.showExplorer &&
                 <div>
                     <div className="justify-center mt-2">
-                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + props.relay.domain)} className="btn btn-secondary">
                             open in relay explorer<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
+
+                    {props.modActions != null && props.modActions == true && 
                     <div className="justify-center mt-2">
-                        <a href={rootDomain + "/posts?relay=" + nip19.nrelayEncode("wss://" + props.relay.name + ".nostr1.com")} className="btn btn-secondary">
+                        <a href={rootDomain + "/posts?mod=true&relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode("wss://" + props.relay.name + "." + props.relay.domain)} className="btn btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
+    }
+
+                    {props.modActions == null || props.modActions == false && 
+                    <div className="justify-center mt-2">
+                        <a href={rootDomain + "/posts?relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode("wss://" + props.relay.name + "." + props.relay.domain)} className="btn btn-secondary">
+                            open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
+                        </a>
+                    </div>
+    }
                 </div>
             }
 

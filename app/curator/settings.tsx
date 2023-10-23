@@ -30,7 +30,7 @@ export default function Settings(props: React.PropsWithChildren<{
 
     return (
         <div className="">
-            <Relay relay={props.relay} showEdit={true} showSettings={false} showDetail={true} showExplorer={true} showCopy={false} />
+            <Relay modActions={true} relay={props.relay} showEdit={true} showSettings={false} showDetail={true} showExplorer={true} showCopy={false} />
 
             <div className="badge badge-neutral mt-4">status: {props.relay.status}</div>
             <div className="divider mt-4">General Settings</div>

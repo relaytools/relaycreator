@@ -39,7 +39,7 @@ export default function PublicRelays(
 
             <div className="mt-8 lg:grid lg:grid-cols-3 gap-4 sm:flex sm:flex-col">
                 {results.map((relay) => (
-                    <Relay key={"pub" + relay.id} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} showCopy={false} />
+                    <Relay key={"pub" + relay.id} modActions={false} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} showCopy={false} />
                 ))}
             </div>
         </div>
