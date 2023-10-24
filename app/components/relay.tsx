@@ -153,7 +153,7 @@ export default function Relay(
             {props.showExplorer &&
                 <div>
                     <div className="justify-center mt-2">
-                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + props.relay.domain)} className="btn btn-secondary">
+                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + "." + props.relay.domain)} className="btn btn-secondary">
                             open in relay explorer<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
