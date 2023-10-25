@@ -155,7 +155,7 @@ frontend unsecured
 	redirect 		prefix https://relay.tools code 301 
 
 frontend secured
-	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName} crt /etc/haproxy/certs/relay.tools.pem
+	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
 
 	mode			http
 	timeout			client   3600s
