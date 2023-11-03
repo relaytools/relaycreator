@@ -50,5 +50,9 @@ export default async function handle(req: any, res: any) {
     nostrjson["limitation"]["created_at_lower_limit"] = 94608000
     nostrjson["limitation"]["created_at_upper_limit"] = 900
 
+    if(relay.banner_image) {
+        nostrjson["icon"] = relay.banner_image
+    }
+
     res.status(200).json(nostrjson)
 }
