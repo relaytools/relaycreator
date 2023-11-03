@@ -12,21 +12,21 @@ export default function MyRelays(
         publicRelays: RelayWithEverything[];
     }>) {
 
-    const [showMyRelays, setShowMyRelays] = useState(true)
+    const [showMyRelays, setShowMyRelays] = useState(false)
 
     const selectTypeRelays = () => {
         if (showMyRelays) {
             return (
                 <div>
-                    <input key="shomyrelays1" className="join-item btn btn-primary btn-active" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
                     <input key="showpublicrelays1" className="join-item btn" onClick={() => setShowMyRelays(false)} type="radio" name="options" aria-label="Public Relays" />
+                    <input key="shomyrelays1" className="join-item btn btn-primary btn-active" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
                 </div>
             )
         } else {
             return (
                 <div>
-                    <input key="myrelays1" className="join-item btn" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
                     <input key="publicrelays1" className="join-item btn btn-primary btn-active" onClick={() => setShowMyRelays(false)} type="radio" name="options" aria-label="Public Relays" />
+                    <input key="myrelays1" className="join-item btn" onClick={() => setShowMyRelays(true)} type="radio" name="options" aria-label="My Relays" />
                 </div>
             )
         }
