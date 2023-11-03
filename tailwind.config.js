@@ -32,7 +32,7 @@ module.exports = {
           "neutral": "#1E293B",
           "base-100": "#ffffff",
 
-          "--rounded-box": "0.1rem", // border radius rounded-box utility class, used in card and other large boxes
+          //"--rounded-box": "0.1rem", // border radius rounded-box utility class, used in card and other large boxes
           "--rounded-btn": "0.1rem", // border radius rounded-btn utility class, used in buttons and similar element
           "--rounded-badge": "1.9rem", // border radius rounded-badge utility class, used in badges and similar
           "--animation-btn": "0.25s", // duration of animation when you click on button
@@ -57,7 +57,7 @@ module.exports = {
           "warning": "#F4BF50",
           "error": "#FB7085",
 
-          "--rounded-box": "0.1rem", // border radius rounded-box utility class, used in card and other large boxes
+          //"--rounded-box": "0.1rem", // border radius rounded-box utility class, used in card and other large boxes
           "--rounded-btn": "0.1rem", // border radius rounded-btn utility class, used in buttons and similar element
           "--rounded-badge": "1.9rem", // border radius rounded-badge utility class, used in badges and similar
           "--animation-btn": "0.25s", // duration of animation when you click on button
