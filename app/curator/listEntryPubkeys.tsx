@@ -83,9 +83,7 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         if (session && session.user != null && session.user.name != null) {
             ndk.connect()
 
-            const kind30000: Kind = 30000 as Kind;
-            const kind10000: Kind = 10000 as Kind;
-            const filter: NDKFilter = { kinds: [kind30000, kind10000, 3], authors: [session.user.name] }
+            const filter: NDKFilter = { kinds: [30000, 10000, 3], authors: [session.user.name] }
             // Will return all found events
             const events = await ndk.fetchEvents(filter);
             console.log(events)
