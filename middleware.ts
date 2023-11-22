@@ -31,7 +31,12 @@ export async function middleware(req: NextRequest) {
     const host = req.headers.get('host');
 
     // Skip root domains
-    if (host == "relay.tools" || host == "nostr1.com" || host?.includes("192.168")) return;
+    let skipThis = "nostr1.com"
+    if( process.env.CREATOR_DOMAIN ) {
+        skipThis = process.env.CREATOR_DOMAIN
+    }
+    
+    if (host == "relay.tools" || host == skipThis || host?.includes("192.168")) return;
 
     const subdomain = getValidSubdomain(host);
     if (subdomain) {
