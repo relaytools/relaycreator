@@ -64,10 +64,15 @@ export default async function handle(req: any, res: any) {
         useAmount = parseInt(process.env.INVOICE_AMOUNT)
     }
 
+    let usethisdomain = "nostr1.com"
+	if (process.env.CREATOR_DOMAIN) {
+		usethisdomain = process.env.CREATOR_DOMAIN
+	}
+
     // find a free port
     const allRelays = await prisma.relay.findMany({
         where: {
-            domain: "nostr1.com"
+            domain: usethisdomain 
         },
         select: { "port": true }
     })
@@ -90,7 +95,7 @@ export default async function handle(req: any, res: any) {
         data: {
             name: relayname,
             ownerId: useUser.id,
-            domain: "nostr1.com",
+            domain: usethisdomain,
             created_at: currentdate,
             status: useStatus,
             port: p,
