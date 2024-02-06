@@ -119,6 +119,8 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
         }
     }
 
+    const useDomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN || "nostr1.com"
+
     return (
         <div className="font-jetbrains">
             <div className="flex flex-col">
@@ -163,7 +165,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                     value={name}
                                     onChange={event => setRelayName(event.target.value)}
                                 />
-                                <button className="btn disabled">.nostr1.com</button>
+                                <button className="btn disabled">.{useDomain}</button>
                                 <button className="btn btn-primary items-center rounded-r-md eborder border-l-0 border-gray-300 px-3 sm:text-sm mt-2"
                                     onClick={handleSubmit}
                                     disabled={!isValidForm}

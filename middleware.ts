@@ -31,8 +31,8 @@ export async function middleware(req: NextRequest) {
     const host = req.headers.get('host');
 
     let skipThis = "nostr1.com"
-    if( process.env.CREATOR_DOMAIN ) {
-        skipThis = process.env.CREATOR_DOMAIN
+    if( process.env.NEXT_PUBLIC_CREATOR_DOMAIN ) {
+        skipThis = process.env.NEXT_PUBLIC_CREATOR_DOMAIN
     }
     
     // Skip root domains and local IPs
