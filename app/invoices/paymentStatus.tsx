@@ -75,6 +75,8 @@ export default function PaymentStatus(
 
     alby(props.payment_request)
 
+    const useDomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN || "nostr1.com"
+
     return (
 
         <div className="min-h-screen font-jetbrains">
@@ -93,7 +95,7 @@ export default function PaymentStatus(
                             </div>
                         </div>
                         <div className="text-2xl text-center">for</div>
-                        <div className="text-2xl text-center border rounded-r-md rounded-l-md border-gray-300 px-3 pt-5 pb-5">{relayname}.nostr1.com</div>
+                        <div className="text-2xl text-center border rounded-r-md rounded-l-md border-gray-300 px-3 pt-5 pb-5">{relayname}.{useDomain}</div>
                         <div className="col-span-3 flex justify-center">
                             <Bolt11Invoice payment_request={props.payment_request} />
                         </div>

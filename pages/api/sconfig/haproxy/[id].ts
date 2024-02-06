@@ -60,8 +60,8 @@ export default async function handle(req: any, res: any) {
 	// the certificates locations
 	// default domain
 	let usethisdomain = "nostr1.com"
-	if (process.env.CREATOR_DOMAIN) {
-		usethisdomain = process.env.CREATOR_DOMAIN
+	if (process.env.NEXT_PUBLIC_CREATOR_DOMAIN) {
+		usethisdomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN
 	}
 
 	let pemName = "nostr1.pem"

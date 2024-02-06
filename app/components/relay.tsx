@@ -55,7 +55,7 @@ export default function Relay(
                             <div className="card h-48 w-96">
                                 <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
                                     <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
-                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + "." + props.relay.domain}</p>
                                     <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                                 </div>
                             </div>
@@ -67,7 +67,7 @@ export default function Relay(
             }
 
             {props.showCopy &&
-                <div onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + ".nostr1.com"))} className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                <div onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + "." + props.relay.domain))} className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                     backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
                     backgroundSize: "cover",
                     textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
@@ -77,7 +77,7 @@ export default function Relay(
                         <div className="card h-48 w-96">
                             <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
                                 <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
-                                <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                                <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + "." + props.relay.domain}</p>
                                 <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                             </div>
                         </div>
@@ -97,7 +97,7 @@ export default function Relay(
                             <div className="card h-48 w-96">
                                 <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
                                     <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
-                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + ".nostr1.com"}</p>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + "." + props.relay.domain}</p>
                                     <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                                 </div>
                             </div>
@@ -111,7 +111,7 @@ export default function Relay(
                 <div>
                     <div className="justify-center mt-2">
                         <button className="btn btn-notice"
-                            onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + ".nostr1.com"))}>
+                            onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + "." + props.relay.domain))}>
                             copy to clipboard
                         </button>
                     </div>
