@@ -32,7 +32,7 @@ export default async function handle(req: any, res: any) {
 
     if (relay.payment_required == true) {
         nostrjson["limitation"] = { "payment_required": true }
-        nostrjson["payments_url"] = "https://" + relay.name + "." + relay.domain
+        nostrjson["payments_url"] = "https://" + useUrl 
         nostrjson["fees"] = {
             "admission": [{ "amount": relay.payment_amount * 1000, "unit": "msats" }],
         }
