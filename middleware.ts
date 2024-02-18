@@ -41,9 +41,18 @@ export async function middleware(req: NextRequest) {
     const subdomain = getValidSubdomain(host);
     if (subdomain) {
         // Subdomain available, rewriting
-        console.log(`>>> Rewriting: ${url.pathname} to /${subdomain}${url.pathname}`);
+        console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);
         url.pathname = `/relays/${subdomain}/${url.pathname}`;
     }
 
-    return NextResponse.rewrite(url);
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('middleware-rewritten', 'true')
+
+    const response = NextResponse.next({
+        request: {
+            headers: requestHeaders,
+        },
+    })
+
+    return NextResponse.rewrite(url, response);
 }

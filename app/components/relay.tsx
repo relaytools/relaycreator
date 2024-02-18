@@ -40,11 +40,22 @@ export default function Relay(
         setEdited(true)
     }
 
+    let useRelayWSS = "wss://" + props.relay.name + "." + props.relay.domain
+    // if relay is external, use full domain name here
+    if(props.relay.is_external) {
+        useRelayWSS = "wss://" + props.relay.domain
+    }
+
+    let useRelayHttps = "https://" + props.relay.name + "." + props.relay.domain
+    if(props.relay.is_external) {
+        useRelayHttps = "https://" + props.relay.domain
+    }
+
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
     return (
         <div id={props.relay.id + "rootview"} className="">
             {props.showDetail &&
-                <a href={"https://" + props.relay.name + "." + props.relay.domain} className="">
+                <a href={useRelayHttps} className="">
                     <div className="card w-96 shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                         backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
                         backgroundSize: "cover",
@@ -55,7 +66,7 @@ export default function Relay(
                             <div className="card h-48 w-96">
                                 <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
                                     <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
-                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + "." + props.relay.domain}</p>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{useRelayWSS}</p>
                                     <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                                 </div>
                             </div>
@@ -67,7 +78,7 @@ export default function Relay(
             }
 
             {props.showCopy &&
-                <div onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + "." + props.relay.domain))} className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                <div onClick={(e) => copyToClipboard(e, (useRelayWSS))} className="card lg:w-full shadow-xl text-white selectable mb-4 hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                     backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
                     backgroundSize: "cover",
                     textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
@@ -77,7 +88,7 @@ export default function Relay(
                         <div className="card h-48 w-96">
                             <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
                                 <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
-                                <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + "." + props.relay.domain}</p>
+                                <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{useRelayWSS}</p>
                                 <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                             </div>
                         </div>
@@ -97,7 +108,7 @@ export default function Relay(
                             <div className="card h-48 w-96">
                                 <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80">
                                     <h2 className="card-title mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{props.relay.name}</h2>
-                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{"wss://" + props.relay.name + "." + props.relay.domain}</p>
+                                    <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", overflow: "auto" }}>{useRelayWSS}</p>
                                     <p className="mb-2 mr-4 ml-2 mt-2" style={{ whiteSpace: "pre-wrap", minHeight: "52px", maxHeight: "52px", overflow: "auto" }}>{edited ? (profileDetail || "") : (props.relay.details || "")}</p>
                                 </div>
                             </div>
@@ -111,7 +122,7 @@ export default function Relay(
                 <div>
                     <div className="justify-center mt-2">
                         <button className="btn btn-notice"
-                            onClick={(e) => copyToClipboard(e, ("wss://" + props.relay.name + "." + props.relay.domain))}>
+                            onClick={(e) => copyToClipboard(e, (useRelayWSS))}>
                             copy to clipboard
                         </button>
                     </div>
@@ -153,14 +164,14 @@ export default function Relay(
             {props.showExplorer &&
                 <div>
                     <div className="justify-center mt-2">
-                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode("wss://" + props.relay.name + "." + props.relay.domain)} className="btn btn-secondary">
+                        <a href={"https://relays.vercel.app/relay/" + nip19.nrelayEncode(useRelayWSS)} className="btn btn-secondary">
                             open in relay explorer<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
 
                     {props.modActions != null && props.modActions == true && 
                     <div className="justify-center mt-2">
-                        <a href={rootDomain + "/posts?mod=true&relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode("wss://" + props.relay.name + "." + props.relay.domain)} className="btn btn-secondary">
+                        <a href={rootDomain + "/posts?mod=true&relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS)} className="btn btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
@@ -168,7 +179,7 @@ export default function Relay(
 
                     {props.modActions == null || props.modActions == false && 
                     <div className="justify-center mt-2">
-                        <a href={rootDomain + "/posts?relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode("wss://" + props.relay.name + "." + props.relay.domain)} className="btn btn-secondary">
+                        <a href={rootDomain + "/posts?relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS)} className="btn btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
