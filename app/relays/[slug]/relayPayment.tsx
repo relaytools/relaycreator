@@ -14,6 +14,7 @@ export default function RelayPayment(props: React.PropsWithChildren<{
     const [showPubkeyInput, setShowPubkeyInput] = useState(true)
     const [showInvoice, setShowInvoice] = useState(false)
     const [clientOrder, setClientOrder] = useState({} as any)
+    const [showSpinner, setShowSpinner] = useState(false)
 
     const router = useRouter()
 
@@ -51,6 +52,7 @@ export default function RelayPayment(props: React.PropsWithChildren<{
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
+        setShowSpinner(true)
         // do a post request to the api to create a new order
         const response = await fetch(`${rootDomain}/api/clientorders?relayid=${props.relay.id}&pubkey=${pubkey}`, {
             method: 'GET',
@@ -63,6 +65,7 @@ export default function RelayPayment(props: React.PropsWithChildren<{
             const clientOrder = await response.json()
             setClientOrder(clientOrder.clientOrder)
             setShowPubkeyInput(false)
+            setShowSpinner(false)
             setShowInvoice(true)
         }
     }
@@ -98,13 +101,15 @@ export default function RelayPayment(props: React.PropsWithChildren<{
                                     />
                                     <button className="btn btn-primary inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 sm:text-sm"
                                         onClick={handleSubmit}
-                                        disabled={!isValidForm}
+                                        disabled={!isValidForm()}
                                     >
                                         Pay with lightning {pubkeyError} <span className="fl pl-2">⚡</span>
                                     </button>
 
                                 </div>
                             }
+
+                            {showSpinner &&  <span className="loading loading-spinner text-primary" /> }
                             {showInvoice && <ShowClientOrder clientOrder={clientOrder} />}
                         </div>
 

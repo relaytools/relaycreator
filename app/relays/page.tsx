@@ -62,7 +62,7 @@ export default async function Relays() {
         )
     }
 
-    const myRelays = await prisma.relay.findMany({
+    let myRelays = await prisma.relay.findMany({
         where: {
             ownerId: me.id,
             OR: [
@@ -89,6 +89,35 @@ export default async function Relays() {
             },
         }
     })
+
+    if(me.admin) {
+        myRelays = await prisma.relay.findMany({
+            where: {
+                OR: [
+                    { status: "running" },
+                    { status: "provision" },
+                ]
+            },
+            include: {
+                owner: true,
+                moderators: {
+                    include: { user: true },
+                },
+                block_list: {
+                    include: {
+                        list_keywords: true,
+                        list_pubkeys: true,
+                    },
+                },
+                allow_list: {
+                    include: {
+                        list_keywords: true,
+                        list_pubkeys: true,
+                    },
+                },
+            }
+        })
+    }
 
     const moderatedRelays = await prisma.moderator.findMany({
         where: {

@@ -19,6 +19,7 @@ model User {
   // these are relay the user owns vs. is a moderator for
   relays    Relay[]
   moderator Moderator[]
+  admin     Boolean @default(false)
 
   @@index([id])
 }
@@ -76,6 +77,8 @@ model Relay {
   created_at             DateTime?
   profile_image          String?       @db.VarChar(2048)
   banner_image           String?       @db.VarChar(2048)
+  is_external            Boolean       @default(false)
+  is_proxied            Boolean       @default(false)
 
   @@index([ownerId])
 }

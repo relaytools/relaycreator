@@ -68,7 +68,9 @@ export default async function Curator({
     }
 
     // check that user is owner or moderator of this relay
-    if (relay.owner.id != me.id && relay.moderators.filter((mod) => mod.user.pubkey == me.pubkey).length == 0) {
+    if (me.admin) {
+        // pass
+    } else if (relay.owner.id != me.id && relay.moderators.filter((mod) => mod.user.pubkey == me.pubkey).length == 0) {
         return (
             <>
                 relay not found

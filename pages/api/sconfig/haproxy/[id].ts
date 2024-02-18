@@ -76,6 +76,15 @@ export default async function handle(req: any, res: any) {
 		},
 	})
 
+	// external domains
+	const fetchExternalDomain = await prisma.relay.findMany({
+		// where external == true
+		where: {
+			is_external: true,
+			status: "running"
+		}
+	})
+
 	// top level
 	let haproxy_subdomains_cfg = `
 		acl host_ws hdr_beg(Host) -i ws.
@@ -95,6 +104,7 @@ export default async function handle(req: any, res: any) {
 		use_backend ${element.name} if host_ws ${element.name}
 		use_backend ${element.name} if hdr_connection_upgrade hdr_upgrade_websocket ${element.name} 
 		http-request set-path /api/relay/${element.id}/nostrjson if ${element.name} ${element.name + "_root"} ${element.name + "_nostrjson"}
+
 		`
 
 		haproxy_backends_cfg = haproxy_backends_cfg + `
@@ -106,6 +116,35 @@ backend ${element.name}
 	server     websocket-001 127.0.0.1:${element.port} maxconn 50000 weight 10 check
 	`
 
+	})
+
+	// each externally hosted domain
+	fetchExternalDomain.forEach((element, counter) => {
+
+		// for now, detect if the upstream is SSL, and don't verify the cert
+		let useSSLVerify = ""
+		if(element.port == 443) {
+			useSSLVerify = "ssl verify none"
+		}
+
+		haproxy_subdomains_cfg = haproxy_subdomains_cfg + `
+		acl ${element.name + "_root"} path_beg -i /
+		acl ${element.name} hdr(Host) -i ${element.domain}
+		acl ${element.name + "_nostrjson"} req.hdr(Accept) -i application/nostr+json
+		use_backend ${element.name} if host_ws ${element.name}
+		use_backend ${element.name} if hdr_connection_upgrade hdr_upgrade_websocket ${element.name} 
+		http-request set-path /api/relay/${element.id}/nostrjson if ${element.name} ${element.name + "_root"} ${element.name + "_nostrjson"}
+		`
+
+		haproxy_backends_cfg = haproxy_backends_cfg + `
+backend ${element.name}
+	mode  		        http
+	option 		        redispatch
+	balance 	        source
+	option forwardfor except 127.0.0.1 header x-real-ip
+	server     ${element.name} ${element.ip}:${element.port} ${useSSLVerify} maxconn 50000 weight 10 check
+	`
+	
 	})
 
 	const haproxy_cfg = `

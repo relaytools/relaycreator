@@ -153,5 +153,5 @@ export default function ShowSession() {
                 )}
             </div>
         </div>
-    );
+    )
 }
