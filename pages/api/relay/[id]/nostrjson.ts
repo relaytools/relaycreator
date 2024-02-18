@@ -15,14 +15,19 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+    let useUrl = relay.name + "." + relay.domain
+    if(relay.is_external) {
+        useUrl = relay.domain || ""
+    }
+
     let nostrjson: any = {
         "description": relay.details,
-        "name": relay.name + "." + relay.domain,
+        "name": useUrl,
         "pubkey": relay.owner.pubkey,
         "software": "git+https://github.com/hoytech/strfry.git",
         "supported_nips": [1, 2, 4, 9, 11, 12, 16, 20, 22, 28, 33, 40],
         "version": "0.9.5",
-        "posting_policy": "https://" + relay.name + "." + relay.domain + "#policy",
+        "posting_policy": "https://" + useUrl + "#policy",
     }
 
     if (relay.payment_required == true) {
