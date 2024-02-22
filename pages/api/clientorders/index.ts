@@ -39,6 +39,7 @@ export default async function handle(req: any, res: any) {
 
     const newClientOrder = await prisma.clientOrder.create({
         data: {
+            amount: relay.payment_amount,
             relayId: relayid,
             pubkey: pubkey,
             paid: false,

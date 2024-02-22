@@ -36,6 +36,7 @@ model Order {
   lnurl        String    @db.VarChar(1024)
   expires_at   DateTime?
   paid_at      DateTime?
+  amount       Int       @default(21000)
 
   @@index([userId])
 }
@@ -50,6 +51,7 @@ model ClientOrder {
   lnurl        String    @db.VarChar(1024)
   expires_at   DateTime?
   paid_at      DateTime?
+  amount       Int       @default(21)
 
   @@index([relayId])
 }
