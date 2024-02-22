@@ -19,6 +19,7 @@ export default async function ServerStatus(searchParams: Record<string, string>)
             // list the relays for the account
             let relays = await prisma.relay.findMany({
                 where: {
+                    status: "running",
                     owner: {
                         pubkey: (session as any).user.name
                     }
@@ -27,6 +28,18 @@ export default async function ServerStatus(searchParams: Record<string, string>)
                     Order: true,
                     ClientOrder: true,
                     owner: true
+                }
+            })
+
+            // list the invoices for the account
+            let orders = await prisma.order.findMany({
+                where: {
+                    user: {
+                        pubkey: (session as any).user.name
+                    }
+                },
+                include: {
+                    relay: true,
                 }
             })
 
@@ -53,19 +66,13 @@ export default async function ServerStatus(searchParams: Record<string, string>)
                         owner: true
                     }
                 })
-            }
 
-            // list the invoices for the account
-            const orders = await prisma.order.findMany({
-                where: {
-                    user: {
-                        pubkey: (session as any).user.name
+                orders = await prisma.order.findMany({
+                    include: {
+                        relay: true,
                     }
-                },
-                include: {
-                    relay: true,
-                }
-            })
+                })
+            }
 
             // for each relay
             // add up all order amounts, and divide by amount of time to show remaining balance
@@ -89,11 +96,11 @@ export default async function ServerStatus(searchParams: Record<string, string>)
                     }
                 }, 0)
 
-                const paidOrders = orders.filter(order => order.paid_at !== null);
+                const paidOrders = relay.Order.filter(order => order.paid_at !== null);
 
                 const now: any = new Date().getTime();
 
-                const firstOrderDate: any = new Date(Math.min(...paidOrders.map(order => order.paid_at ? new Date(order.paid_at).getTime() : now.getTime())));
+                const firstOrderDate: any = new Date(Math.min(...paidOrders.map(order => (order.paid && order.paid_at) ? new Date(order.paid_at).getTime() : now.getTime())));
 
                 const timeInDays: any = (now - firstOrderDate) / 1000 / 60 / 60 / 24;
 
