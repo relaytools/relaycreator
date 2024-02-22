@@ -48,6 +48,7 @@ export async function alby(lnurl: string) {
 
 export default function PaymentStatus(
     props: React.PropsWithChildren<{
+        amount: number,
         payment_hash: string;
         payment_request: string;
     }>) {
@@ -86,24 +87,24 @@ export default function PaymentStatus(
                         <div className="relative pb-10">
                             <div className="flex justify-center items-center text-center">
                                 <div className="text-2xl text-left">Invoice</div>
-                                <div className="w-10">
+                                <div className="w-100">
                                     <NoSSRWrapper>
                                         <LogoComponent />
                                     </NoSSRWrapper>
                                 </div>
-                                <div className="text-2xl text-right">21k sats</div>
+                                <div className="text-2xl text-right">{props.amount} sats</div>
                             </div>
                         </div>
-                        <div className="text-2xl text-center">for</div>
+                        <div className="text-2xl text-center mb-2">for relay</div>
                         <div className="text-2xl text-center border rounded-r-md rounded-l-md border-gray-300 px-3 pt-5 pb-5">{relayname}.{useDomain}</div>
-                        <div className="col-span-3 flex justify-center">
+                        <div className="col-span-3 flex justify-center mb-4 mt-4">
                             <Bolt11Invoice payment_request={props.payment_request} />
                         </div>
                         <div>
                             <button
                                 onClick={(e) => copyToClipboard(e, props.payment_request)}
                                 type="submit"
-                                className="flex w-full justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300"
+                                className="flex w-full justify-center rounded-md btn-primary btn mb-4"
                             >
                                 Copy ⚡ invoice to clipboard
                             </button>

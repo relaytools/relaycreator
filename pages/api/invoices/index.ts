@@ -15,7 +15,54 @@ export default async function handle(req: any, res: any) {
         //return
     }
 
-    const { relayname, pubkey } = req.query as { relayname: string, pubkey: string };
+    const { relayname, pubkey, topup } = req.query as { relayname: string, pubkey: string, topup: string };
+
+    if(topup != null && relayname != null && topup == "true") {
+        console.log('topping up')
+
+        const r = await prisma.relay.findFirst({ 
+            where: { name: relayname }, 
+            include: { owner: true }
+        })
+
+        if(r == null) {
+            res.status(404).json({ "error": "relay not found" })
+            res.end()
+            return
+        }
+
+        if (process.env.PAYMENTS_ENABLED == "true" && process.env.LNBITS_ADMIN_KEY && process.env.LNBITS_INVOICE_READ_KEY && process.env.LNBITS_ENDPOINT) {
+
+            let useAmount = 21
+            if (process.env.INVOICE_AMOUNT != null) {
+                useAmount = parseInt(process.env.INVOICE_AMOUNT)
+            }
+            const { wallet } = LNBits({
+                adminKey: process.env.LNBITS_ADMIN_KEY,
+                invoiceReadKey: process.env.LNBITS_INVOICE_READ_KEY,
+                endpoint: process.env.LNBITS_ENDPOINT,
+            });
+
+            const newInvoice = await wallet.createInvoice({
+                amount: useAmount,
+                memo: relayname + " topup",
+                out: false,
+            });
+
+            const orderCreated = await prisma.order.create({
+                data: {
+                    relayId: r.id,
+                    userId: r.owner.id,
+                    status: "pending",
+                    paid: false,
+                    payment_hash: newInvoice.payment_hash,
+                    lnurl: newInvoice.payment_request,
+                    amount: useAmount,
+                }
+            })
+            return res.status(200).json({ order_id: orderCreated.id });
+        }
+    }
 
     if (pubkey == null) {
         res.status(404).json({ "error": "not signed in or no pubkey" })

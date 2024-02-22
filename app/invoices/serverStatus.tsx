@@ -4,6 +4,7 @@ import PaymentStatus from "./paymentStatus"
 import PaymentSuccess from "./paymentSuccess"
 import prisma from '../../lib/prisma'
 import ZapAnimation from "../lightningsuccess/lightning"
+import Balances from "./balances"
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,45 @@ export default async function ServerStatus(searchParams: Record<string, string>)
 
     if (!relayname || !pubkey || !order_id) {
         if (session && (session as any).user.name) {
+            // list the relays for the account
+            let relays = await prisma.relay.findMany({
+                where: {
+                    owner: {
+                        pubkey: (session as any).user.name
+                    }
+                },
+                include: {
+                    Order: true,
+                    ClientOrder: true,
+                    owner: true
+                }
+            })
+
+            // superadmin
+            // find the superadmins,
+            // compare them to the logged in user
+            // if superadmin, then show ALL relay's balances and orders in a superadminy screen
+            const admins = await prisma.user.findMany({where: {admin: true}})
+            let isAdmin = false;
+            for (let i = 0; i < admins.length; i++) {
+                if (admins[i].pubkey == (session as any).user.name) {
+                    isAdmin = true;
+                }
+            }
+
+            if(isAdmin) {
+                relays = await prisma.relay.findMany({
+                    where: {
+                        status: "running"
+                    },
+                    include: {
+                        Order: true,
+                        ClientOrder: true,
+                        owner: true
+                    }
+                })
+            }
+
             // list the invoices for the account
             const orders = await prisma.order.findMany({
                 where: {
@@ -26,8 +66,56 @@ export default async function ServerStatus(searchParams: Record<string, string>)
                     relay: true,
                 }
             })
+
+            // for each relay
+            // add up all order amounts, and divide by amount of time to show remaining balance
+            
+            const paymentAmount = Number(process.env.INVOICE_AMOUNT)
+
+            const relayBalances = relays.map(relay => {
+                const totalAmount = relay.Order.reduce((sum, order) => {
+                    if(order.paid) {
+                        return sum + order.amount
+                    } else {
+                        return sum + 0
+                    }
+                }, 0)
+
+                const clientOrderAmount = relay.ClientOrder.reduce((sum, order) => {
+                    if(order.paid) {
+                        return sum + order.amount
+                    } else {
+                        return sum + 0
+                    }
+                }, 0)
+
+                const paidOrders = orders.filter(order => order.paid_at !== null);
+
+                const now: any = new Date().getTime();
+
+                const firstOrderDate: any = new Date(Math.min(...paidOrders.map(order => order.paid_at ? new Date(order.paid_at).getTime() : now.getTime())));
+
+                const timeInDays: any = (now - firstOrderDate) / 1000 / 60 / 60 / 24;
+
+                // cost per day, paymentAmount / 30
+                const costPerDay = paymentAmount / 30;
+
+                // Divide the total amount by the amount of time to get the balance
+                const balance = (totalAmount + clientOrderAmount) - (timeInDays * costPerDay);
+
+                return {
+                    owner: relay.owner.pubkey,
+                    clientPayments: clientOrderAmount,
+                    relayName: relay.name,
+                    relayId: relay.id,
+                    balance: balance
+                };
+            })
+
             return (
                 <div>
+                    <Balances IsAdmin={isAdmin} RelayBalances={relayBalances}/>
+
                     <h1>Your Orders</h1>
                     <div className="mt-8 flow-root">
                         <div className="overflow-x-auto">
@@ -39,6 +127,7 @@ export default async function ServerStatus(searchParams: Record<string, string>)
                                         <th>Payment Status</th>
                                         <th>Paid at</th>
                                         <th>Expires At</th>
+                                        <th>Amount (sats)</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -51,8 +140,9 @@ export default async function ServerStatus(searchParams: Record<string, string>)
                                             <td>{order.paid ? "paid" : "un-paid"}</td>
                                             <td>{order.paid_at ? new Date(order.paid_at).toLocaleString() : ""}</td>
                                             <td>{order.expires_at ? new Date(order.expires_at).toLocaleString() : ""}</td>
+                                            <td>{order.amount}</td>
                                             <td>
-                                                {order.expires_at && order.expires_at > new Date() &&
+                                                {order.expires_at && order.expires_at > new Date() && !order.paid && 
                                                     <a className="btn btn-secondary" href={`/invoices?relayname=${order.relay.name}&pubkey=${pubkey}&order_id=${order.id}`}>show</a>
                                                 }
                                             </td>
@@ -93,7 +183,7 @@ export default async function ServerStatus(searchParams: Record<string, string>)
     if (paymentsEnabled) {
         return (
             <div>
-                <PaymentStatus payment_hash={o.payment_hash} payment_request={o.lnurl} />
+                <PaymentStatus amount={o.amount} payment_hash={o.payment_hash} payment_request={o.lnurl} />
                 <PaymentSuccess signed_in={session && (session as any).user.name} relay_name={o.relay.name} relay_id={o.relay.id} payment_hash={o.payment_hash} payment_request={o.lnurl} />
             </div>
         )
