@@ -163,6 +163,15 @@ export default async function ServerStatus(searchParams: Record<string, string>)
             )
         }
     }
+    // not logged in or no relayname/pubkey/order_id
+    if(!order_id || !relayname) {
+        return(
+        <div className="flow-root">
+            <h1>please login to view your invoices</h1>
+        </div>
+        )
+    }
+
     let useRelayName = "wtf-bro";
     if (relayname) {
         useRelayName = relayname
