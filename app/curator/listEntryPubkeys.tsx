@@ -58,6 +58,19 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         setPubkeys(newlist)
     }
 
+    const handleDeleteAll = async (event: any) => {
+        event.preventDefault();
+        const deleteThis = event.currentTarget.id
+        // call to API to delete keyword
+        const response = await fetch(`/api/relay/${props.relay_id}/${idkind}pubkeys?list_id=all`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+        });
+        // delete the entry(s) from the props
+        let newlist: ListEntryPubkey[] = []
+        setPubkeys(newlist)
+    }
+
     const handleSubmit = async (event: any) => {
         event.preventDefault();
         const id = event.currentTarget.id
@@ -160,32 +173,33 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
         e.preventDefault();
         const listName = e.currentTarget.id
         const postThese = getPubkeysFromList(listName)
-        // de-dupe with current pubkeys
-        let newPubkeys: string[] = []
-        for (const pk of postThese) {
-            let found = false
-            for (const p of pubkeys) {
-                if (p.pubkey == pk) {
-                    found = true
-                }
+
+        // remove from UI, the current selected list: items
+        let newlist: ListEntryPubkey[] = []
+        pubkeys.forEach((entry) => {
+            if (entry.reason?.startsWith("list:") && entry.reason?.split(":")[1] != listName) {
+                newlist.push(entry)
+            } else if (!entry.reason?.startsWith("list:")) {
+                newlist.push(entry)
             }
-            if (!found) {
-                newPubkeys.push(pk)
-            }
-        }
+        })
+
         // post to API, pubkeys with reason set to listname
         const thisReason = "list:" + listName
         const response = await fetch(`/api/relay/${props.relay_id}/${idkind}pubkeys`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "pubkeys": newPubkeys, "reason": thisReason })
+            body: JSON.stringify({ "pubkeys": postThese, "reason": thisReason })
         });
         if (response.ok) {
             const j = await response.json()
             console.log(j)
             for (const pk of j.pubkeys) {
-                pubkeys.push({ "pubkey": pk.pubkey, "reason": thisReason, "id": pk.id })
+                newlist.push({ "pubkey": pk.pubkey, "reason": thisReason, "id": pk.id })
             }
+
+            // update UI
+            setPubkeys(newlist)
         }
 
         setNewPubkey(false)
@@ -279,10 +293,11 @@ export default function ListEntryPubkeys(props: React.PropsWithChildren<{
                     <button
                         onClick={() => setNewPubkeyHandler()}
                         type="button"
-                        className="btn btn-primary"
+                        className="btn btn-primary mr-4"
                     >
                         Add pubkey
                     </button>
+                    <button onClick={handleDeleteAll} className="btn btn-primary" id="all">Delete All Pubkeys</button>
                 </div>
             }
         </div>
