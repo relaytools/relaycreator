@@ -61,7 +61,7 @@ export default async function ServerStatus(
             if (isAdmin) {
                 relays = await prisma.relay.findMany({
                     where: {
-                        //OR: [{ status: "running" }],
+                        status: "running", 
                     },
                     include: {
                         Order: true,
