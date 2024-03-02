@@ -18,21 +18,6 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
   const headersList = headers()
   const rewritten = headersList.get('middleware-rewritten')
 
-  if(rewritten) {
-    return(
-    <html data-theme={currentTheme}>
-      <head></head>
-      <body>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 bg-base-100">
-          <div className="items-right text-right">
-            <ThemeProvider />
-          </div>
-            {children}
-        </div>
-      </body>
-    </html >
-    )
-  } else {
   return (
     <html data-theme={currentTheme}>
       <head></head>
@@ -49,5 +34,4 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
       </body>
     </html >
   );
-  }
 }
