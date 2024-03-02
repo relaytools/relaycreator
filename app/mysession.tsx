@@ -55,6 +55,8 @@ export default function ShowSession() {
     // using absolute urls so that we can serve subdomain landing pages
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
 
+    const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#"
+
     return (
         <div className="font-jetbrains navbar bg-base-100 flex">
             {showLoginHelp &&
@@ -88,7 +90,7 @@ export default function ShowSession() {
                     <div className="flex">
                         <a href={rootDomain + "/"} className="btn btn-ghost normal-case text-lg hidden lg:flex">home</a>
                         <a href={"https://github.com/relaytools/relaycreator/blob/f253d2aa81bf385816f750f730c687c96b61ce6e/design/UserStories.md"} className="btn btn-ghost normal-case text-lg hidden lg:flex">faq</a>
-                        <a href={rootDomain + "/#"} className="btn btn-ghost normal-case text-lg hidden lg:flex">explorer</a>
+                        <a href={supportURL} className="btn btn-ghost normal-case text-lg hidden lg:flex">support</a>
 
                         <span className="text-center items-center hidden lg:flex">
                             <button
@@ -111,7 +113,7 @@ export default function ShowSession() {
                             </label>
                             <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]">
                                 <li><a href={rootDomain + "/"}>Faq</a></li>
-                                <li><a href={rootDomain + "/#"}>Explorer</a></li>
+                                <li><a href={supportURL}>Support</a></li>
                                 <li className="border-b border-base-200"><a href={rootDomain + "/signup"}>Create Relay</a></li>
                                 <li>
                                     <span className="text-center items-center">
@@ -140,6 +142,7 @@ export default function ShowSession() {
                         <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]">
                             <li><a href={rootDomain + "/"}>Relays</a></li>
                             <li><a href={rootDomain + "/invoices"}>Invoices</a></li>
+                            <li><a href={supportURL}>Support</a></li>
                             <li className="border-b border-base-200"><a href={rootDomain + "/signup"}>Create Relay</a></li>
                             <li>
                                 <a onClick={() => signOut({ callbackUrl: "/" })} className="cursor-pointer">
