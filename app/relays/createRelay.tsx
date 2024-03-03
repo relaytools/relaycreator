@@ -87,7 +87,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     }
 
     function isValidForm() {
-        if (pubkeyError == "" && nameError == "" && name != "") {
+        if (pubkey != "" && pubkeyError == "" && nameError == "" && name != "") {
             return true
         } else {
             return false
@@ -168,7 +168,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                 <button className="btn disabled">.{useDomain}</button>
                                 <button className="btn btn-primary items-center rounded-r-md eborder border-l-0 border-gray-300 px-3 sm:text-sm mt-2"
                                     onClick={handleSubmit}
-                                    disabled={!isValidForm}
+                                    disabled={!isValidForm()}
                                 >
                                     Deploy {nameError} <span className="fl pl-2"><IoArrowForwardOutline /></span>
                                 </button>
