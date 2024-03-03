@@ -3,6 +3,8 @@ import Relay from '../../components/relay'
 import Terms from '../../components/terms'
 import RelayDetail from '../../components/relayDetail'
 import RelayPayment from './relayPayment'
+import Posts from '../../posts/page'
+import { headers } from 'next/headers'
 
 export default async function Relays({
     params,
@@ -13,6 +15,9 @@ export default async function Relays({
 }) {
     const { slug } = params;
     const { successpayment } = searchParams;
+
+    const headersList = headers()
+    const rewritten = headersList.get('middleware-rewritten')
 
     const relay = await prisma.relay.findFirst({
         where: {
@@ -53,6 +58,8 @@ export default async function Relays({
         )
     }
 
+    const relayURL = relay.name + "." + relay.domain
+
     return (
         <div>
             <Relay key={"pub" + relay.id} relay={relay} modActions={false} showEdit={false} showSettings={false} showDetail={false} showCopy={true} showExplorer={true} />
@@ -60,6 +67,7 @@ export default async function Relays({
             {relay.payment_required && !successpayment && <RelayPayment relay={relay} />}
             <RelayDetail relay={relay} />
             <Terms />
+            {/* <Posts relayURL={rewritten}></Posts> */}
         </div>
 
     )
