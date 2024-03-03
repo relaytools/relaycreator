@@ -46,7 +46,7 @@ export async function middleware(req: NextRequest) {
     }
 
     const requestHeaders = new Headers(req.headers)
-    requestHeaders.set('middleware-rewritten', 'true')
+    requestHeaders.set('middleware-rewritten', host || "true")
 
     const response = NextResponse.next({
         request: {

@@ -38,32 +38,42 @@ export default function RelayDetail(
                     </span>
                 ))
             }
-            {props.relay.default_message_policy && <div className="text-sm">blocked pubkeys:</div>}
             {
-                props.relay.block_list != null && props.relay.default_message_policy &&
+                props.relay.block_list != null &&
+                /*
                 props.relay.block_list.list_pubkeys.map((pubkey) => (
                     <div key={pubkey.id} className="text-sm pl-2">
                         {pubkey.pubkey}
                     </div>
                 ))
+
+                */
+                <div key="blockedpubkeycount" className="text-sm pl-2">
+                    Blocked Pubkeys: {props.relay.block_list.list_pubkeys.length}
+                </div>
             }
             {!props.relay.default_message_policy && <div className="text-sm">allowed keywords:</div>}
             {
-                props.relay.allow_list != null && !props.relay.default_message_policy &&
+                props.relay.allow_list != null &&
                 props.relay.allow_list.list_keywords.map((keyword) => (
                     <span key={keyword.id} className="text-sm pl-2">
                         {keyword.keyword}
                     </span>
                 ))
             }
-            {!props.relay.default_message_policy && <div className="text-sm">allowed pubkeys: owner + mods +</div>}
             {
                 props.relay.allow_list != null && !props.relay.default_message_policy &&
+
+                /*
                 props.relay.allow_list.list_pubkeys.map((pubkey) => (
                     <div key={pubkey.id} className="text-sm pl-2">
                         {pubkey.pubkey}
                     </div>
-                ))
+                ))*/
+
+                <div key="allowedpubkeycount" className="text-sm pl-2">
+                    Allowed Pubkeys: {props.relay.allow_list.list_pubkeys.length}
+                </div>
             }
         </div >
 
