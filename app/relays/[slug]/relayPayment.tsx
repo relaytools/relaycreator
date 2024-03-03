@@ -83,6 +83,15 @@ export default function RelayPayment(
         }
     };
 
+    let alreadyPaid = false
+    if(props.relay.allow_list && session != null) {
+        props.relay.allow_list.list_pubkeys.map((pubkey) => {
+            if (pubkey.pubkey == session.user?.name) {
+                alreadyPaid = true
+            }
+        })
+    }
+
     // flow
     // 1. user enters pubkey and clicks pay
     // 2. call to the api to create a new relay order
@@ -100,6 +109,7 @@ export default function RelayPayment(
                             <div className="text-lg">
                                 This relay requires payment of{" "}
                                 {props.relay.payment_amount} sats to post. ⚡
+                                {alreadyPaid && <div className="text-sm text-green-600">You've already paid for this relay.</div>}
                             </div>
                             {showPubkeyInput && (
 
