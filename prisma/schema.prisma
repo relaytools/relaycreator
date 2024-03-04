@@ -81,6 +81,7 @@ model Relay {
   banner_image           String?       @db.VarChar(2048)
   is_external            Boolean       @default(false)
   is_proxied            Boolean       @default(false)
+  allow_giftwrap             Boolean       @default(true)
 
   @@index([ownerId])
 }

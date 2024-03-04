@@ -1,34 +1,38 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../auth/[...nextauth]"
-import prisma from '../../../../lib/prisma'
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../auth/[...nextauth]";
+import prisma from "../../../../lib/prisma";
 
 // GET /api/sconfig/relays/:id
-// spamblaster queries this for the relay settings 
+// spamblaster queries this for the relay settings
 export default async function handle(req: any, res: any) {
-
     const relay = await prisma.relay.findFirst({
         where: { id: req.query.id },
-        include: {
+        select: {
+            id: true,
+            name: true,
+            status: true,
+            default_message_policy: true,
+            allow_giftwrap: true,
             allow_list: {
-                include: {
+                select: {
                     list_keywords: true,
                     list_pubkeys: true,
-                }
+                },
             },
             block_list: {
-                include: {
+                select: {
                     list_keywords: true,
                     list_pubkeys: true,
-                }
+                },
             },
             owner: true,
             moderators: {
-                include: {
-                    user: { select: { pubkey: true } }
-                }
+                select: {
+                    user: { select: { pubkey: true } },
+                },
             },
-        }
-    })
+        },
+    });
 
-    res.status(200).json(relay)
+    res.status(200).json(relay);
 }
