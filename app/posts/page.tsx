@@ -28,9 +28,11 @@ interface Profile {
 }
 
 export default function PostsPage(
+    /*
     props: React.PropsWithChildren<{
-        relayURL: any;
+        relayURL: string;
     }>
+    */
 ) {
 
     const { data: session, status } = useSession();
@@ -86,17 +88,17 @@ export default function PostsPage(
     var relay_id: any;
     var modActions: any;
     if (searchParams == null) {
-        if(props.relayURL == "") {
+        //if(props.relayURL == "") {
             relayparam = nip19.nrelayEncode("wss://nostr21.com");
             relayLimit = 50;
-        } else {
-            relayparam = nip19.nrelayEncode("wss://" + props.relayURL);
-            relayLimit = 50;
-        }
+        //} else {
+        //    relayparam = nip19.nrelayEncode("wss://" + props.relayURL);
+        //    relayLimit = 50;
+        //}
     } else {
-        if(props.relayURL) {
-            relayparam= nip19.nrelayEncode("wss://" + props.relayURL);
-        } else {
+        //if(props.relayURL) {
+        //    relayparam= nip19.nrelayEncode("wss://" + props.relayURL);
+        //} else {
         relayparam = searchParams.get("relay");
         if (relayparam == null) {
             relayparam = nip19.nrelayEncode("wss://nostr21.com");
@@ -109,7 +111,7 @@ export default function PostsPage(
         }
         relay_id = searchParams.get("relay_id");
         modActions = searchParams.get("mod");
-        }
+        //}
     }
 
     let { type, data } = nip19.decode(relayparam);
