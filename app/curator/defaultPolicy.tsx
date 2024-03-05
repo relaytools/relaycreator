@@ -6,6 +6,7 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     relay_id: string;
     allow: boolean;
     allow_giftwrap: boolean;
+    allow_tagged: boolean;
     listed: boolean;
     pay: boolean;
     amount: string;
@@ -14,6 +15,7 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     const [allow, setAllow] = useState(props.allow)
     const [listed, setListed] = useState(props.listed)
     const [allowGiftwrap, setAllowGiftwrap] = useState(props.allow_giftwrap)
+    const [allowTagged, setAllowTagged] = useState(props.allow_tagged)
     const [pay, setPay] = useState(props.pay)
     const [satsAmount, setSatsAmount] = useState(props.amount)
     const [lightninghelp, setLightningHelp] = useState(false)
@@ -68,6 +70,21 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
             setAllowGiftwrap(false)
         } else {
             setAllowGiftwrap(true)
+        }
+    }
+
+    const handleTaggedChange = async (e: any) => {
+        // call to API to set default policy
+        e.preventDefault()
+        const response = await fetch(`/api/relay/${props.relay_id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "listed_in_directory": listed, "default_message_policy": allow, "payment_required": pay, "payment_amount": satsAmount, allow_giftwrap: allowGiftwrap, allow_tagged: !allowTagged})
+        })
+        if (allowTagged) {
+            setAllowTagged(false)
+        } else {
+            setAllowTagged(true)
         }
     }
 
@@ -126,6 +143,14 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
         }
     }
 
+    const isTagged = () => {
+        if (allowTagged) {
+            return "swap swap-active"
+        } else {
+            return "swap"
+        }
+    }
+
     const isPay = () => {
         if (pay) {
             return "swap swap-active"
@@ -152,6 +177,12 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
                 <label className={isGiftwrap()} onClick={(e) => handleGiftwrapChange(e)} >
                     <div className="btn btn-accent swap-on">Allow Private Groups ✅</div>
                     <div className="btn btn-accent swap-off">Do NOT allow Private Groups 🙈</div>
+                </label>
+            </div>
+            <div className="mt-4">
+                <label className={isTagged()} onClick={(e) => handleTaggedChange(e)} >
+                    <div className="btn btn-accent swap-on">Allow Events Tagged to Pubkeys ✅</div>
+                    <div className="btn btn-accent swap-off">Do NOT Allow Events Tagged to Pubkeys 🙈</div>
                 </label>
             </div>
             <div className="mt-4 flex">
