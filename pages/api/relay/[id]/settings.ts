@@ -21,6 +21,7 @@ export default async function handle(req: any, res: any) {
                 banner_image: req.body.banner_image,
                 payment_required: req.body.payment_required,
                 allow_giftwrap: req.body.allow_giftwrap,
+                allow_tagged: req.body.allow_tagged,
                 payment_amount: parseInt(req.body.payment_amount),
             }
         })
