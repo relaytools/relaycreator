@@ -1,23 +1,17 @@
 "use client"
-
 import { useState } from "react";
+import { RelayWithEverything } from "../components/relayWithEverything"
 
 export default function DefaultPolicy(props: React.PropsWithChildren<{
-    relay_id: string;
-    allow: boolean;
-    allow_giftwrap: boolean;
-    allow_tagged: boolean;
-    listed: boolean;
-    pay: boolean;
-    amount: string;
+    relay: RelayWithEverything;
 }>) {
 
-    const [allow, setAllow] = useState(props.allow)
-    const [listed, setListed] = useState(props.listed)
-    const [allowGiftwrap, setAllowGiftwrap] = useState(props.allow_giftwrap)
-    const [allowTagged, setAllowTagged] = useState(props.allow_tagged)
-    const [pay, setPay] = useState(props.pay)
-    const [satsAmount, setSatsAmount] = useState(props.amount)
+    const [allow, setAllow] = useState(props.relay.default_message_policy)
+    const [listed, setListed] = useState(props.relay.listed_in_directory)
+    const [allowGiftwrap, setAllowGiftwrap] = useState(props.relay.allow_giftwrap)
+    const [allowTagged, setAllowTagged] = useState(props.relay.allow_tagged)
+    const [pay, setPay] = useState(props.relay.payment_required)
+    const [satsAmount, setSatsAmount] = useState(props.relay.payment_amount.toString())
     const [lightninghelp, setLightningHelp] = useState(false)
 
     const toggleLightningHelp = () => {
@@ -31,10 +25,10 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     const handleChange = async (e: any) => {
         // call to API to set default policy
         e.preventDefault()
-        const response = await fetch(`/api/relay/${props.relay_id}/settings`, {
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "default_message_policy": !allow, "listed_in_directory": listed, "payment_required": pay, "payment_amount": satsAmount })
+            body: JSON.stringify({ "default_message_policy": !allow })
         })
         if (allow) {
             setAllow(false)
@@ -46,10 +40,10 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     const handleListedChange = async (e: any) => {
         // call to API to set default policy
         e.preventDefault()
-        const response = await fetch(`/api/relay/${props.relay_id}/settings`, {
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "listed_in_directory": !listed, "default_message_policy": allow, "payment_required": pay, "payment_amount": satsAmount })
+            body: JSON.stringify({ "listed_in_directory": !listed })
         })
         if (listed) {
             setListed(false)
@@ -61,10 +55,10 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     const handleGiftwrapChange = async (e: any) => {
         // call to API to set default policy
         e.preventDefault()
-        const response = await fetch(`/api/relay/${props.relay_id}/settings`, {
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "listed_in_directory": listed, "default_message_policy": allow, "payment_required": pay, "payment_amount": satsAmount, allow_giftwrap: !allowGiftwrap})
+            body: JSON.stringify({ allow_giftwrap: !allowGiftwrap })
         })
         if (allowGiftwrap) {
             setAllowGiftwrap(false)
@@ -76,10 +70,10 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     const handleTaggedChange = async (e: any) => {
         // call to API to set default policy
         e.preventDefault()
-        const response = await fetch(`/api/relay/${props.relay_id}/settings`, {
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "listed_in_directory": listed, "default_message_policy": allow, "payment_required": pay, "payment_amount": satsAmount, allow_giftwrap: allowGiftwrap, allow_tagged: !allowTagged})
+            body: JSON.stringify({ allow_tagged: !allowTagged})
         })
         if (allowTagged) {
             setAllowTagged(false)
@@ -96,10 +90,10 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
             setNewAllow = false
             setAllow(setNewAllow)
         }
-        const response = await fetch(`/api/relay/${props.relay_id}/settings`, {
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "listed_in_directory": listed, "payment_required": !pay, "default_message_policy": setNewAllow, "payment_amount": satsAmount })
+            body: JSON.stringify({ "payment_required": !pay })
         })
         if (response.ok) {
             if (pay) {
@@ -112,10 +106,10 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
 
     const handleSaveSats = async (e: any) => {
         e.preventDefault()
-        const response = await fetch(`/api/relay/${props.relay_id}/settings`, {
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "payment_amount": satsAmount, "listed_in_directory": listed, "payment_required": pay, "default_message_policy": allow })
+            body: JSON.stringify({ "payment_amount": satsAmount })
         })
     }
 
@@ -207,7 +201,7 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
                         type="text"
                         name="satsamount"
                         className="input input-bordered input-primary w-full max-w-xs"
-                        placeholder={props.amount.toString()}
+                        placeholder={props.relay.payment_amount.toString()}
                         onChange={event => setSatsAmount(event.target.value)}
                     />
                     <button onClick={handleSaveSats} className="btn btn-primary">save</button>
