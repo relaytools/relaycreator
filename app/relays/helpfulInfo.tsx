@@ -50,7 +50,7 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
                     <div className="card-body">
                         <h2 className="card-title">relay creator</h2>
                         <p>create relays of any type quickly and easily</p>
-                        <p>pricing: 21,000 sats/month</p>
+                        <p>pricing: 12,000 sats/month</p>
                         <h2 className="card-title">open source</h2>
                         <a className="link" href="https://github.com/relaytools">github</a>
                     </div>
