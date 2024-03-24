@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Bolt11Invoice from "../components/invoice";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { nip19 } from "nostr-tools";
 
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();
@@ -94,7 +95,7 @@ export default function Balances(
                                 <div className="w-1/2">Owner (pubkey)</div>
                             )}
                             {props.IsAdmin && (
-                                <div className="w-1/2">{b.owner}</div>
+                                <div className="w-1/2">{nip19.npubEncode(b.owner)}</div>
                             )}
                         </div>
                         <div className="flex mt-4">
