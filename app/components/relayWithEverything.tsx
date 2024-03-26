@@ -10,12 +10,14 @@ export const relayWithEverything = Prisma.validator<Prisma.RelayArgs>()({
             include: {
                 list_keywords: true,
                 list_pubkeys: true,
+                list_kinds: true,
             },
         },
         allow_list: {
             include: {
                 list_keywords: true,
                 list_pubkeys: true,
+                list_kinds: true,
             },
         },
     }
@@ -35,12 +37,14 @@ export const modWithRelays = Prisma.validator<Prisma.ModeratorArgs>()({
                     include: {
                         list_keywords: true,
                         list_pubkeys: true,
+                        list_kinds: true,
                     },
                 },
                 allow_list: {
                     include: {
                         list_keywords: true,
                         list_pubkeys: true,
+                        list_kinds: true,
                     },
                 },
             }
