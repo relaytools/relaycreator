@@ -1,6 +1,7 @@
 "use client"
 import ListEntryKeywords from "./listEntryKeywords"
 import ListEntryPubkeys from "./listEntryPubkeys"
+import ListEntryKinds from "./listEntryKinds"
 import EnableAllowList from "./enableAllowList"
 import EnableBlockList from "./enableBlockList"
 import DefaultPolicy from "./defaultPolicy"
@@ -47,18 +48,23 @@ export default function Settings(props: React.PropsWithChildren<{
             <div className="divider">Lists</div>
 
             {
-                props.relay != null && props.relay.allow_list == null && !props.relay.default_message_policy &&
+                props.relay != null && props.relay.allow_list == null &&
                 <EnableAllowList relay={props.relay}></EnableAllowList>
             }
 
             {
-                props.relay != null && props.relay.allow_list != null && !props.relay.default_message_policy &&
+                props.relay != null && props.relay.allow_list != null && 
                 <ListEntryKeywords keywords={props.relay.allow_list.list_keywords} relay_id={props.relay.id} kind="Allowed Keywords ✅"></ListEntryKeywords>
             }
 
             {
-                props.relay != null && props.relay.allow_list != null && !props.relay.default_message_policy &&
+                props.relay != null && props.relay.allow_list != null && props.relay.allow_list.list_pubkeys != null &&
                 <ListEntryPubkeys pubkeys={props.relay.allow_list.list_pubkeys} relay_id={props.relay.id} kind="Allowed Pubkeys ✅"></ListEntryPubkeys>
+            }
+
+            {
+                props.relay != null && props.relay.allow_list != null &&
+                <ListEntryKinds kinds={props.relay.allow_list.list_kinds} relay_id={props.relay.id} allowdeny="Allowed Kinds ✅"></ListEntryKinds>
             }
 
             {
@@ -74,6 +80,11 @@ export default function Settings(props: React.PropsWithChildren<{
             {
                 props.relay != null && props.relay.block_list != null &&
                 <ListEntryPubkeys pubkeys={props.relay.block_list.list_pubkeys} relay_id={props.relay.id} kind="Blocked Pubkeys 🔨"></ListEntryPubkeys>
+            }
+
+            {
+                props.relay != null && props.relay.block_list != null &&
+                <ListEntryKinds kinds={props.relay.block_list.list_kinds} relay_id={props.relay.id} allowdeny="Blocked Kinds 🔨"></ListEntryKinds>
             }
 
             <div className="divider">Advanced</div>

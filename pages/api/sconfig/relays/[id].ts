@@ -18,12 +18,14 @@ export default async function handle(req: any, res: any) {
                 select: {
                     list_keywords: true,
                     list_pubkeys: true,
+                    list_kinds: true,
                 },
             },
             block_list: {
                 select: {
                     list_keywords: true,
                     list_pubkeys: true,
+                    list_kinds: true,
                 },
             },
             owner: true,
