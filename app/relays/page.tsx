@@ -23,12 +23,14 @@ export default async function Relays() {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
+                    list_kinds: true,
                 },
             },
             allow_list: {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
+                    list_kinds: true,
                 },
             },
         }
@@ -79,12 +81,14 @@ export default async function Relays() {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
+                    list_kinds: true,
                 },
             },
             allow_list: {
                 include: {
                     list_keywords: true,
                     list_pubkeys: true,
+                    list_kinds: true,
                 },
             },
         }
@@ -107,12 +111,14 @@ export default async function Relays() {
                     include: {
                         list_keywords: true,
                         list_pubkeys: true,
+                        list_kinds: true,
                     },
                 },
                 allow_list: {
                     include: {
                         list_keywords: true,
                         list_pubkeys: true,
+                        list_kinds: true,
                     },
                 },
             }
@@ -134,12 +140,14 @@ export default async function Relays() {
                         include: {
                             list_keywords: true,
                             list_pubkeys: true,
+                            list_kinds: true,
                         },
                     },
                     allow_list: {
                         include: {
                             list_keywords: true,
                             list_pubkeys: true,
+                            list_kinds: true,
                         },
                     },
                 }
