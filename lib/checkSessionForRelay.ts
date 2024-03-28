@@ -36,17 +36,19 @@ export async function checkSessionForRelay(req: any, res: any, modAllow: boolean
         }
     })
 
-    const superAdmin = await prisma.user.findFirst({
+    const superAdmins = await prisma.user.findMany({
         where: {
             pubkey: session.user.name,
             admin: true,
         }
     })
 
-    if(superAdmin) {
-        if(superAdmin.pubkey == session.user.name) {
-            console.log("ALLOWING FOR SUPERADMIN")
-            return isMyRelay
+    if(superAdmins.length > 0) {
+        for (let i = 0; i < superAdmins.length; i++) {
+            if(superAdmins[i].pubkey == session.user.name) {
+                console.log("ALLOWING FOR SUPERADMIN")
+                return isMyRelay
+            }
         }
     }
 
