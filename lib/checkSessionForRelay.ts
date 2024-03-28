@@ -36,6 +36,20 @@ export async function checkSessionForRelay(req: any, res: any, modAllow: boolean
         }
     })
 
+    const superAdmin = await prisma.user.findFirst({
+        where: {
+            pubkey: session.user.name,
+            admin: true,
+        }
+    })
+
+    if(superAdmin) {
+        if(superAdmin.pubkey == session.user.name) {
+            console.log("ALLOWING FOR SUPERADMIN")
+            return isMyRelay
+        }
+    }
+
     if (!relayOwner) {
         res.status(404).json({ "error": "relay owner not found" })
         return null
