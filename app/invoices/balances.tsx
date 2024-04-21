@@ -76,6 +76,12 @@ export default function Balances(
                             <div className="w-1/2 border-b">Relay Name</div>
                             <div className="w-1/2 border-b text-lg">{b.relayName}</div>
                         </div>
+                        {props.IsAdmin && 
+                        <div className="flex">
+                            <div className="w-1/2">Relay ID</div>
+                            <div className="w-1/2">{b.relayId}</div>
+                        </div>
+                        }
                         <div className="flex">
                             <div className="w-1/2">Relay Status</div>
                             <div className="w-1/2">{b.relayStatus}</div>
