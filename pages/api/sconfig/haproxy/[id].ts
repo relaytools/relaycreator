@@ -85,6 +85,13 @@ export default async function handle(req: any, res: any) {
 		}
 	})
 
+    const fetchDeletedDomains = await prisma.relay.findMany({
+        where: {
+            domain: usethisdomain,
+            status: "deleted"
+        }
+    })
+
 	// top level
 	let haproxy_subdomains_cfg = `
 		acl host_ws hdr_beg(Host) -i ws.
@@ -146,6 +153,14 @@ backend ${element.name}
 	`
 	
 	})
+
+    // for deleted relays, return 403 from haproxy directly
+    let deleted_domains = ``
+    fetchDeletedDomains.forEach((element, counter) => {
+        deleted_domains = deleted_domains + `
+        http-request deny if { hdr(Host) -i ${element.name}.${element.domain} }
+        `
+    })
 
 	const haproxy_cfg = `
 global
@@ -209,6 +224,8 @@ frontend secured
 	http-request return content-type image/png file /etc/haproxy/static/favicon-16x16.png if { path /favicon-16x16.png }
 	http-request return content-type image/png file /etc/haproxy/static/apple-touch-icon.png if { path /apple-touch-icon.png }
 	http-request return content-type application/json file /etc/haproxy/static/apple-touch-icon.png if { path /site.webmanifest }
+
+    ${deleted_domains}
 
 	${haproxy_subdomains_cfg}
 
