@@ -70,6 +70,13 @@ export default function PaymentStatus(
         relayname = ""
     }
 
+    let useAmount = props.amount
+
+    let newAmount = p.get('sats')
+    if(newAmount) {
+        useAmount = parseInt(newAmount)
+    }
+
     if (session && session.user?.name) {
         pubkey = session.user.name
     }
@@ -92,7 +99,7 @@ export default function PaymentStatus(
                                         <LogoComponent />
                                     </NoSSRWrapper>
                                 </div>
-                                <div className="text-2xl text-right">{props.amount} sats</div>
+                                <div className="text-2xl text-right">{useAmount} sats</div>
                             </div>
                         </div>
                         <div className="text-2xl text-center mb-2">for relay</div>

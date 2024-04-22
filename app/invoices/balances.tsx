@@ -32,16 +32,21 @@ export default function Balances(
     const router = useRouter();
     const [showOrders, setShowOrders] = useState("");
 
+    let useAmount = "";
+
     async function getTopUpInvoice(b: any) {
+        if(useAmount == "") {
+          useAmount = Math.abs(amountPrecision(b.balance)).toString()
+        }
         const response = await fetch(
-            `/api/invoices?relayname=${b.relayName}&topup=true`
+            `/api/invoices?relayname=${b.relayName}&topup=true&sats=${useAmount}`
         );
         const responseJson = await response.json();
         console.log(responseJson);
 
         if (response.ok) {
             router.push(
-                `/invoices?relayname=${b.relayName}&order_id=${responseJson.order_id}&pubkey=unknown`
+                `/invoices?relayname=${b.relayName}&order_id=${responseJson.order_id}&pubkey=unknown&sats=${useAmount}`
             );
         }
     }
@@ -60,7 +65,8 @@ export default function Balances(
     });
 
     function amountPrecision(amount: number) {
-        return Math.round(amount);
+        let x = Math.round(amount)
+        return x;
     }
 
     return (
@@ -111,6 +117,16 @@ export default function Balances(
                             >
                                 show orders
                             </button>
+                        </div>
+                        <div className="flex mt-4">
+                            <input
+                                type="text"
+                                name="satsamount"
+                                className="input input-bordered input-primary w-full max-w-xs"
+                                placeholder={Math.abs(amountPrecision(b.balance)).toString()}
+                                onChange={event => {useAmount = event.target.value}}
+                            />
+                            <label className="label">sats</label>
                             <button
                                 className="btn btn-secondary"
                                 onClick={() => getTopUpInvoice(b)}
