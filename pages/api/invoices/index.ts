@@ -15,7 +15,7 @@ export default async function handle(req: any, res: any) {
         //return
     }
 
-    const { relayname, pubkey, topup } = req.query as { relayname: string, pubkey: string, topup: string };
+    const { relayname, pubkey, topup, sats } = req.query as { relayname: string, pubkey: string, topup: string, sats: string };
 
     if(topup != null && relayname != null && topup == "true") {
         console.log('topping up')
@@ -34,8 +34,12 @@ export default async function handle(req: any, res: any) {
         if (process.env.PAYMENTS_ENABLED == "true" && process.env.LNBITS_ADMIN_KEY && process.env.LNBITS_INVOICE_READ_KEY && process.env.LNBITS_ENDPOINT) {
 
             let useAmount = 21
+            // allow custom amount for topup
             if (process.env.INVOICE_AMOUNT != null) {
                 useAmount = parseInt(process.env.INVOICE_AMOUNT)
+            }
+            if(sats != null) {
+                useAmount = parseInt(sats)
             }
             const { wallet } = LNBits({
                 adminKey: process.env.LNBITS_ADMIN_KEY,
@@ -184,6 +188,7 @@ export default async function handle(req: any, res: any) {
                 paid: false,
                 payment_hash: newInvoice.payment_hash,
                 lnurl: newInvoice.payment_request,
+                amount: useAmount,
             }
         })
         res.status(200).json({ order_id: orderCreated.id });
