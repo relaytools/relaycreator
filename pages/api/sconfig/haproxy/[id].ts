@@ -54,6 +54,12 @@ export default async function handle(req: any, res: any) {
 		}
 	}
 
+    // interceptor port number
+    let interceptorPort = 9696
+    if (process.env.INTERCEPTOR_PORT) {
+        interceptorPort = parseInt(process.env.INTERCEPTOR_PORT)
+    }
+
 	// load the following from prisma:
 	// the hostnames that haproxy serves on this machine
 	// the backends with port# for strfry backends
@@ -104,6 +110,10 @@ export default async function handle(req: any, res: any) {
 
 	// each domain
 	fetchDomain.forEach((element, counter) => {
+        let usePort = element.port
+        if(element.auth_required) {
+            usePort = interceptorPort
+        }
 		haproxy_subdomains_cfg = haproxy_subdomains_cfg + `
 		acl ${element.name + "_root"} path_beg -i /
 		acl ${element.name} hdr(Host) -i ${element.name}.${element.domain}
@@ -120,7 +130,7 @@ backend ${element.name}
 	option 		        redispatch
 	balance 	        source
 	option forwardfor except 127.0.0.1 header x-real-ip
-	server     websocket-001 127.0.0.1:${element.port} maxconn 50000 weight 10 check
+	server     websocket-001 127.0.0.1:${usePort} maxconn 50000 weight 10 check
 	`
 
 	})

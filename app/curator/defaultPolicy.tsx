@@ -10,6 +10,7 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     const [listed, setListed] = useState(props.relay.listed_in_directory)
     const [allowGiftwrap, setAllowGiftwrap] = useState(props.relay.allow_giftwrap)
     const [allowTagged, setAllowTagged] = useState(props.relay.allow_tagged)
+    const [authRequired, setAuthRequired] = useState(props.relay.auth_required)
     const [pay, setPay] = useState(props.relay.payment_required)
     const [satsAmount, setSatsAmount] = useState(props.relay.payment_amount.toString())
     const [lightninghelp, setLightningHelp] = useState(false)
@@ -49,6 +50,21 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
             setListed(false)
         } else {
             setListed(true)
+        }
+    }
+
+    const handleAuthChange = async (e: any) => {
+        // call to API to set default policy
+        e.preventDefault()
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "auth_required": !authRequired })
+        })
+        if (authRequired) {
+            setAuthRequired(false)
+        } else {
+            setAuthRequired(true)
         }
     }
 
@@ -129,6 +145,14 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
         }
     }
 
+    const isAuthRequired = () => {
+        if (authRequired) {
+            return "swap swap-active"
+        } else {
+            return "swap"
+        }
+    }
+
     const isGiftwrap = () => {
         if (allowGiftwrap) {
             return "swap swap-active"
@@ -165,6 +189,12 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
                 <label className={isListed()} onClick={(e) => handleListedChange(e)} >
                     <div className="btn btn-accent swap-on">Relay is listed in the public directory ✅</div>
                     <div className="btn btn-accent swap-off">Relay is NOT listed in the public directory 🙈</div>
+                </label>
+            </div>
+            <div className="mt-4">
+                <label className={isAuthRequired()} onClick={(e) => handleAuthChange(e)} >
+                    <div className="btn btn-accent swap-on">Relay requires AUTH (NIP42) ✅</div>
+                    <div className="btn btn-accent swap-off">Relay does not require AUTH (NIP42) 🙈</div>
                 </label>
             </div>
             <div className="mt-4">

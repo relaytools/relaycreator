@@ -83,6 +83,7 @@ model Relay {
   is_proxied            Boolean       @default(false)
   allow_giftwrap             Boolean       @default(true)
   allow_tagged          Boolean       @default(false)
+  auth_required          Boolean       @default(false)
 
   @@index([ownerId])
 }
