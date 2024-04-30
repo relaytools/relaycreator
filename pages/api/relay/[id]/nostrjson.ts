@@ -48,7 +48,7 @@ export default async function handle(req: any, res: any) {
     nostrjson["limitation"]["max_event_tags"] = 2000
     nostrjson["limitation"]["max_content_length"] = 262140
     nostrjson["limitation"]["min_pow_difficulty"] = 0
-    nostrjson["limitation"]["auth_required"] = false
+    nostrjson["limitation"]["auth_required"] = relay.auth_required
 
     // nip11 pull-req pending for created_at limits
     // https://github.com/nostr-protocol/nips/pull/756
