@@ -37,7 +37,7 @@ export default async function handle(req: any, res: any) {
         }
     });
 
-    let npubEncoded = null;
+    let npubEncoded = "";
     try {
         npubEncoded = nip19.npubEncode(pubkey);
         if(npubEncoded == null) {
@@ -50,7 +50,7 @@ export default async function handle(req: any, res: any) {
         res.end();
         return;
     }
-    if(npubEncoded == null) {
+    if(npubEncoded == "") {
         res.status(400).json({ error: "invalid pubkey" });
         res.end();
         return;
