@@ -136,6 +136,9 @@ export default async function handle(req: any, res: any) {
     })
     p = p + 1
 
+    // no relays exist yet, start at 7777
+    if (p == 1) { p = 7777 }
+
     var currentdate = new Date();
     // create relay with user association
     let useStatus = null;
