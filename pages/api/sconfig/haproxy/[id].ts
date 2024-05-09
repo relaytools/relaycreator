@@ -70,6 +70,12 @@ export default async function handle(req: any, res: any) {
 		usethisdomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN
 	}
 
+    let usethisrootdomain = usethisdomain
+    if (process.env.NEXT_PUBLIC_ROOT_DOMAIN) {
+        usethisrootdomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+        usethisrootdomain = usethisrootdomain.replace("https://", "")
+    }
+
 	let pemName = "nostr1.pem"
 	if (process.env.HAPROXY_PEM) {
 		pemName = process.env.HAPROXY_PEM
@@ -217,7 +223,7 @@ frontend unsecured
 	bind 0.0.0.0:80 name http
 	mode 		        http
 	timeout 		client 86400000
-	redirect 		prefix https://${usethisdomain} code 301 
+	redirect 		prefix https://${usethisrootdomain} code 301 
 
 frontend secured
 	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
