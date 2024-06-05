@@ -45,7 +45,7 @@ export default async function handle(req: any, res: any) {
     nostrjson["limitation"]["max_filters"] = 256 // unsure
     nostrjson["limitation"]["max_limit"] = 10000
     //nostrjson["limitation"]["max_subid_length"] = unknown
-    nostrjson["limitation"]["max_event_tags"] = 2000
+    nostrjson["limitation"]["max_event_tags"] = 10000
     nostrjson["limitation"]["max_content_length"] = 262140
     nostrjson["limitation"]["min_pow_difficulty"] = 0
     nostrjson["limitation"]["auth_required"] = relay.auth_required

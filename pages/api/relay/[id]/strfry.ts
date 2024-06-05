@@ -177,10 +177,10 @@ events {
     ephemeralEventsLifetimeSeconds = 300
 
     # Maximum number of tags allowed
-    maxNumTags = 2000
+    maxNumTags = 10000
 
     # Maximum size for tag values, in bytes
-    maxTagValSize = 1024
+    maxTagValSize = 4096
 }
 `
 
