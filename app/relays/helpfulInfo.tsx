@@ -29,7 +29,7 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
 
     return (
         <div className="font-jetbrains">
-            <h1 className="text-3xl text-primary text-center">new relays who dis?</h1>
+            <h1 className="text-3xl text-primary text-center">welcome to mycelium.social</h1>
             <div className="mt-2 lg:grid lg:grid-cols-3 lg:gap-2 sm:flex sm:flex-col sm:gap-4">
                 <div className="card w-96 bg-base-100 hidden lg:block">
                     <div className="card-body">
