@@ -39,11 +39,11 @@ export default function Settings(props: React.PropsWithChildren<{
                 <DefaultPolicy relay={props.relay}></DefaultPolicy>
             </div>
 
-
             {
                 props.relay != null && props.relay.moderators != null &&
                 <Moderators moderators={props.relay.moderators} relay_id={props.relay.id}></Moderators>
             }
+
 
             <div className="divider">Lists</div>
 

@@ -14,6 +14,7 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     const [pay, setPay] = useState(props.relay.payment_required)
     const [satsAmount, setSatsAmount] = useState(props.relay.payment_amount.toString())
     const [lightninghelp, setLightningHelp] = useState(false)
+    const [allowKeywordPubkey, setAllowKeywordPubkey] = useState(props.relay.allow_keyword_pubkey)
 
     const toggleLightningHelp = () => {
         if (lightninghelp) {
@@ -37,9 +38,22 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
             setAllow(true)
         }
     }
+
+    const handleAllowKeywordPubkey = async (e: any) => {
+        e.preventDefault()
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "allow_keyword_pubkey": !allowKeywordPubkey })
+        })
+        if (allowKeywordPubkey) {
+            setAllowKeywordPubkey(false)
+        } else {
+            setAllowKeywordPubkey(true)
+        }
+    }
     
     const handleListedChange = async (e: any) => {
-        // call to API to set default policy
         e.preventDefault()
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
@@ -54,7 +68,6 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     }
 
     const handleAuthChange = async (e: any) => {
-        // call to API to set default policy
         e.preventDefault()
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
@@ -69,7 +82,6 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     }
 
     const handleGiftwrapChange = async (e: any) => {
-        // call to API to set default policy
         e.preventDefault()
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
@@ -84,7 +96,6 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     }
 
     const handleTaggedChange = async (e: any) => {
-        // call to API to set default policy
         e.preventDefault()
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
@@ -99,7 +110,6 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
     }
 
     const handlePayChange = async (e: any) => {
-        // call to API to set default policy
         e.preventDefault()
         let setNewAllow = allow
         if (allow && !pay) {
@@ -131,6 +141,14 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
 
     const isAllow = () => {
         if (allow) {
+            return "swap swap-active"
+        } else {
+            return "swap"
+        }
+    }
+
+    const isAllowKeywordPubkey = () => {
+        if (allowKeywordPubkey) {
             return "swap swap-active"
         } else {
             return "swap"
@@ -183,6 +201,12 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
                 <label className={isAllow()} onClick={(e) => handleChange(e)} >
                     <div className="btn btn-accent swap-on">Default message policy: ALLOW ✅</div>
                     <div className="btn btn-accent swap-off">Default message policy: DENY 🔨</div>
+                </label>
+            </div>
+            <div className="mt-4">
+                <label className={isAllowKeywordPubkey()} onClick={(e) => handleAllowKeywordPubkey(e)} >
+                    <div className="btn btn-accent swap-on">Additional Policy: Allow Pubkeys -AND REQUIRE- Keywords</div>
+                    <div className="btn btn-accent swap-off">Additional Policy: Allow Pubkeys -OR- Keywords</div>
                 </label>
             </div>
             <div className="mt-4">
