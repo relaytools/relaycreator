@@ -14,6 +14,7 @@ export default async function handle(req: any, res: any) {
             default_message_policy: true,
             allow_giftwrap: true,
             allow_tagged: true,
+            allow_keyword_pubkey: true,
             allow_list: {
                 select: {
                     list_keywords: true,
