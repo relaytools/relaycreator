@@ -389,11 +389,11 @@ export default function PostsPage(
             });
             await connectHere.connect();
             let event = {
-                kind: 1984,
+                kind: 7,
                 pubkey: session.user.name,
                 created_at: Math.floor(Date.now() / 1000),
                 tags: [["e", showPost.id]],
-                content: "",
+                content: "❌",
             };
 
             let signedEvent = await (window as any).nostr.signEvent(event);
@@ -426,7 +426,7 @@ export default function PostsPage(
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         pubkey: showPost.pubkey,
-                        reason: "",
+                        reason: "mod action",
                     }),
                 }
             );
@@ -450,11 +450,11 @@ export default function PostsPage(
             });
             await connectHere.connect();
             let event = {
-                kind: 1984,
+                kind: 7,
                 pubkey: session.user.name,
                 created_at: Math.floor(Date.now() / 1000),
                 tags: [["p", showPost.pubkey]],
-                content: "",
+                content: "🔨",
             };
 
             let signedEvent = await (window as any).nostr.signEvent(event);
