@@ -556,7 +556,7 @@ export default function PostsPage(
                 </form>
             </div>
             {showPost != undefined && (
-                <div className="font-jetbrains bg-base-100 flex">
+                <div className="bg-base-100 flex">
                     <dialog
                         key={"my_modal_5" + showPost.id}
                         className="modal modal-top modal-open sm:modal-middle max-w-screen h-auto"
