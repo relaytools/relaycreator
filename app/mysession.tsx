@@ -59,7 +59,7 @@ export default function ShowSession() {
     const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#";
 
     return (
-        <div className="font-jetbrains navbar bg-base-100">
+        <div className="navbar p-0 bg-base-100">
             {showLoginHelp && (
                 <dialog
                     id="my_modal_5"
@@ -114,9 +114,9 @@ export default function ShowSession() {
             <div className="flex-1">
                 <a
                     href={rootDomain + "/"}
-                    className="btn btn-ghost normal-case text-xl"
+                    className="normal-case text-xl font-bold"
                 >
-                    relay.tools
+                    RELAY.TOOLS
                 </a>
             </div>
 
@@ -127,7 +127,7 @@ export default function ShowSession() {
                             href={rootDomain + "/"}
                             className="btn btn-ghost normal-case text-lg hidden lg:flex"
                         >
-                            home
+                            HOME
                         </a>
                         <a
                             href={
@@ -135,13 +135,13 @@ export default function ShowSession() {
                             }
                             className="btn btn-ghost normal-case text-lg hidden lg:flex"
                         >
-                            faq
+                            FAQ
                         </a>
                         <a
                             href={supportURL}
                             className="btn btn-ghost normal-case text-lg hidden lg:flex"
                         >
-                            support
+                            SUPPORT
                         </a>
 
                         <span className="text-center items-center hidden lg:flex">
@@ -149,7 +149,7 @@ export default function ShowSession() {
                                 onClick={doNip07Login}
                                 className="btn btn-ghost normal-case text-lg hidden lg:flex ml-2"
                             >
-                                sign-in
+                                SIGN-IN
                             </button>
                         </span>
 

@@ -101,7 +101,7 @@ export default function RelayPayment(
     // 6. show success animation
 
     return (
-        <div className="font-jetbrains">
+        <div className="">
             <div className="">
                 <div className="flex">
                     <div className=" ">
