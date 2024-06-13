@@ -22,12 +22,12 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
     <html data-theme={currentTheme}>
       <head></head>
       <body>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 bg-base-100">
-          <div className="items-right text-right">
-            <ThemeProvider />
-          </div>
+        <div className="bg-base-100 mx-auto max-w-7xl">
           <AuthContext>
+            <div className="flex justify-between">
             <ShowSession />
+            <ThemeProvider />
+            </div>
             {children}
           </AuthContext>
         </div>
