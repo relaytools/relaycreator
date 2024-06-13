@@ -37,7 +37,7 @@ export default function PublicRelays(
                 </div>
             </div>
 
-            <div className="mt-8 lg:grid lg:grid-cols-3 gap-4 sm:flex sm:flex-col">
+            <div className="mt-8 lg:grid lg:grid-cols-3 sm:flex sm:flex-col sm:w-full">
                 {results.map((relay) => (
                     <Relay key={"pub" + relay.id} modActions={false} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} showCopy={false} />
                 ))}

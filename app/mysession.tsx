@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
+import ThemeProvider from "./components/themeProvider";
 
 export default function ShowSession() {
     const doNip07Login = async () => {
@@ -58,7 +59,7 @@ export default function ShowSession() {
     const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#";
 
     return (
-        <div className="font-jetbrains navbar bg-base-100 flex">
+        <div className="font-jetbrains navbar bg-base-100">
             {showLoginHelp && (
                 <dialog
                     id="my_modal_5"
@@ -146,15 +147,9 @@ export default function ShowSession() {
                         <span className="text-center items-center hidden lg:flex">
                             <button
                                 onClick={doNip07Login}
-                                className="btn btn-ghost ml-2"
+                                className="btn btn-ghost normal-case text-lg hidden lg:flex ml-2"
                             >
                                 sign-in
-                                <Image
-                                    alt="nostr"
-                                    src="/nostr_logo_prpl_wht_rnd.svg"
-                                    width={38}
-                                    height={38}
-                                ></Image>
                             </button>
                         </span>
 
