@@ -26,7 +26,7 @@ export default function PublicRelays(
     }
 
     return (
-        <div className="font-jetbrains">
+        <div className="">
             <div className="lg:grid lg:grid-flow-row">
                 <h1 className="text-3xl mb-5 mt-4">Explore relays</h1>
                 <div className="text-sm mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>

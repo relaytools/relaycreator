@@ -72,7 +72,7 @@ export default function Balances(
     return (
         <div>
             <h1>Balances</h1>
-            <div className="mt-4 font-jetbrains">
+            <div className="mt-4">
                 {sortedRelays.map((b: any) => (
                     <div
                         key={b.relayId + "rowkey"}

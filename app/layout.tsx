@@ -6,6 +6,13 @@ import ThemeProvider from "./components/themeProvider";
 import { cookies } from 'next/headers'
 import Themes from '../lib/themes'
 import { headers } from 'next/headers'
+import { Roboto } from 'next/font/google'
+
+const roboto = Roboto({
+    weight: '400',
+    subsets: ['latin'],
+    display: 'swap',
+})
 
 //export default function RootLayout({ children, }: { children: React.ReactNode; }) {
 export default function RootLayout({ children, }: React.PropsWithChildren) {
@@ -19,7 +26,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
   const rewritten = headersList.get('middleware-rewritten')
 
   return (
-    <html data-theme={currentTheme}>
+    <html data-theme={currentTheme} className={roboto.className}>
       <head></head>
       <body>
         <div className="bg-base-100 mx-auto max-w-7xl">
