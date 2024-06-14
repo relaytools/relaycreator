@@ -58,10 +58,10 @@ export default function Relay(
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
     return (
-        <div id={props.relay.id + "rootview"} className="flex-1 lg:flex-initial lg:w-1/3">
+        <div id={props.relay.id + "rootview"} className="flex-1 lg:flex-auto lg:w-1/4">
             {props.showDetail &&
-                <a href={useRelayHttps} className="flex-grow">
-                    <div className="card rounded-none h-72 mb-12 text-white selectable hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                <a href={useRelayHttps} className="">
+                    <div className="card rounded-none h-72 text-white selectable hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                         backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
                         backgroundSize: "cover",
                         textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
