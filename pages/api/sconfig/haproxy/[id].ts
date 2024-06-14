@@ -76,6 +76,24 @@ export default async function handle(req: any, res: any) {
         usethisrootdomain = usethisrootdomain.replace("https://", "")
     }
 
+    // preview domain for testing out new frontends alongside production
+    let previewFrontend = ""
+    let previewBackend = ""
+    if (process.env.NEXT_PUBLIC_PREVIEW_DOMAIN && process.env.NEXT_PUBLIC_PREVIEW_PORT) {
+        previewFrontend = `acl host_preview hdr_beg(Host) -i ${process.env.NEXT_PUBLIC_PREVIEW_DOMAIN}
+        use_backend preview if host_preview
+        `
+
+        previewBackend = `
+        backend preview 
+            mode  		        http
+            option 		        redispatch
+            balance 	        source
+            option forwardfor except 127.0.0.1 header x-real-ip
+            server     websocket-001 127.0.0.1:${process.env.NEXT_PUBLIC_PREVIEW_PORT} maxconn 50000 weight 10 check 
+        `
+    }
+
 	let pemName = "nostr1.pem"
 	if (process.env.HAPROXY_PEM) {
 		pemName = process.env.HAPROXY_PEM
@@ -247,6 +265,8 @@ frontend secured
     ${deleted_domains}
 
 	${haproxy_subdomains_cfg}
+    
+    ${previewFrontend}
 
 backend main
 	mode  		        http
@@ -256,6 +276,8 @@ backend main
 	server     main-001 127.0.0.1:3000 maxconn 50000 weight 10 check
 
 	${haproxy_backends_cfg}
+
+    ${previewBackend}
 
 listen stats
 	bind 0.0.0.0:8888 ssl crt  /etc/haproxy/certs/${pemName}
