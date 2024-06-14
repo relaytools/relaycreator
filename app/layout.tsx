@@ -29,7 +29,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
     <html data-theme={currentTheme} className={roboto.className}>
       <head></head>
       <body>
-        <div className="bg-base-100 m-auto max-w-7xl">
+        <div className="bg-base-100 mx-auto max-w-7xl">
           <AuthContext>
             <div className="flex justify-between">
             <ShowSession />
