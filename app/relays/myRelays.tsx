@@ -35,7 +35,7 @@ export default function MyRelays(
 
     return (
         <div>
-            <div className="mt-8 mb-8 px-4">
+            <div className="mt-8 mb-8">
                 <div className="flex justify-center">
                     {selectTypeRelays()}
                 </div>
