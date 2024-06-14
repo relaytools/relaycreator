@@ -61,14 +61,14 @@ export default function Relay(
         <div id={props.relay.id + "rootview"} className="flex-1 lg:flex-auto lg:w-1/4">
             {props.showDetail &&
                 <a href={useRelayHttps} className="">
-                    <div className="card h-72 rounded-none text-white selectable hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
+                    <div className="card rounded-none text-white selectable hover:bg-gray-800 hover:text-white hover:bg-opacity-80" style={{
                         backgroundImage: `url(${edited ? (profileBanner || "/green-check.png") : (props.relay.banner_image || "/green-check.png")})`,
                         backgroundSize: "cover",
-                        textShadow: "0px 0px 5px rgba(0, 0, 0, 0.5)"
+                        height: "394px",
                     }}>
-                        <div className="flex-grow"/>
-                        <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80 max-h-40">
-                            <h2 className="card-title" style={{ whiteSpace: "pre-line", overflow: "hidden" }}>{props.relay.name}</h2>
+                        <div className="flex-grow h-1/2"/>
+                        <div className="card-body bg-black bg-opacity-80 hover:bg-gray-800 hover:text-white hover:bg-opacity-80 flex-grow h-1/2">
+                            <h2 className="text-bold text-lg" style={{ whiteSpace: "pre-line", overflow: "hidden" }}>{props.relay.name}</h2>
                             <p className="text-sm" style={{ whiteSpace: "pre-line", overflow: "hidden" }}>{useRelayWSS}</p>
                             <p className="text-sm" style={{ whiteSpace: "pre-line", overflow: "hidden" }}>{edited ? (profileDetail || "") : (useDetails)}</p>
                         </div>
