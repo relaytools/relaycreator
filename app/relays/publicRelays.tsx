@@ -40,7 +40,7 @@ export default function PublicRelays(
                 </div>
             </div>
 
-            <div className="mt-8 flex flex-wrap">
+            <div className="mt-8 flex flex-wrap lg:x-space-12">
                 {results.map((relay) => (
                     <Relay key={"pub" + relay.id} modActions={false} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} showCopy={false} />
                 ))}
