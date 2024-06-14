@@ -1,7 +1,7 @@
 "use client"
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { IoArrowForwardOutline } from 'react-icons/io5';
+import Image from 'next/image';
 
 export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();
@@ -56,12 +56,10 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
                     </div>
                 </div>
             </div>
-            <div className="mt-2 flex rounded-md w-full items-center">
-                <span className="w-full bg-gradient-to-r from-gray-200 to-gray-100 items-center h-5 px-3 sm:text-sm">
-                </span>
-                <a href={`/signup`} className="btn btn-primary inline-flex text-center rounded-md border border-l-0 border-gray-300 px-3 sm:text-sm"
+            <div className="mt-4 flex justify-end">
+                <a href={`/signup`} className="btn btn-primary"
                 >
-                    Create a relay<span className="fl pl-2"><IoArrowForwardOutline /></span>
+                    <Image src="buttonStart.svg" alt="Start a Relay" width={200} height={50} />
                 </a>
             </div>
         </div >

@@ -25,9 +25,12 @@ export default function PublicRelays(
         setResults(r)
     }
 
+
+    //maybe try flex grow
+
     return (
         <div className="">
-            <div className="lg:grid lg:grid-flow-row">
+            <div className="">
                 <h1 className="text-3xl mb-5 mt-4">Explore relays</h1>
                 <div className="text-sm mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>
                 <div>
@@ -37,7 +40,7 @@ export default function PublicRelays(
                 </div>
             </div>
 
-            <div className="mt-8 lg:grid lg:grid-cols-3 sm:flex sm:flex-col sm:w-full">
+            <div className="mt-8 flex flex-wrap">
                 {results.map((relay) => (
                     <Relay key={"pub" + relay.id} modActions={false} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} showCopy={false} />
                 ))}
