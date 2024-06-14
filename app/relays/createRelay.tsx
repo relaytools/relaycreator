@@ -165,8 +165,8 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                     value={name}
                                     onChange={event => setRelayName(event.target.value)}
                                 />
-                                <button className="btn disabled">.{useDomain}</button>
-                                <button className="btn btn-primary items-center rounded-r-md eborder border-l-0 border-gray-300 px-3 sm:text-sm mt-2"
+                                <button className="btn uppercase disabled">.{useDomain}</button>
+                                <button className="btn uppercase btn-primary items-center rounded-r-md eborder border-l-0 border-gray-300 px-3 sm:text-sm mt-2"
                                     onClick={handleSubmit}
                                     disabled={!isValidForm()}
                                 >

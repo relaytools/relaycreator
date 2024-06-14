@@ -106,7 +106,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{entry.reason}</td>
                                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
 
-                                            <button onClick={handleDelete} className="btn btn-secondary" id={entry.id}>Delete</button>
+                                            <button onClick={handleDelete} className="btn uppercase btn-secondary" id={entry.id}>Delete</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -155,8 +155,8 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                                                         }
                                                     </div>
                                                 }
-                                                <button onClick={handleSubmit} className="btn btn-secondary">Add</button>
-                                                <button onClick={handleCancel} className="btn btn-secondary">Cancel</button>
+                                                <button onClick={handleSubmit} className="btn uppercase btn-secondary">Add</button>
+                                                <button onClick={handleCancel} className="btn uppercase btn-secondary">Cancel</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -170,7 +170,7 @@ export default function ListEntryKeywords(props: React.PropsWithChildren<{
                         <button
                             onClick={() => setNewKeyword(true)}
                             type="button"
-                            className="btn btn-primary"
+                            className="btn uppercase btn-primary"
                         >
                             Add keyword
                         </button>
