@@ -128,7 +128,7 @@ export default function Balances(
                             />
                             <label className="label">sats</label>
                             <button
-                                className="btn btn-secondary"
+                                className="btn uppercase btn-secondary"
                                 onClick={() => getTopUpInvoice(b)}
                             >
                                 top up
@@ -146,7 +146,7 @@ export default function Balances(
                                         {order.amount} sats
                                     </div>
                                     <a
-                                        className="btn btn-secondary"
+                                        className="btn uppercase btn-secondary"
                                         href={`/invoices?relayname=${b.relayName}&pubkey=${b.pubkey}&order_id=${order.id}`}
                                     >
                                         show

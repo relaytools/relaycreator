@@ -145,7 +145,7 @@ export default function Moderators(props: React.PropsWithChildren<{
                                             </td>
                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
 
-                                                <button onClick={handleDelete} className="btn btn-secondary" id={entry.id}>Delete</button>
+                                                <button onClick={handleDelete} className="btn uppercase btn-secondary" id={entry.id}>Delete</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -164,8 +164,8 @@ export default function Moderators(props: React.PropsWithChildren<{
                                                         value={pubkey}
                                                         onChange={event => setAndValidatePubkey(event.target.value)}
                                                     />
-                                                    <button disabled={!isValidForm()} onClick={handleSubmit} className="btn btn-primary">Add</button>
-                                                    <button onClick={handleCancel} className="btn btn-primary">Cancel</button>
+                                                    <button disabled={!isValidForm()} onClick={handleSubmit} className="btn uppercase btn-primary">Add</button>
+                                                    <button onClick={handleCancel} className="btn uppercase btn-primary">Cancel</button>
                                                     <button
                                                         type="button"
                                                         disabled
@@ -192,7 +192,7 @@ export default function Moderators(props: React.PropsWithChildren<{
                         <button
                             onClick={() => setNewPubkey(true)}
                             type="button"
-                            className="btn btn-primary"
+                            className="btn uppercase btn-primary"
                         >
                             Add pubkey
                         </button>
