@@ -57,9 +57,9 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
                 </div>
             </div>
             <div className="mt-4 flex justify-end">
-                <a href={`/signup`} className="btn uppercase btn-primary"
+                <a href={`/signup`} className="btn uppercase btn-primary rounded-lg"
                 >
-                    <Image src="buttonStart.svg" alt="Start a Relay" width={200} height={50} />
+                    <Image src="buttonStart.svg" className="rounded-lg" alt="Start a Relay" width={200} height={50} />
                 </a>
             </div>
         </div >
