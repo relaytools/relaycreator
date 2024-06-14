@@ -130,7 +130,7 @@ export default function RelayPayment(
                                         }
                                     />
                                     <button
-                                        className="btn btn-primary inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 sm:text-sm"
+                                        className="btn uppercase btn-primary inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 sm:text-sm"
                                         onClick={handleSubmit}
                                         disabled={!isValidForm()}
                                     >

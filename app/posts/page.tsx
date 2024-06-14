@@ -552,7 +552,7 @@ export default function PostsPage(
                         placeholder="say something"
                         className="input input-bordered input-primary w-full"
                     />
-                    <button className="btn btn-primary">Post</button>
+                    <button className="btn uppercase btn-primary">Post</button>
                 </form>
             </div>
             {showPost != undefined && (
@@ -564,7 +564,7 @@ export default function PostsPage(
                         <form method="dialog" className="modal-box w-full">
                             <div className="flex justify-end">
                                 <div
-                                    className="btn"
+                                    className="btn uppercase"
                                     onClick={() => handleClosePost()}
                                 >
                                     X
@@ -638,7 +638,7 @@ export default function PostsPage(
                                         ))}
                                     <span className="flex justify-between mt-4">
                                         <div
-                                            className="btn mb-4"
+                                            className="btn uppercase mb-4"
                                             onClick={() =>
                                                 setShowImages(!showImages)
                                             }
@@ -660,7 +660,7 @@ export default function PostsPage(
                                     className="input input-bordered input-primary w-full"
                                 />
                                 <button
-                                    className="btn btn-primary"
+                                    className="btn uppercase btn-primary"
                                     onClick={() => handleReply()}
                                 >
                                     reply
@@ -674,7 +674,7 @@ export default function PostsPage(
                                     </div>
                                     <div className="mb-4">
                                         <button
-                                            className="btn"
+                                            className="btn uppercase"
                                             onClick={() => handleDeleteEvent()}
                                         >
                                             delete event
@@ -682,7 +682,7 @@ export default function PostsPage(
                                     </div>
                                     <div className="mb-4">
                                         <button
-                                            className="btn"
+                                            className="btn uppercase"
                                             onClick={() => handleBlockPubkey()}
                                         >
                                             block pubkey
@@ -690,7 +690,7 @@ export default function PostsPage(
                                     </div>
                                     <div className="mb-4">
                                         <button
-                                            className="btn"
+                                            className="btn uppercase"
                                             onClick={() =>
                                                 handleBlockAndDelete()
                                             }
