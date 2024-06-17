@@ -56,6 +56,13 @@ export default async function handle(req: any, res: any) {
         return;
     }
 
+    // if the default message policy is allow, send back allow for all
+    if(external != null && external.default_message_policy) {
+        res.status(200).json({ authorized: true});
+        res.end();
+        return;
+    }
+
     if(external != null && external.allow_list != null) {
         // check if the pubkey is in the list of authorized pubkeys
         const authorized = external.allow_list.list_pubkeys.find((p: any) => p.pubkey == pubkey);
@@ -104,6 +111,13 @@ export default async function handle(req: any, res: any) {
 
     if(relay == null) {
         res.status(404).json({ error: "not found" });
+        res.end();
+        return;
+    }
+
+    // if the default message policy is allow, send back allow for all
+    if(relay.default_message_policy) {
+        res.status(200).json({ authorized: true});
         res.end();
         return;
     }
