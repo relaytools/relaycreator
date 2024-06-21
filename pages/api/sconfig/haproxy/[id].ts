@@ -202,7 +202,7 @@ global
 	log /dev/log	local1 notice
 	#chroot /usr/local/var/lib/haproxy
 	stats socket /tmp/admin.sock mode 660 level admin
-    stats socket /etc/haproxy.sock mode 660 level user
+    stats socket /etc/haproxy/haproxy.sock mode 660 level user
 	stats timeout 30s
 	user haproxy
 	group haproxy
