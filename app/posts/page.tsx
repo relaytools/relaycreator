@@ -1,9 +1,10 @@
 "use client";
 //import 'websocket-polyfill'
 import { useEffect, useState } from "react";
-import { relayInit } from "nostr-tools";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
+import {generateSecretKey, getPublicKey, finalizeEvent} from 'nostr-tools/pure';
+import NDK, { NDKEvent, NDKNip07Signer, NDKRelay, NDKRelayAuthPolicies } from "@nostr-dev-kit/ndk";
 import { useSearchParams } from "next/navigation";
 
 interface Event {
@@ -26,6 +27,13 @@ interface Profile {
     pubkey: any;
     content: any;
 }
+
+const nip07signer = new NDKNip07Signer();
+const ndk = new NDK({
+    signer: nip07signer,
+    autoConnectUserRelays: false,
+    enableOutboxModel: false,
+});
 
 export default function PostsPage(
     /*
@@ -87,10 +95,12 @@ export default function PostsPage(
     var relayLimit: any;
     var relay_id: any;
     var modActions: any;
+    var useAuth: any;
     if (searchParams == null) {
         //if(props.relayURL == "") {
             relayparam = nip19.nrelayEncode("wss://nostr21.com");
             relayLimit = 50;
+            useAuth = "false";
         //} else {
         //    relayparam = nip19.nrelayEncode("wss://" + props.relayURL);
         //    relayLimit = 50;
@@ -111,6 +121,7 @@ export default function PostsPage(
         }
         relay_id = searchParams.get("relay_id");
         modActions = searchParams.get("mod");
+        useAuth = searchParams.get("auth");
         //}
     }
 
@@ -120,15 +131,86 @@ export default function PostsPage(
         nrelaydata = data;
     }
 
+    
+
+
+            /*
+            ndk.relayAuthDefaultPolicy = (relay: NDKRelay) => {
+                const signIn = NDKRelayAuthPolicies.signIn({ndk});
+                if (confirm(`Relay ${relay.url} is requesting authentication, do you want to sign in?`)) {
+                signIn(relay);
+                }
+            }
+            */
+
+    //const grabStuff = async (relayUrl: string) => {
+    
+
     useEffect(() => {
-        const grabStuff = async (relayUrl: string) => {
+        async function grabStuff() {
+            ndk.addExplicitRelay(nrelaydata);
+            ndk.relayAuthDefaultPolicy = NDKRelayAuthPolicies.signIn({ndk});
+            await ndk.connect()
+            addToStatus("connected to " + nrelaydata);
+
+            const ndkPool = ndk.pool;
+            ndkPool.on("flapping", (flapping: NDKRelay) => {
+                addToStatus("relay is flapping: " + flapping.url);
+            });
+            /*
+            ndkPool.on("relay:auth", (relay: NDKRelay, challenge: string) => {
+                addToStatus("auth: " + relay.url);
+            });
+            ndkPool.on("relay:authed", (relay: NDKRelay) => {
+                addToStatus("authed: " + relay.url);
+            });
+            */
+            ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
+                addToStatus("disconnected: " + relay.url);
+            });
+            ndkPool.on("relay:connect", (relay: NDKRelay) => {
+                addToStatus("connect: " + relay.url);
+            });
+
+            ndkPool.on("relay:connecting", (relay: NDKRelay) => {
+                addToStatus("connect: " + relay.url);
+            });
+
+            const kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false});
+            kind1Sub.on("event", (event: NDKEvent) => {
+                //console.log(event);
+                // do profile lookups on the fly
+                if(lookupProfileName(event.pubkey) == event.pubkey) {
+                    const profileSub = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true});
+                    profileSub.on("event", (pevent: NDKEvent) => {
+                        addProfile(pevent);
+                    });
+                }
+                addPost(event);
+            });
+        }
+        grabStuff();
+    }, []);
+    //};
+
+    //grabStuff(nrelaydata);
+
+        /*
+    useEffect(() => {
+        
+
+            /*
             const relay = relayInit(relayUrl);
             relay.on("connect", () => {
                 console.log(`connected to ${relay.url}`);
+                // if using auth, do the auth dance 
+                if(useAuth == "true") {
+                    
+                }
                 addToStatus(relayUrl + ": connected");
                 let sub = relay.sub([{ kinds: [1], limit: relayLimit }]);
                 sub.on("event", (event: any) => {
-                    //console.log('got event:', event);
+                    console.log('got event:', event);
                     if (lookupProfileName(event.pubkey) == event.pubkey) {
                         let profileSub = relay.sub([
                             { kinds: [0], limit: 1, authors: [event.pubkey] },
@@ -157,7 +239,8 @@ export default function PostsPage(
             await relay.connect();
         };
         grabStuff(nrelaydata);
-    }, []);
+    }, []); 
+        */
 
     function summarizePubkey(pubkey: string): string {
         if (pubkey.length <= 60) {
@@ -344,6 +427,7 @@ export default function PostsPage(
     };
 
     const handleReply = async () => {
+        /*
         if (session && session.user && showPost != undefined) {
             const connectHere = relayInit(nrelaydata);
             connectHere.on("connect", () => {
@@ -375,10 +459,12 @@ export default function PostsPage(
         } else {
             console.log("not logged in");
         }
+        */
     };
 
     // todo, delete from view
     const handleDeleteEvent = async () => {
+        /*
         if (session && session.user && showPost != undefined) {
             const connectHere = relayInit(nrelaydata);
             connectHere.on("connect", () => {
@@ -409,6 +495,7 @@ export default function PostsPage(
         } else {
             console.log("not logged in");
         }
+        */
     };
 
     const handleBlockPubkey = async () => {
@@ -439,6 +526,7 @@ export default function PostsPage(
 
     const handleBlockAndDelete = async () => {
         // delete part
+        /*
         if (session && session.user && showPost != undefined) {
             // deleting phase
             const connectHere = relayInit(nrelaydata);
@@ -475,6 +563,7 @@ export default function PostsPage(
         } else {
             console.log("not logged in");
         }
+        */
     };
 
     const handleClosePost = async () => {
@@ -487,7 +576,10 @@ export default function PostsPage(
 
         const form = e.target;
         const post = form.elements[0].value;
-        if (session && session.user) {
+
+        if (session && session.user && session.user.name) {
+
+            /*
             const connectHere = relayInit(nrelaydata);
             connectHere.on("connect", () => {
                 console.log(`connected to ${nrelaydata}`);
@@ -496,6 +588,40 @@ export default function PostsPage(
                 console.log(`failed to connect to ${nrelaydata}`);
             });
             await connectHere.connect();
+            */
+
+            /*
+            const ndkPool = ndk.pool;
+            const ndkPoolStats = ndkPool.stats();
+            addToStatus("connected: " + ndkPoolStats.connected);
+            addToStatus("disconnected: " + ndkPoolStats.disconnected);
+            addToStatus("total: " + ndkPoolStats.total);
+            */
+
+            // anonymous postin!
+
+            const newSK = generateSecretKey();
+            const newPK = getPublicKey(newSK);
+            let event = finalizeEvent({
+                kind: 1,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [],
+                content: post,
+              }, newSK)
+
+            const newEvent = new NDKEvent(ndk, event);
+            await newEvent.publish();
+
+            /*
+            const newEvent = new NDKEvent(ndk);
+            newEvent.kind = 1;
+            newEvent.pubkey = session.user.name;
+            newEvent.content = post;
+            await newEvent.publish();
+            */
+
+
+            /*
             let event = {
                 kind: 1,
                 pubkey: session.user.name,
@@ -510,6 +636,7 @@ export default function PostsPage(
             const result = await connectHere.publish(signedEvent as any);
             console.log(result);
             connectHere.close();
+            */
             //clear the form
             form.elements[0].value = "";
         } else {
