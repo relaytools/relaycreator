@@ -220,9 +220,9 @@ defaults
 	mode	http
 	option	httplog
 	option	dontlognull
-        timeout connect 5s
-        timeout client  25s
-        timeout server  25s
+    timeout connect 5s
+    timeout client  25s
+    timeout server  25s
 	timeout tunnel 120s
 	#timeout http-keep-alive 1s
 	#timeout http-request 15s
@@ -247,7 +247,7 @@ frontend secured
 	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
 
 	mode			http
-	timeout			client   3600s
+	#timeout			client   3600s
 	backlog			4096
 	maxconn			60000      
 	default_backend		main	
