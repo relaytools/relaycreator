@@ -8,7 +8,7 @@ export default function Terms(
 
     return (
         <div>
-            By connecting to this relay, you agree to these <button className="btn btn-neutral" onClick={() => setShowTerms(!showTerms)}>Terms of Service  <img className="w-5 h-5" src="icons8-tooltip-64.png"></img></button>
+            By connecting to this relay, you agree to these <button className="btn uppercase btn-neutral" onClick={() => setShowTerms(!showTerms)}>Terms of Service  <img className="w-5 h-5" src="icons8-tooltip-64.png"></img></button>
             {showTerms &&
                 <div>
                     <p className="text-lg">This Terms of Sevice applies to all relays hosted by relay.tools.</p>

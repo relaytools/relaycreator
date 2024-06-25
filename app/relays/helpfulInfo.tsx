@@ -1,7 +1,7 @@
 "use client"
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { IoArrowForwardOutline } from 'react-icons/io5';
+import Image from 'next/image';
 
 export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();
@@ -28,40 +28,40 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
     }
 
     return (
-        <div className="font-jetbrains">
-            <h1 className="text-3xl text-primary text-center">new relays who dis?</h1>
-            <div className="mt-2 lg:grid lg:grid-cols-3 lg:gap-2 sm:flex sm:flex-col sm:gap-4">
-                <div className="card w-96 bg-base-100 hidden lg:block">
-                    <div className="card-body">
-                        <h2 className="card-title">What is nostr?</h2>
-                        <p>Nostr is a magical journey where we discover how to take control over our social media experience. Relays are an important part of the nostr ecosystem.</p>
+        <div className="font-condensed">
+            <h1 className="mt-8 text-2xl leading-tight lg:leading-normal lg:text-5xl text-primary text-center">The fastest and easiest way to launch new relays for nostr.</h1>
+            <div className="mt-8 flex flex-wrap gap-12">
+                <div className="bg-base-100 hidden flex-1 lg:flex-auto lg:block lg:w-1/4">
+                    <div className="">
+                        <h2 className="text-xl mb-2">What is Nostr?</h2>
+                        <p className="font-roboto">Nostr is a distributed social media protocol for the internet aimed at taking back control over our social media experience. Relays are an important part of the nostr ecosystem.</p>
                     </div>
                 </div>
-                <div className="card w-96 bg-base-100 hidden lg:block">
-                    <div className="card-body">
-                        <h2 className="card-title">Discover, Create, Join</h2>
-                        <p>
+                <div className="bg-base-100 flex-1 lg:flex-auto hidden lg:block lg:w-1/4">
+                    <div className="">
+                        <h2 className="font text-xl mb-2">Discover, Create, Join</h2>
+                        <p className="font-roboto">
                             You can discover new relays to connect to.
                             You can create new relays. You can join a relay as a paid member or a moderator.
                         </p>
                     </div>
                 </div>
-                <div className="card w-96 bg-base-100">
-                    <div className="card-body">
-                        <h2 className="card-title">relay creator</h2>
-                        <p>create relays of any type quickly and easily</p>
-                        <p>pricing: 12,000 sats/month</p>
-                        <h2 className="card-title">open source</h2>
-                        <a className="link" href="https://github.com/relaytools">github</a>
+                <div className="bg-base-100 flex-1 lg:flex-auto lg:w-1/4 text-center lg:text-left">
+                    <div className="">
+                        <h2 className="text-xl mb-2">Relay Creator</h2>
+                        <div className="font-roboto">
+                            <p>Create relays of any type quickly and easily</p>
+                            <p>Pricing: 12,000 sats/month</p>
+                            <p className="">open source on <a className="link" href="https://github.com/relaytools">github</a></p>
+                            
+                        </div>
                     </div>
                 </div>
             </div>
-            <div className="mt-2 flex rounded-md w-full items-center">
-                <span className="w-full bg-gradient-to-r from-gray-200 to-gray-100 items-center h-5 px-3 sm:text-sm">
-                </span>
-                <a href={`/signup`} className="btn btn-primary inline-flex text-center rounded-md border border-l-0 border-gray-300 px-3 sm:text-sm"
+            <div className="mt-4 flex lg:justify-end justify-center">
+                <a href={`/signup`} className="btn uppercase btn-primary rounded-lg"
                 >
-                    Create a relay<span className="fl pl-2"><IoArrowForwardOutline /></span>
+                    <Image src="buttonStart.svg" className="rounded-lg" alt="Start a Relay" width={200} height={50} />
                 </a>
             </div>
         </div >

@@ -199,44 +199,44 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
         <div className="flex flex-col">
             <div className="">
                 <label className={isAllow()} onClick={(e) => handleChange(e)} >
-                    <div className="btn btn-accent swap-on">Default message policy: ALLOW ✅</div>
-                    <div className="btn btn-accent swap-off">Default message policy: DENY 🔨</div>
+                    <div className="btn uppercase btn-accent swap-on">Default message policy: ALLOW ✅</div>
+                    <div className="btn uppercase btn-accent swap-off">Default message policy: DENY 🔨</div>
                 </label>
             </div>
             <div className="mt-4">
                 <label className={isAllowKeywordPubkey()} onClick={(e) => handleAllowKeywordPubkey(e)} >
-                    <div className="btn btn-accent swap-on">Additional Policy: Allow Pubkeys -AND REQUIRE- Keywords</div>
-                    <div className="btn btn-accent swap-off">Additional Policy: Allow Pubkeys -OR- Keywords</div>
+                    <div className="btn uppercase btn-accent swap-on">Additional Policy: Allow Pubkeys -AND REQUIRE- Keywords</div>
+                    <div className="btn uppercase btn-accent swap-off">Additional Policy: Allow Pubkeys -OR- Keywords</div>
                 </label>
             </div>
             <div className="mt-4">
                 <label className={isListed()} onClick={(e) => handleListedChange(e)} >
-                    <div className="btn btn-accent swap-on">Relay is listed in the public directory ✅</div>
-                    <div className="btn btn-accent swap-off">Relay is NOT listed in the public directory 🙈</div>
+                    <div className="btn uppercase btn-accent swap-on">Relay is listed in the public directory ✅</div>
+                    <div className="btn uppercase btn-accent swap-off">Relay is NOT listed in the public directory 🙈</div>
                 </label>
             </div>
             <div className="mt-4">
                 <label className={isAuthRequired()} onClick={(e) => handleAuthChange(e)} >
-                    <div className="btn btn-accent swap-on">Relay requires AUTH (NIP42) ✅</div>
-                    <div className="btn btn-accent swap-off">Relay does not require AUTH (NIP42) 🙈</div>
+                    <div className="btn uppercase btn-accent swap-on">Relay requires AUTH (NIP42) ✅</div>
+                    <div className="btn uppercase btn-accent swap-off">Relay does not require AUTH (NIP42) 🙈</div>
                 </label>
             </div>
             <div className="mt-4">
                 <label className={isGiftwrap()} onClick={(e) => handleGiftwrapChange(e)} >
-                    <div className="btn btn-accent swap-on">Allow Private Groups ✅</div>
-                    <div className="btn btn-accent swap-off">Do NOT allow Private Groups 🙈</div>
+                    <div className="btn uppercase btn-accent swap-on">Allow Private Groups ✅</div>
+                    <div className="btn uppercase btn-accent swap-off">Do NOT allow Private Groups 🙈</div>
                 </label>
             </div>
             <div className="mt-4">
                 <label className={isTagged()} onClick={(e) => handleTaggedChange(e)} >
-                    <div className="btn btn-accent swap-on">Allow Events Tagged to Pubkeys ✅</div>
-                    <div className="btn btn-accent swap-off">Do NOT Allow Events Tagged to Pubkeys 🙈</div>
+                    <div className="btn uppercase btn-accent swap-on">Allow Events Tagged to Pubkeys ✅</div>
+                    <div className="btn uppercase btn-accent swap-off">Do NOT Allow Events Tagged to Pubkeys 🙈</div>
                 </label>
             </div>
             <div className="mt-4 flex">
                 <label className={isPay()} onClick={(e) => handlePayChange(e)} >
-                    <div className="btn btn-accent swap-on">Require lightning to post: on ⚡</div>
-                    <div className="btn btn-accent swap-off">Require lightning to post: off</div>
+                    <div className="btn uppercase btn-accent swap-on">Require lightning to post: on ⚡</div>
+                    <div className="btn uppercase btn-accent swap-off">Require lightning to post: off</div>
                 </label>
                 <img onClick={toggleLightningHelp} className="w-10 h-10" src="icons8-tooltip-64.png"></img>
             </div>
@@ -258,7 +258,7 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
                         placeholder={props.relay.payment_amount.toString()}
                         onChange={event => setSatsAmount(event.target.value)}
                     />
-                    <button onClick={handleSaveSats} className="btn btn-primary">save</button>
+                    <button onClick={handleSaveSats} className="btn uppercase btn-primary">save</button>
                 </div>
             }
         </div>
