@@ -30,8 +30,8 @@ export default function Settings(props: React.PropsWithChildren<{
     }
 
     return (
-        <div className="flex flex-wrap">
-            <div className="flex flex-grow">
+        <div className="flex flex-wrap w-full">
+            <div className="flex flex-grow w-full">
                 <Relay modActions={true} relay={props.relay} showEdit={true} showSettings={false} showDetail={true} showExplorer={true} showCopy={false} />
             </div>
 
