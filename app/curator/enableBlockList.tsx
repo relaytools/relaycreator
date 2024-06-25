@@ -28,7 +28,7 @@ export default function EnableBlockList(props: React.PropsWithChildren<{
                 onClick={(e) => handleSubmit(e)}
                 id={props.relay.id}
                 type="button"
-                className="btn btn-primary"
+                className="btn uppercase btn-primary"
             >
                 Enable BlockList
             </button>

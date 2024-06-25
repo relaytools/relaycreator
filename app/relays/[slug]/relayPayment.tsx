@@ -101,12 +101,12 @@ export default function RelayPayment(
     // 6. show success animation
 
     return (
-        <div className="font-jetbrains">
+        <div className="">
             <div className="">
                 <div className="flex">
                     <div className=" ">
                         <div>
-                            <div className="text-lg">
+                            <div className="lg:text-lg">
                                 This relay requires payment of{" "}
                                 {props.relay.payment_amount} sats to post. ⚡
                                 {alreadyPaid && <div className="text-sm text-green-600">You've already paid for this relay.</div>}
@@ -130,7 +130,7 @@ export default function RelayPayment(
                                         }
                                     />
                                     <button
-                                        className="btn btn-primary inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 sm:text-sm"
+                                        className="btn uppercase btn-primary inline-flex items-center rounded-r-md border border-l-0 border-gray-300 px-3 sm:text-sm"
                                         onClick={handleSubmit}
                                         disabled={!isValidForm()}
                                     >

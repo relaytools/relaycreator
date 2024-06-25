@@ -25,19 +25,22 @@ export default function PublicRelays(
         setResults(r)
     }
 
+
+    //maybe try flex grow
+
     return (
-        <div className="font-jetbrains">
-            <div className="lg:grid lg:grid-flow-row">
-                <h1 className="text-3xl mb-5 mt-4">Explore relays</h1>
-                <div className="text-sm mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>
+        <div className="">
+            <div className="">
+                <h1 className="text-2xl mb-5 mt-4 text-center lg:text-left">Explore relays</h1>
+                <div className="text-sm lg:visible hidden mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>
                 <div>
-                    <div>
+                    <div className="items-center justify-center lg:justify-left lg:items-left">
                         <input className="input input-bordered" placeholder="Search" onChange={(e) => handleSearch(e)} />
                     </div>
                 </div>
             </div>
 
-            <div className="mt-8 lg:grid lg:grid-cols-3 gap-4 sm:flex sm:flex-col">
+            <div className="mt-8 flex flex-wrap gap-12">
                 {results.map((relay) => (
                     <Relay key={"pub" + relay.id} modActions={false} relay={relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={false} showCopy={false} />
                 ))}

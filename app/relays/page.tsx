@@ -162,7 +162,7 @@ export default async function Relays() {
 
     return (
 
-        <div className="font-jetbrains flex flex-col justify-center items-center">
+        <div className="">
             {showSignup && <CreateRelay />}
             {!showSignup && <HelpfulInfo />}
             <MyRelays myRelays={myRelays} moderatedRelays={moderatedRelays} publicRelays={publicRelays} />
