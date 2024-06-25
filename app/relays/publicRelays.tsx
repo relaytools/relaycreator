@@ -31,7 +31,7 @@ export default function PublicRelays(
     return (
         <div className="">
             <div className="">
-                <h1 className="text-2xl mb-5 mt-4">Explore relays</h1>
+                <h1 className="text-2xl mb-5 mt-4 text-center lg:text-left">Explore relays</h1>
                 <div className="text-sm mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>
                 <div>
                     <div>
