@@ -63,8 +63,8 @@ export default async function Relays({
     const relayURL = relay.name + "." + relay.domain
 
     return (
-        <div className="flex flex-wrap">
-            <div className="flex flex-grow">
+        <div className="flex flex-wrap w-full">
+            <div className="flex flex-grow w-full">
                 <Relay key={"pub" + relay.id} relay={relay} modActions={false} showEdit={false} showSettings={false} showDetail={false} showCopy={true} showExplorer={true} />
             </div>
             <div className="">
