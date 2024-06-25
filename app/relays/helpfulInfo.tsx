@@ -28,8 +28,8 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
     }
 
     return (
-        <div className="">
-            <h1 className="mt-8 text-2xl leading-tight lg:leading-normal lg:text-5xl text-primary text-center font-roboto">The fastest and easiest way to launch new relays for nostr.</h1>
+        <div className="font-condensed">
+            <h1 className="mt-8 text-2xl leading-tight lg:leading-normal lg:text-5xl text-primary text-center">The fastest and easiest way to launch new relays for nostr.</h1>
             <div className="mt-8 flex flex-wrap gap-12">
                 <div className="bg-base-100 hidden flex-1 lg:flex-auto lg:block lg:w-1/4">
                     <div className="">
