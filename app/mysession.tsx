@@ -110,7 +110,7 @@ export default function ShowSession() {
                     </form>
                 </dialog>
             )}
-            <div className="flex-1">
+            <div className="flex-1 font-condensed">
                 <a
                     href={rootDomain + "/"}
                     className="normal-case lg:text-2xl text-lg"
@@ -119,7 +119,7 @@ export default function ShowSession() {
                 </a>
             </div>
 
-            <div className="flex-none">
+            <div className="flex-none font-condensed">
                 {!session ? (
                     <div className="flex">
                         <a
