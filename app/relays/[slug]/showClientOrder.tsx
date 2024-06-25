@@ -46,7 +46,7 @@ export default function ShowClientOrder(
     alby(props.clientOrder.lnurl)
 
     return (
-        <div className="font-jetbrains">
+        <div className="">
             <div className="flex mt-4 mb-4">
                 <Bolt11Invoice payment_request={props.clientOrder.lnurl} />
             </div>

@@ -35,13 +35,13 @@ export default function MyRelays(
 
     return (
         <div>
-            <div className="font-jetbrains mt-8 mb-8 px-4">
+            <div className="mt-8 mb-8">
                 <div className="flex justify-center">
                     {selectTypeRelays()}
                 </div>
                 {showMyRelays &&
                     <div>
-                        <div className="mt-8 lg:grid lg:grid-cols-3 gap-4 sm:flex sm:flex-col">
+                        <div className="mt-8 flex flex-wrap gap-12">
                             {props.myRelays.map((relay) => (
                                 <Relay key={relay.id} relay={relay} showSettings={true} showEdit={false} showDetail={false} showExplorer={false} showCopy={false} />
                             ))}

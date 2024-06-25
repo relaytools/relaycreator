@@ -63,13 +63,17 @@ export default async function Relays({
     const relayURL = relay.name + "." + relay.domain
 
     return (
-        <div>
-            <Relay key={"pub" + relay.id} relay={relay} modActions={false} showEdit={false} showSettings={false} showDetail={false} showCopy={true} showExplorer={true} />
-            {successpayment && <div>you've paid for this relay! Welcome.</div>}
-            {relay.payment_required && !successpayment && <RelayPayment relay={relay} />}
-            <RelayDetail relay={relay} />
-            <Terms />
-            {/* <Posts relayURL={rewritten}></Posts> */}
+        <div className="flex flex-wrap">
+            <div className="flex flex-grow">
+                <Relay key={"pub" + relay.id} relay={relay} modActions={false} showEdit={false} showSettings={false} showDetail={false} showCopy={true} showExplorer={true} />
+            </div>
+            <div className="">
+                {successpayment && <div>you've paid for this relay! Welcome.</div>}
+                {relay.payment_required && !successpayment && <RelayPayment relay={relay} />}
+                <RelayDetail relay={relay} />
+                <Terms />
+                {/* <Posts relayURL={rewritten}></Posts> */}
+            </div>
         </div>
 
     )

@@ -58,7 +58,7 @@ export default function ShowSession() {
     const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#";
 
     return (
-        <div className="font-jetbrains navbar bg-base-100 flex">
+        <div className="navbar p-0 bg-base-100">
             {showLoginHelp && (
                 <dialog
                     id="my_modal_5"
@@ -101,7 +101,7 @@ export default function ShowSession() {
                         <div className="modal-action">
                             {/* if there is a button in form, it will close the modal */}
                             <button
-                                className="btn"
+                                className="btn uppercase"
                                 onClick={() => setShowLoginHelp(false)}
                             >
                                 Close
@@ -110,58 +110,52 @@ export default function ShowSession() {
                     </form>
                 </dialog>
             )}
-            <div className="flex-1">
+            <div className="flex-1 font-condensed">
                 <a
                     href={rootDomain + "/"}
-                    className="btn btn-ghost normal-case text-xl"
+                    className="normal-case lg:text-2xl text-lg"
                 >
-                    relay.tools
+                    RELAY.TOOLS
                 </a>
             </div>
 
-            <div className="flex-none">
+            <div className="flex-none font-condensed">
                 {!session ? (
                     <div className="flex">
                         <a
                             href={rootDomain + "/"}
-                            className="btn btn-ghost normal-case text-lg hidden lg:flex"
+                            className="btn uppercase btn-ghost normal-case text-lg hidden lg:flex"
                         >
-                            home
+                            HOME
                         </a>
                         <a
                             href={
                                 "https://github.com/relaytools/relaycreator/blob/f253d2aa81bf385816f750f730c687c96b61ce6e/design/UserStories.md"
                             }
-                            className="btn btn-ghost normal-case text-lg hidden lg:flex"
+                            className="btn uppercase btn-ghost normal-case text-lg hidden lg:flex"
                         >
-                            faq
+                            FAQ
                         </a>
                         <a
                             href={supportURL}
-                            className="btn btn-ghost normal-case text-lg hidden lg:flex"
+                            className="btn uppercase btn-ghost normal-case text-lg hidden lg:flex"
                         >
-                            support
+                            SUPPORT
                         </a>
 
                         <span className="text-center items-center hidden lg:flex">
                             <button
                                 onClick={doNip07Login}
-                                className="btn btn-ghost ml-2"
+                                className="btn uppercase btn-ghost normal-case text-lg hidden lg:flex ml-2"
                             >
-                                sign-in
-                                <Image
-                                    alt="nostr"
-                                    src="/nostr_logo_prpl_wht_rnd.svg"
-                                    width={38}
-                                    height={38}
-                                ></Image>
+                                SIGN-IN
                             </button>
                         </span>
 
                         <div className="dropdown dropdown-end lg:hidden">
                             <label
                                 tabIndex={0}
-                                className="btn cursor-pointer mask mask-squircle"
+                                className="btn uppercase cursor-pointer mask mask-squircle"
                             >
                                 <div className="w-10 rounded-full">
                                     <Image
@@ -191,7 +185,7 @@ export default function ShowSession() {
                                     <span className="text-center items-center">
                                         <button
                                             onClick={doNip07Login}
-                                            className="btn btn-ghost ml-2"
+                                            className="btn uppercase btn-ghost ml-2"
                                         >
                                             sign-in
                                             <Image
@@ -210,7 +204,7 @@ export default function ShowSession() {
                     <div className="dropdown dropdown-end">
                         <label
                             tabIndex={0}
-                            className="btn cursor-pointer mask mask-squircle"
+                            className="btn uppercase cursor-pointer mask mask-squircle"
                         >
                             <div className="w-10 rounded-full">
                                 <Image
