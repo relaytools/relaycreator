@@ -113,7 +113,7 @@ export default function ShowSession() {
             <div className="flex-1">
                 <a
                     href={rootDomain + "/"}
-                    className="normal-case text-2xl"
+                    className="normal-case lg:text-2xl text-lg"
                 >
                     RELAY.TOOLS
                 </a>
