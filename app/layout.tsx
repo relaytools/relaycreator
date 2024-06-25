@@ -6,12 +6,41 @@ import ThemeProvider from "./components/themeProvider";
 import { cookies } from 'next/headers'
 import Themes from '../lib/themes'
 import { headers } from 'next/headers'
-import { Roboto } from 'next/font/google'
+import { Roboto, Roboto_Mono, Roboto_Condensed, Open_Sans } from 'next/font/google'
+import localFont from 'next/font/local'
+
+const jetBrains = localFont({
+    src: '../public/fonts/JetBrains-Mono-Thin.woff2', 
+    display: 'swap',
+    variable: '--font-jetbrains',
+})
 
 const roboto = Roboto({
     weight: '400',
     subsets: ['latin'],
     display: 'swap',
+    variable: '--font-roboto',
+})
+
+const robotoCondensed = Roboto_Condensed({
+    weight: '400',
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-roboto-condensed',
+})
+
+const openSans = Open_Sans({
+    weight: '400',
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-open-sans',
+})
+
+const robotoMono = Roboto_Mono({
+    weight: '400',
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-roboto-mono',
 })
 
 //export default function RootLayout({ children, }: { children: React.ReactNode; }) {
@@ -26,7 +55,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
   const rewritten = headersList.get('middleware-rewritten')
 
   return (
-    <html data-theme={currentTheme} className={roboto.className}>
+    <html data-theme={currentTheme} className={`${openSans.variable} ${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-condensed`}>
       <head></head>
       <body>
         <div className="bg-base-100 mx-auto max-w-7xl">

@@ -3,7 +3,6 @@ import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
-import ThemeProvider from "./components/themeProvider";
 
 export default function ShowSession() {
     const doNip07Login = async () => {
@@ -114,7 +113,7 @@ export default function ShowSession() {
             <div className="flex-1">
                 <a
                     href={rootDomain + "/"}
-                    className="normal-case text-xl font-bold"
+                    className="normal-case text-2xl"
                 >
                     RELAY.TOOLS
                 </a>
