@@ -55,7 +55,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
   const rewritten = headersList.get('middleware-rewritten')
 
   return (
-    <html data-theme={currentTheme} className={`${openSans.variable} ${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-condensed`}>
+    <html data-theme={currentTheme} className={`${openSans.variable} ${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-condensed leading-normal`}>
       <head></head>
       <body>
         <div className="bg-base-100 mx-auto max-w-7xl">
