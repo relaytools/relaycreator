@@ -32,9 +32,9 @@ export default function PublicRelays(
         <div className="">
             <div className="">
                 <h1 className="text-2xl mb-5 mt-4 text-center lg:text-left">Explore relays</h1>
-                <div className="text-sm mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>
+                <div className="text-sm lg:visible hidden mb-5">Search and browse relays in the directory.  Check out their teams and mission statements and browse each relays content.</div>
                 <div>
-                    <div>
+                    <div className="items-center justify-center lg:justify-left lg:items-left">
                         <input className="input input-bordered" placeholder="Search" onChange={(e) => handleSearch(e)} />
                     </div>
                 </div>
