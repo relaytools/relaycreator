@@ -119,7 +119,7 @@ export default function DefaultPolicy(props: React.PropsWithChildren<{
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "payment_required": !pay })
+            body: JSON.stringify({ "payment_required": !pay, default_message_policy: setNewAllow})
         })
         if (response.ok) {
             if (pay) {
