@@ -149,7 +149,23 @@ export default function PostsPage(
     useEffect(() => {
         async function grabStuff() {
             ndk.addExplicitRelay(nrelaydata);
+
             ndk.relayAuthDefaultPolicy = NDKRelayAuthPolicies.signIn({ndk});
+            /*
+            ndk.relayAuthDefaultPolicy = (relay: NDKRelay) => {
+                const signIn = NDKRelayAuthPolicies.signIn({ndk});
+                    if (confirm(`Relay ${relay.url} is requesting authentication, do you want to sign in?`)) {
+                        signIn(relay);
+                    }
+                }
+            */
+
+                /*
+            ndk.relayAuthDefaultPolicy = async (relay: NDKRelay) => {
+                return confirm(`Authenticate to ${relay.url}?`);
+            };
+            */
+
             await ndk.connect()
             addToStatus("connected to " + nrelaydata);
 
