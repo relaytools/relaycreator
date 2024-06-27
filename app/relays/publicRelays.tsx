@@ -14,10 +14,11 @@ export default function PublicRelays(
         e.preventDefault()
         const targetToLower = e.target.value.toLowerCase()
         const r = props.relays.filter((relay) => {
-            if (relay.name.includes(targetToLower)) {
+            if (relay.name.toLowerCase().includes(targetToLower)) {
                 return true
             }
-            if (relay.details && relay.details.includes(targetToLower)) {
+
+            if (relay.details && relay.details.toLowerCase().includes(targetToLower)) {
                 return true
             }
             return false
