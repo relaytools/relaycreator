@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
 import {generateSecretKey, getPublicKey, finalizeEvent} from 'nostr-tools/pure';
-import NDK, { NDKEvent, NDKNip07Signer, NDKRelay, NDKRelayAuthPolicies } from "@nostr-dev-kit/ndk";
+import NDK, { NDKEvent, NDKNip07Signer, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet } from "@nostr-dev-kit/ndk";
 import { useSearchParams } from "next/navigation";
 
 interface Event {
@@ -29,11 +29,13 @@ interface Profile {
 }
 
 const nip07signer = new NDKNip07Signer();
+
 const ndk = new NDK({
     signer: nip07signer,
     autoConnectUserRelays: false,
     enableOutboxModel: false,
 });
+
 
 export default function PostsPage(
     /*
@@ -130,27 +132,64 @@ export default function PostsPage(
     if (type === "nrelay") {
         nrelaydata = data;
     }
-
-    
-
-
-            /*
-            ndk.relayAuthDefaultPolicy = (relay: NDKRelay) => {
-                const signIn = NDKRelayAuthPolicies.signIn({ndk});
-                if (confirm(`Relay ${relay.url} is requesting authentication, do you want to sign in?`)) {
-                signIn(relay);
-                }
-            }
-            */
-
-    //const grabStuff = async (relayUrl: string) => {
-    
-
     useEffect(() => {
         async function grabStuff() {
-            ndk.addExplicitRelay(nrelaydata);
 
+            const ndkPool = ndk.pool;
+
+           //const relaySet = NDKRelaySet.fromRelayUrls([nrelaydata],ndk);
+            
+            ndkPool.on("flapping", (flapping: NDKRelay) => {
+                addToStatus("relay is flapping: " + flapping.url);
+            });
+            ndkPool.on("relay:auth", (relay: NDKRelay, challenge: string) => {
+                addToStatus("auth: " + relay.url);
+            });
+            ndkPool.on("relay:authed", (relay: NDKRelay) => {
+                addToStatus("authed: " + relay.url);
+                
+                let kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: false});
+                kind1Sub.on("event", (event: NDKEvent) => {
+                        //console.log(event);
+                        // do profile lookups on the fly
+                        /*
+                        if(lookupProfileName(event.pubkey) == event.pubkey) {
+                            const profileSub = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true});
+                            profileSub.on("event", (pevent: NDKEvent) => {
+                                addProfile(pevent);
+                            });
+                        }*/
+                    addPost(event);
+                });
+                kind1Sub.on("close", () => {
+                    addToStatus("kind1Sub closed");
+                });
+            });
+            ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
+                addToStatus("disconnected: " + relay.url);
+            });
+
+            ndkPool.on("relay:connect", (relay: NDKRelay) => {
+                addToStatus("connect: " + relay.url);
+                
+            });
+
+            ndkPool.on("relay:connecting", (relay: NDKRelay) => {
+                addToStatus("connecting: " + relay.url);
+            });
+
+            ndk.addExplicitRelay(nrelaydata, NDKRelayAuthPolicies.signIn({ndk}), true);
+
+            //let kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false}, undefined, true);
+            
+ 
+            
+            /*
             ndk.relayAuthDefaultPolicy = NDKRelayAuthPolicies.signIn({ndk});
+            ndk.addExplicitRelay(nrelaydata);
+            await ndk.connect();
+            */
+
             /*
             ndk.relayAuthDefaultPolicy = (relay: NDKRelay) => {
                 const signIn = NDKRelayAuthPolicies.signIn({ndk});
@@ -166,44 +205,11 @@ export default function PostsPage(
             };
             */
 
-            await ndk.connect()
-            addToStatus("connected to " + nrelaydata);
+            //await ndk.connect()
 
-            const ndkPool = ndk.pool;
-            ndkPool.on("flapping", (flapping: NDKRelay) => {
-                addToStatus("relay is flapping: " + flapping.url);
-            });
-            /*
-            ndkPool.on("relay:auth", (relay: NDKRelay, challenge: string) => {
-                addToStatus("auth: " + relay.url);
-            });
-            ndkPool.on("relay:authed", (relay: NDKRelay) => {
-                addToStatus("authed: " + relay.url);
-            });
-            */
-            ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
-                addToStatus("disconnected: " + relay.url);
-            });
-            ndkPool.on("relay:connect", (relay: NDKRelay) => {
-                addToStatus("connect: " + relay.url);
-            });
+            
 
-            ndkPool.on("relay:connecting", (relay: NDKRelay) => {
-                addToStatus("connect: " + relay.url);
-            });
-
-            const kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false});
-            kind1Sub.on("event", (event: NDKEvent) => {
-                //console.log(event);
-                // do profile lookups on the fly
-                if(lookupProfileName(event.pubkey) == event.pubkey) {
-                    const profileSub = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true});
-                    profileSub.on("event", (pevent: NDKEvent) => {
-                        addProfile(pevent);
-                    });
-                }
-                addPost(event);
-            });
+            
         }
         grabStuff();
     }, []);
