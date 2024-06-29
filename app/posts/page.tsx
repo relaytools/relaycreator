@@ -66,11 +66,11 @@ export default function PostsPage(
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
             addToStatus("authed: " + relay.url);
             wipePosts();
-            kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: true});
+            kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: false});
             kind1Sub.on("event", (event: NDKEvent) => {
                 // do profile lookups on the fly
                 if(lookupProfileName(event.pubkey) == event.pubkey) {
-                    const profileSubAuth = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true, groupable: true, groupableDelay: 1000});
+                    const profileSubAuth = ndk.subscribe({ kinds: [0], authors: [event.pubkey] }, {closeOnEose: true, groupable: true});
                     profileSubAuth.on("event", (pevent: NDKEvent) => {
                         addProfile(pevent);
                     });
@@ -88,11 +88,11 @@ export default function PostsPage(
             addToStatus("connected: " + relay.url);
             wipePosts();
             if(!auth) {
-                kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: true});
+                kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: false});
                 kind1Sub.on("event", (event: NDKEvent) => {
                     // do profile lookups on the fly
                     if(lookupProfileName(event.pubkey) == event.pubkey) {
-                        const profileSubAuth = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true, groupable: true, groupableDelay: 1000});
+                        const profileSubAuth = ndk.subscribe({ kinds: [0], authors: [event.pubkey] }, {closeOnEose: true, groupable: true});
                         profileSubAuth.on("event", (pevent: NDKEvent) => {
                             addProfile(pevent);
                         });
@@ -160,7 +160,7 @@ export default function PostsPage(
     if (searchParams == null) {
         //if(props.relayURL == "") {
             relayparam = nip19.nrelayEncode("wss://nostr21.com");
-            relayLimit = 50;
+            relayLimit = 100;
             useAuth = "false";
         //} else {
         //    relayparam = nip19.nrelayEncode("wss://" + props.relayURL);
@@ -176,7 +176,7 @@ export default function PostsPage(
         }
         const c = searchParams.get("limit");
         if (c == null) {
-            relayLimit = 50;
+            relayLimit = 100;
         } else {
             relayLimit = parseInt(c);
         }
@@ -287,6 +287,14 @@ export default function PostsPage(
             urls.push(url);
             return url;
         });
+
+        const njumpRegex = /nostr?:(n[^\s]+)/g;
+        const njumps: string[] = [];
+        content.replace(njumpRegex, (njump: string) => {
+            urls.push("https://njump.me/" + njump);
+            return njump;
+        });
+
         return urls;
     };
     const showLocalTime = (unixTime: any) => {
@@ -339,8 +347,7 @@ export default function PostsPage(
                     </div>
 
                     <div
-                        style={{ whiteSpace: "pre-wrap", overflow: "auto" }}
-                        className="chat-bubble chat-bubble-gray-100 text-white selectable overflow-x-auto max-w-screen"
+                        className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-hidden max-w-screen"
                     >
                         {showContentWithoutLinks(foundpost.content)}
                     </div>
@@ -582,11 +589,7 @@ export default function PostsPage(
                                 </div>
 
                                 <div
-                                    style={{
-                                        whiteSpace: "pre-wrap",
-                                        overflow: "auto",
-                                    }}
-                                    className="chat-bubble text-white selectable overflow-x-auto max-w-screen "
+                                    className="chat-bubble text-white selectable h-auto overflow-hidden max-w-screen "
                                 >
                                     {showContentWithoutLinks(showPost.content)}
                                 </div>
@@ -688,7 +691,7 @@ export default function PostsPage(
 
                             <div className="flex justify-center">
                                 <div
-                                    className="flex justify-end btn"
+                                    className="flex justify-end btn btn-primary uppercase"
                                     onClick={() => handleClosePost()}
                                 >
                                     next
@@ -713,7 +716,7 @@ export default function PostsPage(
                     <div className="chat-header max-w-screen overflow-hidden">
                         <div className="flex items-center space-x-2">
                             <div className="hover:text-white max-w-screen overflow-hidden">
-                                {lookupProfileName(post.pubkey)}
+                                {summarizePubkey(lookupProfileName(post.pubkey))}
                             </div>
                             <time className="text-xs text-notice opacity-80">
                                 {lookupNip05(post.pubkey)}
@@ -722,7 +725,6 @@ export default function PostsPage(
                     </div>
 
                     <div
-                        style={{ whiteSpace: "pre-wrap", overflow: "auto" }}
                         className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden"
                     >
                         {post.content}
