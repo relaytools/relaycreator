@@ -1,5 +1,4 @@
 "use client";
-//import 'websocket-polyfill'
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
@@ -28,16 +27,15 @@ interface Profile {
     content: any;
 }
 
-        const nip07signer = new NDKNip07Signer();
+const nip07signer = new NDKNip07Signer();
 
-        const ndk = new NDK({
-            signer: nip07signer,
-            autoConnectUserRelays: false,
-            enableOutboxModel: false,
-        });
+const ndk = new NDK({
+    signer: nip07signer,
+    autoConnectUserRelays: false,
+    enableOutboxModel: false,
+});
 
-        const ndkPool = ndk.pool;
-
+const ndkPool = ndk.pool;
 
 export default function PostsPage(
     /*
@@ -48,15 +46,12 @@ export default function PostsPage(
 ) {
 
     const { data: session, status } = useSession();
-    //const myArray: Event[] = [];
     const [posts, setPosts] = useState<Event[]>([]);
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [relayStatus, setRelayStatus] = useState(["initializing"]);
     const [showPost, setShowPost] = useState<Event>();
     const [showImages, setShowImages] = useState(false);
     const [replyPost, setReplyPost] = useState("");
-
-    
 
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
         var kind1Sub: NDKSubscription
@@ -71,7 +66,7 @@ export default function PostsPage(
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
             addToStatus("authed: " + relay.url);
             wipePosts();
-            kind1Sub = ndk.subscribe({ kinds: [1], limit: 100 }, {closeOnEose: false, groupable: true});
+            kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: true});
             kind1Sub.on("event", (event: NDKEvent) => {
                 // do profile lookups on the fly
                 if(lookupProfileName(event.pubkey) == event.pubkey) {
@@ -93,7 +88,7 @@ export default function PostsPage(
             addToStatus("connected: " + relay.url);
             wipePosts();
             if(!auth) {
-                kind1Sub = ndk.subscribe({ kinds: [1], limit: 100 }, {closeOnEose: false, groupable: true});
+                kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: true});
                 kind1Sub.on("event", (event: NDKEvent) => {
                     // do profile lookups on the fly
                     if(lookupProfileName(event.pubkey) == event.pubkey) {
@@ -402,38 +397,19 @@ export default function PostsPage(
 
     // todo, delete from view
     const handleDeleteEvent = async () => {
-        /*
-        if (session && session.user && showPost != undefined) {
-            const connectHere = relayInit(nrelaydata);
-            connectHere.on("connect", () => {
-                console.log(`connected to ${nrelaydata}`);
-            });
-            connectHere.on("error", () => {
-                console.log(`failed to connect to ${nrelaydata}`);
-            });
-            await connectHere.connect();
-            let event = {
-                kind: 7,
-                pubkey: session.user.name,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [["e", showPost.id]],
-                content: "❌",
-            };
-
-            let signedEvent = await (window as any).nostr.signEvent(event);
-
-            console.log(signedEvent);
-
-            const result = await connectHere.publish(signedEvent as any);
-            console.log(result);
+        if (session && session.user && session.user.name && showPost != undefined) {
+            const dEvent = new NDKEvent(ndk);
+            dEvent.kind = 7;
+            dEvent.pubkey = session.user.name;
+            dEvent.tags = [["e", showPost.id]];
+            dEvent.content = "❌";
+            await dEvent.publish();
             removePost(showPost);
-            connectHere.close();
             //clear the form
             setShowPost(undefined);
         } else {
             console.log("not logged in");
         }
-        */
     };
 
     const handleBlockPubkey = async () => {
@@ -464,36 +440,17 @@ export default function PostsPage(
 
     const handleBlockAndDelete = async () => {
         // delete part
-        /*
-        if (session && session.user && showPost != undefined) {
+        if (session && session.user && session.user.name && showPost != undefined) {
             // deleting phase
-            const connectHere = relayInit(nrelaydata);
-            connectHere.on("connect", () => {
-                console.log(`connected to ${nrelaydata}`);
-            });
-            connectHere.on("error", () => {
-                console.log(`failed to connect to ${nrelaydata}`);
-            });
-            await connectHere.connect();
-            let event = {
-                kind: 7,
-                pubkey: session.user.name,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [["p", showPost.pubkey]],
-                content: "🔨",
-            };
-
-            let signedEvent = await (window as any).nostr.signEvent(event);
-
-            console.log(signedEvent);
-
-            const result = await connectHere.publish(signedEvent as any);
-            console.log(result);
-            connectHere.close();
-
+            const dEvent = new NDKEvent(ndk);
+            dEvent.kind = 7;
+            dEvent.pubkey = session.user.name;
+            dEvent.tags = [["p", showPost.pubkey]];
+            dEvent.content = "🔨";
+            await dEvent.publish();
+            
             // blocking phase
             handleBlockPubkey();
-
             // remove from UI
             removePostPubkey(showPost);
             //clear the form
@@ -501,7 +458,6 @@ export default function PostsPage(
         } else {
             console.log("not logged in");
         }
-        */
     };
 
     const handleClosePost = async () => {
