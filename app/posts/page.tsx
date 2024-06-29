@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
 import {generateSecretKey, getPublicKey, finalizeEvent} from 'nostr-tools/pure';
-import NDK, { NDKEvent, NDKNip07Signer, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet } from "@nostr-dev-kit/ndk";
+import NDK, { NDKEvent, NDKNip07Signer, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet, NDKSubscription } from "@nostr-dev-kit/ndk";
 import { useSearchParams } from "next/navigation";
 
 interface Event {
@@ -58,11 +58,8 @@ export default function PostsPage(
 
     
 
-    async function grabStuff(nrelaydata: string) {
-
-
-
-        //const relaySet = NDKRelaySet.fromRelayUrls([nrelaydata],ndk);
+    async function grabStuff(nrelaydata: string, auth: boolean = false) {
+        var kind1Sub: NDKSubscription
         
         ndkPool.on("flapping", (flapping: NDKRelay) => {
             addToStatus("relay is flapping: " + flapping.url);
@@ -73,55 +70,48 @@ export default function PostsPage(
 
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
             addToStatus("authed: " + relay.url);
-            // NDK does not re-subscribe to a relay that required auth, so we can subscribe here on the hook
-            // maybe we can trick it into turning on the sub.
-            //const kind1SubAuthed = ndk.subscribe({ kinds: [0], limit: 1 }, {closeOnEose: true, groupable: false});
-            /*
-            kind1SubAuthed.on("event", (event: NDKEvent) => {
+            wipePosts();
+            kind1Sub = ndk.subscribe({ kinds: [1], limit: 100 }, {closeOnEose: false, groupable: true});
+            kind1Sub.on("event", (event: NDKEvent) => {
                 // do profile lookups on the fly
                 if(lookupProfileName(event.pubkey) == event.pubkey) {
-                    const profileSubAuth = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true});
+                    const profileSubAuth = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true, groupable: true, groupableDelay: 1000});
                     profileSubAuth.on("event", (pevent: NDKEvent) => {
                         addProfile(pevent);
                     });
                 }
-            addPost(event);
-
-                */
+                addPost(event);
+            });
         });
             
         ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
+            kind1Sub.stop()
             addToStatus("disconnected: " + relay.url);
         });
 
         ndkPool.on("relay:connect", (relay: NDKRelay) => {
-            addToStatus("connect: " + relay.url);
-            
-        });
-
-        ndkPool.on("relay:connecting", (relay: NDKRelay) => {
-            addToStatus("connecting: " + relay.url);
-        });
-
-        ndk.addExplicitRelay(nrelaydata, NDKRelayAuthPolicies.signIn({ndk}), true);
-
-        // this works for un-auth-ed relays..
-        let kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: false});
-            kind1Sub.on("event", (event: NDKEvent) => {
-                    //console.log(event);
+            addToStatus("connected: " + relay.url);
+            wipePosts();
+            if(!auth) {
+                kind1Sub = ndk.subscribe({ kinds: [1], limit: 100 }, {closeOnEose: false, groupable: true});
+                kind1Sub.on("event", (event: NDKEvent) => {
                     // do profile lookups on the fly
                     if(lookupProfileName(event.pubkey) == event.pubkey) {
-                        const profileSub = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true});
-                        profileSub.on("event", (pevent: NDKEvent) => {
+                        const profileSubAuth = ndk.subscribe({ kinds: [0], limit: 1, authors: [event.pubkey] }, {closeOnEose: true, groupable: true, groupableDelay: 1000});
+                        profileSubAuth.on("event", (pevent: NDKEvent) => {
                             addProfile(pevent);
                         });
                     }
-                addPost(event);
-        });
-        kind1Sub.on("close", () => {
-            addToStatus("kind1Sub closed");
+                    addPost(event);
+                });
+            }
         });
 
+        ndkPool.on("relay:connecting", (relay: NDKRelay) => {
+            //addToStatus("connecting: " + relay.url);
+        });
+
+        ndk.addExplicitRelay(nrelaydata, NDKRelayAuthPolicies.signIn({ndk}), true);
     }
 
     async function addToStatus(message: string) {
@@ -132,6 +122,10 @@ export default function PostsPage(
         const newPost: Event = e;
         setPosts((prevPosts) => [newPost, ...prevPosts]);
     };
+
+    const wipePosts = () => {
+        setPosts([]);
+    }
 
     const removePost = (e: any) => {
         var setNewPosts: Event[] = [];
@@ -187,7 +181,7 @@ export default function PostsPage(
         }
         const c = searchParams.get("limit");
         if (c == null) {
-            relayLimit = 100;
+            relayLimit = 50;
         } else {
             relayLimit = parseInt(c);
         }
@@ -204,88 +198,8 @@ export default function PostsPage(
     }
 
     useEffect(() => {
-
-
-            //let kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false}, undefined, true);
-            
- 
-            
-            /*
-            ndk.relayAuthDefaultPolicy = NDKRelayAuthPolicies.signIn({ndk});
-            ndk.addExplicitRelay(nrelaydata);
-            await ndk.connect();
-            */
-
-            /*
-            ndk.relayAuthDefaultPolicy = (relay: NDKRelay) => {
-                const signIn = NDKRelayAuthPolicies.signIn({ndk});
-                    if (confirm(`Relay ${relay.url} is requesting authentication, do you want to sign in?`)) {
-                        signIn(relay);
-                    }
-                }
-            */
-
-                /*
-            ndk.relayAuthDefaultPolicy = async (relay: NDKRelay) => {
-                return confirm(`Authenticate to ${relay.url}?`);
-            };
-            */
-
-            //await ndk.connect()
-            
-        grabStuff(nrelaydata);
+        grabStuff(nrelaydata, useAuth == "true");
     }, []);
-
-    //};
-
-    //grabStuff(nrelaydata);
-
-        /*
-    useEffect(() => {
-        
-
-            /*
-            const relay = relayInit(relayUrl);
-            relay.on("connect", () => {
-                console.log(`connected to ${relay.url}`);
-                // if using auth, do the auth dance 
-                if(useAuth == "true") {
-                    
-                }
-                addToStatus(relayUrl + ": connected");
-                let sub = relay.sub([{ kinds: [1], limit: relayLimit }]);
-                sub.on("event", (event: any) => {
-                    console.log('got event:', event);
-                    if (lookupProfileName(event.pubkey) == event.pubkey) {
-                        let profileSub = relay.sub([
-                            { kinds: [0], limit: 1, authors: [event.pubkey] },
-                        ]);
-                        profileSub.on("event", (pevent: any) => {
-                            //console.log('got profile event:', pevent);
-                            profileSub.unsub();
-                            addProfile(pevent);
-                        });
-                        profileSub.on("eose", () => {
-                            profileSub.unsub();
-                        });
-                    }
-                    addPost(event);
-                });
-                sub.on("eose", () => {
-                    //sub.unsub()
-                    //addToStatus(relayUrl + ": connected and eose received");
-                    console.log("got EOSE!");
-                });
-            });
-            relay.on("error", () => {
-                console.log(`failed to connect to ${relayUrl}`);
-                addToStatus(relayUrl + " connection failed");
-            });
-            await relay.connect();
-        };
-        grabStuff(nrelaydata);
-    }, []); 
-        */
 
     function summarizePubkey(pubkey: string): string {
         if (pubkey.length <= 60) {
@@ -299,7 +213,6 @@ export default function PostsPage(
     const lookupProfileName = (pubkey: string) => {
         for (let i = 0; i < profiles.length; i++) {
             if (profiles[i].pubkey == pubkey) {
-                //console.log("found profile name " + profiles[i].content.name)
                 return profiles[i].content.name;
             }
         }
@@ -398,11 +311,9 @@ export default function PostsPage(
     };
 
     const findReply = (eventId: string) => {
-        console.log(posts.length);
         let foundpost: any;
         posts.forEach((post) => {
             if (post.id == eventId) {
-                console.log("foundreply");
                 foundpost = post;
             }
         });
@@ -472,39 +383,21 @@ export default function PostsPage(
     };
 
     const handleReply = async () => {
-        /*
-        if (session && session.user && showPost != undefined) {
-            const connectHere = relayInit(nrelaydata);
-            connectHere.on("connect", () => {
-                console.log(`connected to ${nrelaydata}`);
-            });
-            connectHere.on("error", () => {
-                console.log(`failed to connect to ${nrelaydata}`);
-            });
-            await connectHere.connect();
-            let event = {
-                kind: 1,
-                pubkey: session.user.name,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [
-                    ["p", showPost.pubkey],
-                    ["e", showPost.id],
-                ],
-                content: replyPost,
-            };
-            let signedEvent = await (window as any).nostr.signEvent(event);
-
-            console.log(signedEvent);
-
-            const result = await connectHere.publish(signedEvent as any);
-            console.log(result);
-            connectHere.close();
+        if (session && session.user && session.user.name && showPost != undefined) {
+            const replyEvent = new NDKEvent(ndk);
+            replyEvent.kind = 1;
+            replyEvent.pubkey = session.user.name;
+            replyEvent.tags = [
+                ["p", showPost.pubkey],
+                ["e", showPost.id],
+            ];
+            replyEvent.content = replyPost;
+            await replyEvent.publish();
             //clear the form
             setShowPost(undefined);
         } else {
             console.log("not logged in");
         }
-        */
     };
 
     // todo, delete from view
@@ -624,30 +517,12 @@ export default function PostsPage(
 
         if (session && session.user && session.user.name) {
 
-            /*
-            const connectHere = relayInit(nrelaydata);
-            connectHere.on("connect", () => {
-                console.log(`connected to ${nrelaydata}`);
-            });
-            connectHere.on("error", () => {
-                console.log(`failed to connect to ${nrelaydata}`);
-            });
-            await connectHere.connect();
-            */
-
-            /*
-            const ndkPool = ndk.pool;
-            const ndkPoolStats = ndkPool.stats();
-            addToStatus("connected: " + ndkPoolStats.connected);
-            addToStatus("disconnected: " + ndkPoolStats.disconnected);
-            addToStatus("total: " + ndkPoolStats.total);
-            */
-
             // anonymous postin!
-
+            // generates new key each time
+            /*
             const newSK = generateSecretKey();
             const newPK = getPublicKey(newSK);
-            let event = finalizeEvent({
+            const event = finalizeEvent({
                 kind: 1,
                 created_at: Math.floor(Date.now() / 1000),
                 tags: [],
@@ -656,32 +531,14 @@ export default function PostsPage(
 
             const newEvent = new NDKEvent(ndk, event);
             await newEvent.publish();
+            */
 
-            /*
             const newEvent = new NDKEvent(ndk);
             newEvent.kind = 1;
             newEvent.pubkey = session.user.name;
             newEvent.content = post;
             await newEvent.publish();
-            */
 
-
-            /*
-            let event = {
-                kind: 1,
-                pubkey: session.user.name,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [],
-                content: post,
-            };
-            let signedEvent = await (window as any).nostr.signEvent(event);
-
-            console.log(signedEvent);
-
-            const result = await connectHere.publish(signedEvent as any);
-            console.log(result);
-            connectHere.close();
-            */
             //clear the form
             form.elements[0].value = "";
         } else {
