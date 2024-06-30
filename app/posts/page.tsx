@@ -160,7 +160,7 @@ export default function PostsPage(
     if (searchParams == null) {
         //if(props.relayURL == "") {
             relayparam = nip19.nrelayEncode("wss://nostr21.com");
-            relayLimit = 100;
+            relayLimit = 50;
             useAuth = "false";
         //} else {
         //    relayparam = nip19.nrelayEncode("wss://" + props.relayURL);
@@ -285,11 +285,10 @@ export default function PostsPage(
         const urls: string[] = [];
         content.replace(urlRegex, (url: string) => {
             urls.push(url);
-            return url;
+            return url
         });
 
-        const njumpRegex = /nostr?:(n[^\s]+)/g;
-        const njumps: string[] = [];
+        const njumpRegex = /(nostr:n[^\s]+)/g;
         content.replace(njumpRegex, (njump: string) => {
             urls.push("https://njump.me/" + njump);
             return njump;
@@ -297,6 +296,19 @@ export default function PostsPage(
 
         return urls;
     };
+
+    const parseOutAndShowNjumps = (content: string) => {
+        const njumpRegex = /(nostr:n[^\s]+)/g;
+        const njumps: string[] = [];
+
+        content.replace(njumpRegex, (njump: string) => {
+            njumps.push("https://njump.me/" + njump);
+            return "";
+        });
+
+        return njumps;
+    }
+
     const showLocalTime = (unixTime: any) => {
         const date = new Date(unixTime * 1000); // Convert to milliseconds
         const localTime = date.toLocaleString(); // Format as local time string
@@ -322,6 +334,8 @@ export default function PostsPage(
         });
         if (foundpost != undefined) {
             return (
+                <div>
+                    <div>{isReply(foundpost)}</div>
                 <div
                     key={"replyfoundpost" + foundpost.id}
                     className={
@@ -354,6 +368,7 @@ export default function PostsPage(
                     <div className="chat-footer opacity-50">
                         {showLocalTime(foundpost.created_at)}
                     </div>
+                </div>
                 </div>
             );
         } else {
@@ -600,10 +615,12 @@ export default function PostsPage(
 
                             {parseOutAndShowLinks(showPost.content).map(
                                 (url) => (
-                                    <div key={"2" + url}>
+                                    <div key={"2" + url} className="mb-4">
                                         <a
                                             href={url}
                                             className="link link-primary"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                         >
                                             {url}
                                         </a>
