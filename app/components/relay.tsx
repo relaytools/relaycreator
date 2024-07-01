@@ -56,11 +56,6 @@ export default function Relay(
         useDetails = props.relay.details.split('\n').slice(0, 2).join('\n');
     }
 
-    let authString = ""
-    if(props.relay.auth_required) {
-        authString = "&auth=true"
-    }
-
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000"
     return (
         <div id={props.relay.id + "rootview"} className="flex-1 lg:flex-auto lg:w-1/4">
@@ -170,7 +165,7 @@ export default function Relay(
 
                     {props.modActions != null && props.modActions == true && 
                     <div className="justify-center mt-2">
-                        <a href={rootDomain + "/posts?mod=true&relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS) + authString} className="btn uppercase btn-secondary">
+                        <a href={rootDomain + "/posts?mod=true&relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS)} className="btn uppercase btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
@@ -178,7 +173,7 @@ export default function Relay(
 
                     {props.modActions == null || props.modActions == false && 
                     <div className="justify-center mt-2">
-                        <a href={rootDomain + "/posts?relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS) + authString} className="btn uppercase btn-secondary">
+                        <a href={rootDomain + "/posts?relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS)} className="btn uppercase btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>

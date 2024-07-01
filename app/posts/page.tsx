@@ -5,6 +5,8 @@ import { nip19 } from "nostr-tools";
 import {generateSecretKey, getPublicKey, finalizeEvent} from 'nostr-tools/pure';
 import NDK, { NDKEvent, NDKNip07Signer, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet, NDKSubscription } from "@nostr-dev-kit/ndk";
 import { useSearchParams } from "next/navigation";
+import { RelayWithEverything } from "../components/relayWithEverything"
+import RelayMenuBar from "../relays/relayMenuBar"
 
 interface Event {
     pubkey: string;
@@ -38,11 +40,10 @@ const ndk = new NDK({
 const ndkPool = ndk.pool;
 
 export default function PostsPage(
-    /*
     props: React.PropsWithChildren<{
-        relayURL: string;
+        relay: RelayWithEverything;
+        publicRelays: RelayWithEverything[];
     }>
-    */
 ) {
 
     const { data: session, status } = useSession();
@@ -52,6 +53,9 @@ export default function PostsPage(
     const [showPost, setShowPost] = useState<Event>();
     const [showImages, setShowImages] = useState(false);
     const [replyPost, setReplyPost] = useState("");
+
+    const relayLimit = 50
+    const modActions = false
 
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
         var kind1Sub: NDKSubscription
@@ -80,7 +84,9 @@ export default function PostsPage(
         });
             
         ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
-            kind1Sub.stop()
+            if(kind1Sub != undefined) {
+                kind1Sub.stop()
+            }
             addToStatus("disconnected: " + relay.url);
         });
 
@@ -151,49 +157,13 @@ export default function PostsPage(
         setProfiles((prevProfiles) => [newProfile, ...prevProfiles]);
     };
 
-    const searchParams = useSearchParams();
-    var relayparam: any;
-    var relayLimit: any;
-    var relay_id: any;
-    var modActions: any;
-    var useAuth: any;
-    if (searchParams == null) {
-        //if(props.relayURL == "") {
-            relayparam = nip19.nrelayEncode("wss://nostr21.com");
-            relayLimit = 50;
-            useAuth = "false";
-        //} else {
-        //    relayparam = nip19.nrelayEncode("wss://" + props.relayURL);
-        //    relayLimit = 50;
-        //}
-    } else {
-        //if(props.relayURL) {
-        //    relayparam= nip19.nrelayEncode("wss://" + props.relayURL);
-        //} else {
-        relayparam = searchParams.get("relay");
-        if (relayparam == null) {
-            relayparam = nip19.nrelayEncode("wss://nostr21.com");
-        }
-        const c = searchParams.get("limit");
-        if (c == null) {
-            relayLimit = 100;
-        } else {
-            relayLimit = parseInt(c);
-        }
-        relay_id = searchParams.get("relay_id");
-        modActions = searchParams.get("mod");
-        useAuth = searchParams.get("auth");
-        //}
-    }
-
-    let { type, data } = nip19.decode(relayparam);
-    let nrelaydata: any;
-    if (type === "nrelay") {
-        nrelaydata = data;
-    }
+    const nrelaydata = "wss://" + props.relay.name + "." + props.relay.domain;
+    const useAuth = props.relay.auth_required
+    console.log(props.relay)
+    //const useAuth = false
 
     useEffect(() => {
-        grabStuff(nrelaydata, useAuth == "true");
+        grabStuff(nrelaydata, useAuth);
     }, []);
 
     function summarizePubkey(pubkey: string): string {
@@ -258,7 +228,7 @@ export default function PostsPage(
 
     const chatStartOrEnd = (post: Event) => {
         // post is from me, use chat-end
-        if (session && session.user && session.user.name == post.pubkey) {
+        if (ndk.activeUser?.pubkey == post.pubkey) {
             return "chat chat-end hover:bg-primary-focus hover:text-white";
         } else {
             // post is from someone else, use chat-start
@@ -400,10 +370,9 @@ export default function PostsPage(
     };
 
     const handleReply = async () => {
-        if (session && session.user && session.user.name && showPost != undefined) {
+        if(showPost != undefined) {
             const replyEvent = new NDKEvent(ndk);
             replyEvent.kind = 1;
-            replyEvent.pubkey = session.user.name;
             replyEvent.tags = [
                 ["p", showPost.pubkey],
                 ["e", showPost.id],
@@ -412,38 +381,30 @@ export default function PostsPage(
             await replyEvent.publish();
             //clear the form
             setShowPost(undefined);
-        } else {
-            console.log("not logged in");
         }
     };
 
     // todo, delete from view
     const handleDeleteEvent = async () => {
-        if (session && session.user && session.user.name && showPost != undefined) {
+        if(showPost != undefined) {
             const dEvent = new NDKEvent(ndk);
             dEvent.kind = 7;
-            dEvent.pubkey = session.user.name;
             dEvent.tags = [["e", showPost.id]];
             dEvent.content = "❌";
             await dEvent.publish();
             removePost(showPost);
             //clear the form
             setShowPost(undefined);
-        } else {
-            console.log("not logged in");
         }
     };
 
     const handleBlockPubkey = async () => {
         if (
-            session &&
-            session.user &&
-            showPost != undefined &&
-            relay_id != undefined
+            showPost != undefined
         ) {
             // call to API to add new keyword
             const response = await fetch(
-                `/api/relay/${relay_id}/blocklistpubkey`,
+                `/api/relay/${props.relay.id}/blocklistpubkey`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -462,11 +423,10 @@ export default function PostsPage(
 
     const handleBlockAndDelete = async () => {
         // delete part
-        if (session && session.user && session.user.name && showPost != undefined) {
+        if(showPost != undefined) {
             // deleting phase
             const dEvent = new NDKEvent(ndk);
             dEvent.kind = 7;
-            dEvent.pubkey = session.user.name;
             dEvent.tags = [["p", showPost.pubkey]];
             dEvent.content = "🔨";
             await dEvent.publish();
@@ -477,8 +437,6 @@ export default function PostsPage(
             removePostPubkey(showPost);
             //clear the form
             setShowPost(undefined);
-        } else {
-            console.log("not logged in");
         }
     };
 
@@ -493,7 +451,6 @@ export default function PostsPage(
         const form = e.target;
         const post = form.elements[0].value;
 
-        if (session && session.user && session.user.name) {
 
             // anonymous postin!
             // generates new key each time
@@ -513,16 +470,11 @@ export default function PostsPage(
 
             const newEvent = new NDKEvent(ndk);
             newEvent.kind = 1;
-            newEvent.pubkey = session.user.name;
             newEvent.content = post;
             await newEvent.publish();
 
             //clear the form
             form.elements[0].value = "";
-        } else {
-            form.elements[0].value = "";
-            form.elements[0].placeholder = "not logged in";
-        }
     };
 
     const detectImages = (content: string) => {
@@ -539,31 +491,54 @@ export default function PostsPage(
         }
     };
 
+    const activeUser = ndk.activeUser;
+    const activePubkey = activeUser?.pubkey;
+
     return (
-        <div>
-            <ul role="list" className="text-xs">
-                {relayStatus.map((item, i) => (
-                    <li key={"post" + i} className="px-1 py-1 sm:px-0">
-                        {item}
-                    </li>
-                ))}
-            </ul>
-            <div className="flex items-center justify-center mb-2">
+        <div className="flex flex-wrap">
+            <div className="flex flex-shrink w-full items-center mb-4">
+                <div className="drawer">
+                    <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+                    <div className="drawer-content">
+                        <label htmlFor="my-drawer" className="drawer-button">
+                        <div className="chat-image avatar">
+                            <div className="w-20 rounded-full">
+                                <img src={props.relay.banner_image || '/green-check.png'} />
+                            </div>
+                        </div></label>
+                        {/* Page content here */}
+                    </div>
+                    <div className="drawer-side z-10">
+                        <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+                        <div className="menu bg-base-200 text-base-content min-h-full w-80">
+                        {/* Sidebar content here */}
+                        <RelayMenuBar relays={props.publicRelays} />
+                        </div>
+                    </div>
+                </div>
+                <div className="text-sm font-condensed ml-auto">
+                    {relayStatus.findLast((item, i) => (
+                            {item}
+                    ))}
+                </div>
+            </div>
+            <div className="flex w-full items-center justify-center">
                 <form
                     onSubmit={(e) => handleSubmitPost(e)}
-                    className="flex items-center"
+                    className=""
                 >
                     <input
                         type="text"
                         key="post1"
                         placeholder="say something"
-                        className="input input-bordered input-primary w-full"
+                        className="input input-bordered input-primary"
                     />
                     <button className="btn uppercase btn-primary">Post</button>
                 </form>
             </div>
+            
             {showPost != undefined && (
-                <div className="bg-base-100 flex">
+                <div className="bg-base-100">
                     <dialog
                         key={"my_modal_5" + showPost.id}
                         className="modal modal-top modal-open sm:modal-middle max-w-screen h-auto"
@@ -722,7 +697,7 @@ export default function PostsPage(
                 <div
                     key={"post" + post.id}
                     className={
-                        chatStartOrEnd(post) + " max-w-screen overflow-hidden"
+                        chatStartOrEnd(post) + "flex-grow w-full max-w-screen overflow-hidden"
                     }
                     onClick={(e) => handleClick(e, post)}
                     id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
