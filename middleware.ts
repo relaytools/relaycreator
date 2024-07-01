@@ -23,36 +23,40 @@ const PUBLIC_FILE = /\.(.*)$/; // Files
 
 export async function middleware(req: NextRequest) {
     // Clone the URL
-    const url = req.nextUrl.clone();
+    if(process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE != "true") {
+        const url = req.nextUrl.clone();
 
-    // Skip public files
-    if (PUBLIC_FILE.test(url.pathname) || url.pathname.includes('_next') || url.pathname.includes('/api/')) return;
+        // Skip public files
+        if (PUBLIC_FILE.test(url.pathname) || url.pathname.includes('_next') || url.pathname.includes('/api/')) return;
 
-    const host = req.headers.get('host');
+        const host = req.headers.get('host');
 
-    let skipThis = "nostr1.com"
-    if( process.env.NEXT_PUBLIC_CREATOR_DOMAIN ) {
-        skipThis = process.env.NEXT_PUBLIC_CREATOR_DOMAIN
+        let skipThis = "nostr1.com"
+        if( process.env.NEXT_PUBLIC_CREATOR_DOMAIN ) {
+            skipThis = process.env.NEXT_PUBLIC_CREATOR_DOMAIN
+        }
+        
+        // Skip root domains and local IPs
+        if (host == "relay.tools" || host == skipThis || host?.includes("10.0") || host?.includes("192.168") || host?.includes("127.0")) return
+
+        const subdomain = getValidSubdomain(host);
+        if (subdomain) {
+            // Subdomain available, rewriting
+            console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);
+            url.pathname = `/relays/${subdomain}/${url.pathname}`;
+        }
+
+        const requestHeaders = new Headers(req.headers)
+        requestHeaders.set('middleware-rewritten', host || "true")
+
+        const response = NextResponse.next({
+            request: {
+                headers: requestHeaders,
+            },
+        })
+
+        return NextResponse.rewrite(url, response);
+    } else {
+        return NextResponse.next();
     }
-    
-    // Skip root domains and local IPs
-    if (host == "relay.tools" || host == skipThis || host?.includes("10.0") || host?.includes("192.168") || host?.includes("127.0")) return
-
-    const subdomain = getValidSubdomain(host);
-    if (subdomain) {
-        // Subdomain available, rewriting
-        console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);
-        url.pathname = `/relays/${subdomain}/${url.pathname}`;
-    }
-
-    const requestHeaders = new Headers(req.headers)
-    requestHeaders.set('middleware-rewritten', host || "true")
-
-    const response = NextResponse.next({
-        request: {
-            headers: requestHeaders,
-        },
-    })
-
-    return NextResponse.rewrite(url, response);
 }
