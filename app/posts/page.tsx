@@ -112,6 +112,12 @@ export default function PostsPage(
             //addToStatus("connecting: " + relay.url);
         });
 
+        ndkPool.on("relay:authfail", (relay: NDKRelay) => {
+            addToStatus("unauthorized: " + relay.url);
+        });
+
+        //const customAuthPolicy = 
+
         ndk.addExplicitRelay(nrelaydata, NDKRelayAuthPolicies.signIn({ndk}), true);
     }
 
@@ -157,10 +163,16 @@ export default function PostsPage(
         setProfiles((prevProfiles) => [newProfile, ...prevProfiles]);
     };
 
-    const nrelaydata = "wss://" + props.relay.name + "." + props.relay.domain;
-    const useAuth = props.relay.auth_required
-    console.log(props.relay)
-    //const useAuth = false
+    var nrelaydata: string;
+    var useAuth: boolean;
+
+    if(props.relay == null || props.relay.name == null) {
+        nrelaydata = "wss://nostr21.com"
+        useAuth = false
+    } else {
+        nrelaydata = "wss://" + props.relay.name + "." + props.relay.domain;
+        useAuth = props.relay.auth_required
+    }
 
     useEffect(() => {
         grabStuff(nrelaydata, useAuth);
@@ -490,53 +502,72 @@ export default function PostsPage(
             return false;
         }
     };
+    
+    // this should be clickable and bring up some kind of menu/modal/drawer
+    const displayRelayStatus = () => {
+        var lastStatus: string
+        lastStatus = relayStatus[relayStatus.length - 1]
+        var statusColor = "text-sm font-condensed ml-auto badge badge-neutral"
+        if(lastStatus.includes("connected:") || lastStatus.includes("authed:")) {
+            statusColor = "text-sm font-condensed ml-auto badge badge-success"
+        }
+        if(lastStatus.includes("disconnected:") || lastStatus.includes("unauthorized:")) {
+            statusColor = "text-sm font-condensed ml-auto badge badge-warning"
+        }
+        return(
+            <div className={statusColor}>
+                {relayStatus.findLast((item, i) => (
+                        {item}
+                ))}
+            </div>
+        )
+    }
 
     const activeUser = ndk.activeUser;
     const activePubkey = activeUser?.pubkey;
 
     return (
-        <div className="flex flex-wrap">
-            <div className="flex flex-shrink w-full items-center mb-4">
-                <div className="drawer">
-                    <input id="my-drawer" type="checkbox" className="drawer-toggle" />
-                    <div className="drawer-content">
-                        <label htmlFor="my-drawer" className="drawer-button">
-                        <div className="chat-image avatar">
-                            <div className="w-20 rounded-full">
-                                <img src={props.relay.banner_image || '/green-check.png'} />
+        <div className="flex w-full">
+            <div className="flex flex-wrap w-full fixed top-0 left-0 z-50 bg-base-100">
+                <div className="flex w-full items-center mb-4">
+                    <div className="drawer w-20">
+                        <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+                        <div className="drawer-content">
+                            <label htmlFor="my-drawer" className="drawer-button">
+                                <div className="chat-image avatar">
+                                    <div className="w-10 rounded-full">
+                                        <img src={props.relay.banner_image || '/green-check.png'} />
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        <div className="drawer-side z-10">
+                            <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+                            <div className="menu bg-base-200 text-base-content min-h-full w-80">
+                            {/* Sidebar content here */}
+                            <RelayMenuBar relays={props.publicRelays} />
                             </div>
-                        </div></label>
-                        {/* Page content here */}
-                    </div>
-                    <div className="drawer-side z-10">
-                        <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
-                        <div className="menu bg-base-200 text-base-content min-h-full w-80">
-                        {/* Sidebar content here */}
-                        <RelayMenuBar relays={props.publicRelays} />
                         </div>
                     </div>
+                    {displayRelayStatus()}            
                 </div>
-                <div className="text-sm font-condensed ml-auto">
-                    {relayStatus.findLast((item, i) => (
-                            {item}
-                    ))}
+                <div className="flex w-full items-center justify-center">
+                    <form
+                        onSubmit={(e) => handleSubmitPost(e)}
+                        className=""
+                    >
+                        <input
+                            type="text"
+                            key="post1"
+                            placeholder="say something"
+                            className="input input-bordered input-primary"
+                        />
+                        <button className="btn uppercase btn-primary">Post</button>
+                    </form>
                 </div>
             </div>
-            <div className="flex w-full items-center justify-center">
-                <form
-                    onSubmit={(e) => handleSubmitPost(e)}
-                    className=""
-                >
-                    <input
-                        type="text"
-                        key="post1"
-                        placeholder="say something"
-                        className="input input-bordered input-primary"
-                    />
-                    <button className="btn uppercase btn-primary">Post</button>
-                </form>
-            </div>
-            
+
+        <div className="flex flex-wrap w-full bg-base-100">
             {showPost != undefined && (
                 <div className="bg-base-100">
                     <dialog
@@ -693,6 +724,7 @@ export default function PostsPage(
                     </dialog>
                 </div>
             )}
+            <div className="w-full flex flex-wrap mt-32">
             {sortPosts(false).map((post) => (
                 <div
                     key={"post" + post.id}
@@ -726,6 +758,8 @@ export default function PostsPage(
                     </div>
                 </div>
             ))}
+            </div>
         </div>
+    </div>
     );
 }
