@@ -54,16 +54,22 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
   const headersList = headers()
   const rewritten = headersList.get('middleware-rewritten')
 
+  console.log("rewritten: ", rewritten)
+
   return (
     <html data-theme={currentTheme} className={`${openSans.variable} ${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal`}>
       <head></head>
       <body>
         <div className="bg-base-100 mx-auto max-w-7xl">
           <AuthContext>
+
+            {rewritten == null && 
             <div className="flex justify-between">
-            <ShowSession />
-            <ThemeProvider />
+                <ShowSession />
+                <ThemeProvider />
             </div>
+            }
+
             {children}
           </AuthContext>
         </div>
