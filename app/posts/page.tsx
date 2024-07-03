@@ -7,6 +7,9 @@ import NDK, { NDKEvent, NDKNip07Signer, NDKRelay, NDKRelayAuthPolicies, NDKAuthP
 import { useSearchParams } from "next/navigation";
 import { RelayWithEverything } from "../components/relayWithEverything"
 import RelayMenuBar from "../relays/relayMenuBar"
+import RelayDetail from "../components/relayDetail"
+import RelayPayment from "../components/relayPayment"
+import Terms from "../components/terms"
 
 interface Event {
     pubkey: string;
@@ -515,10 +518,26 @@ export default function PostsPage(
             statusColor = "text-sm font-condensed ml-auto badge badge-warning"
         }
         return(
-            <div className={statusColor}>
-                {relayStatus.findLast((item, i) => (
-                        {item}
-                ))}
+            <div className="drawer drawer-end">
+                <input id="my-drawer-4" type="checkbox" className="drawer-toggle"/>
+                <div className="drawer-content">
+                    
+                    {/* Page content here */}
+                    <label htmlFor="my-drawer-4" className="drawer-button">
+                        <div className={statusColor}>
+                            {relayStatus.findLast((item, i) => (
+                                {item}
+                            ))}
+                        </div>
+                    </label>
+                </div>
+                <div className="drawer-side">
+                    <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
+                    {/*props.relay.payment_required && !successpayment && <RelayPayment relay={props.relay} />*/}
+                    {props.relay.payment_required && <RelayPayment relay={props.relay} />}
+                    {/*<RelayDetail relay={props.relay} />*/}
+                    {/*<Terms />*/}
+                </div>
             </div>
         )
     }
