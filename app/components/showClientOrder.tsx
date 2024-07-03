@@ -1,8 +1,8 @@
 "use client"
 import React from 'react'
-import Bolt11Invoice from '../../components/invoice'
+import Bolt11Invoice from './invoice'
 import { useEffect, useState } from 'react'
-import ZapAnimation from '../../lightningsuccess/lightning'
+import ZapAnimation from '../lightningsuccess/lightning'
 
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault()
