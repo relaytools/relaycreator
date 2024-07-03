@@ -1,17 +1,19 @@
 "use client";
 import { RelayWithEverything } from "./relayWithEverything";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ShowClientOrder from "./showClientOrder";
 import { useSession } from "next-auth/react";
+import { nip19 } from "nostr-tools";
 
 export default function RelayPayment(
     props: React.PropsWithChildren<{
         relay: RelayWithEverything;
+        pubkey: string;
     }>
 ) {
     const [pubkey, setPubkey] = useState("");
-    const [pubkeyError, setPubkeyError] = useState("");
+    const [pubkeyError, setPubkeyError] = useState("✅");
     const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("");
     const [showPubkeyInput, setShowPubkeyInput] = useState(true);
     const [showInvoice, setShowInvoice] = useState(false);
@@ -19,12 +21,6 @@ export default function RelayPayment(
     const [showSpinner, setShowSpinner] = useState(false);
 
     const { data: session, status } = useSession();
-
-    if (session && session.user?.name) {
-        if (pubkey != session.user.name) {
-            setAndValidatePubkey(session.user.name);
-        }
-    }
 
     const router = useRouter();
 
@@ -48,14 +44,19 @@ export default function RelayPayment(
     }
 
     function isValidForm() {
-        if (pubkey == "") {
+
+        if( props.pubkey != "" && pubkey == "") {
+            return true;
+        } else if (pubkey == "") {
             return false;
         }
+
         if (pubkeyError == "✅") {
             return true;
         } else {
             return false;
         }
+
     }
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
@@ -64,8 +65,14 @@ export default function RelayPayment(
         event.preventDefault();
         setShowSpinner(true);
         // do a post request to the api to create a new order
+        var usePub: string
+        if(pubkey != "") {
+            usePub = pubkey
+        } else {
+            usePub = props.pubkey
+        }
         const response = await fetch(
-            `${rootDomain}/api/clientorders?relayid=${props.relay.id}&pubkey=${pubkey}`,
+            `${rootDomain}/api/clientorders?relayid=${props.relay.id}&pubkey=${usePub}`,
             {
                 method: "GET",
                 headers: {
@@ -84,9 +91,17 @@ export default function RelayPayment(
     };
 
     let alreadyPaid = false
-    if(props.relay.allow_list && session != null) {
-        props.relay.allow_list.list_pubkeys.map((pubkey) => {
-            if (pubkey.pubkey == session.user?.name) {
+    if(props.relay.allow_list && props.pubkey != null) {
+        props.relay.allow_list.list_pubkeys.map((p) => {
+            var usePub: any
+            if(p.pubkey.startsWith("npub")) {
+                const decodeRes = nip19.decode(p.pubkey)
+                usePub = decodeRes.data 
+            } else {
+                usePub = p.pubkey
+            }
+
+            if (usePub == props.pubkey) {
                 alreadyPaid = true
             }
         })
@@ -120,7 +135,7 @@ export default function RelayPayment(
                                         id="pubkey"
                                         className="input input-bordered input-primary w-full max-w-xs"
                                         // className="input block w-full min-w-0 flex-1 rounded-none rounded-l-md border-0 py-1.5 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 text-right"
-                                        placeholder="sign-in or paste pubkey"
+                                        placeholder={props.pubkey || "enter pubkey"}
                                         autoComplete="off"
                                         value={pubkey}
                                         onChange={(event) =>
