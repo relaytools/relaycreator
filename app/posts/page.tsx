@@ -32,10 +32,10 @@ interface Profile {
     content: any;
 }
 
-const nip07signer = new NDKNip07Signer();
+//const nip07signer = new NDKNip07Signer();
 
 const ndk = new NDK({
-    signer: nip07signer,
+ //   signer: nip07signer,
     autoConnectUserRelays: false,
     enableOutboxModel: false,
 });
@@ -56,12 +56,21 @@ export default function PostsPage(
     const [showPost, setShowPost] = useState<Event>();
     const [showImages, setShowImages] = useState(false);
     const [replyPost, setReplyPost] = useState("");
+    const [myPubkey, setMyPubkey] = useState("");
 
     const relayLimit = 50
     const modActions = false
 
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
         var kind1Sub: NDKSubscription
+
+        const nip07signer = new NDKNip07Signer();
+        try {
+            const activeUser = await nip07signer.blockUntilReady();
+            ndk.signer = nip07signer;
+        } catch (e) {
+            console.log("signer extension timed out")
+        }
         
         ndkPool.on("flapping", (flapping: NDKRelay) => {
             addToStatus("relay is flapping: " + flapping.url);
@@ -175,6 +184,13 @@ export default function PostsPage(
     } else {
         nrelaydata = "wss://" + props.relay.name + "." + props.relay.domain;
         useAuth = props.relay.auth_required
+    }
+
+    const activeUser = ndk.activeUser;
+    const activePubkey = activeUser?.pubkey;
+    if(activePubkey != null && activePubkey != myPubkey) {
+        console.log("setting my pubkey", activePubkey)
+        setMyPubkey(activePubkey);
     }
 
     useEffect(() => {
@@ -518,32 +534,35 @@ export default function PostsPage(
             statusColor = "text-sm font-condensed ml-auto badge badge-warning"
         }
         return(
-            <div className="drawer drawer-end">
+            <div className="drawer drawer-end justify-end">
                 <input id="my-drawer-4" type="checkbox" className="drawer-toggle"/>
                 <div className="drawer-content">
-                    
                     {/* Page content here */}
                     <label htmlFor="my-drawer-4" className="drawer-button">
                         <div className={statusColor}>
                             {relayStatus.findLast((item, i) => (
                                 {item}
                             ))}
+                            {"->"}
                         </div>
                     </label>
                 </div>
-                <div className="drawer-side">
+                <div className="drawer-side z-10">
                     <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
-                    {/*props.relay.payment_required && !successpayment && <RelayPayment relay={props.relay} />*/}
-                    {props.relay.payment_required && <RelayPayment relay={props.relay} />}
-                    {/*<RelayDetail relay={props.relay} />*/}
-                    {/*<Terms />*/}
+                    <div className="flex flex-wrap justify-center items-center bg-base-200 text-base-content min-h-full w-80">
+                        {/*props.relay.payment_required && !successpayment && <RelayPayment relay={props.relay} />*/}
+                        <div className="w-full h-20 mb-4"><img src={props.relay.banner_image || "/green-check.png"}></img></div>
+                        <div className="text-lg">{props.relay.details}</div>
+                        {props.relay.payment_required && <RelayPayment relay={props.relay} pubkey={myPubkey} />}
+                        {/*<RelayDetail relay={props.relay} />*/}
+                        {<Terms />}
+                    </div>
                 </div>
             </div>
         )
     }
 
-    const activeUser = ndk.activeUser;
-    const activePubkey = activeUser?.pubkey;
+    
 
     return (
         <div className="flex w-full">
