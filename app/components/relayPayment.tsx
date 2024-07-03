@@ -1,5 +1,5 @@
 "use client";
-import { RelayWithEverything } from "../../components/relayWithEverything";
+import { RelayWithEverything } from "./relayWithEverything";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ShowClientOrder from "./showClientOrder";

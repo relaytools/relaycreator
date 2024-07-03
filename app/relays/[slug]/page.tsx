@@ -2,7 +2,7 @@ import prisma from '../../../lib/prisma'
 import Relay from '../../components/relay'
 import Terms from '../../components/terms'
 import RelayDetail from '../../components/relayDetail'
-import RelayPayment from './relayPayment'
+import RelayPayment from '../../components/relayPayment'
 import Posts from '../../posts/page'
 import { headers } from 'next/headers'
 
@@ -89,9 +89,8 @@ export default async function Relays({
     }
 
     return (
-        <div className="flex flex-wrap">
-
-                        <div className="">
+            <div className="flex flex-wrap">
+                <div className="">
                 <Posts relay={relay} publicRelays={publicRelays}/>
             </div>
 
