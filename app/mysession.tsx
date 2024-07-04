@@ -157,9 +157,9 @@ export default function ShowSession() {
                                 tabIndex={0}
                                 className="btn uppercase cursor-pointer mask mask-squircle"
                             >
-                                <div className="w-10 rounded-full">
+                                <div className="w-10 rounded-full bg-primary">
                                     <Image
-                                        src="/menu-icon-priority.png"
+                                        src="/settings2-svgrepo-com.svg"
                                         alt="menu"
                                         width={100}
                                         height={100}
@@ -208,7 +208,7 @@ export default function ShowSession() {
                         >
                             <div className="w-10 rounded-full">
                                 <Image
-                                    src="/menu-icon.svg"
+                                    src="/settings2-svgrepo-com.svg"
                                     alt="logged in"
                                     width={100}
                                     height={100}
@@ -220,7 +220,7 @@ export default function ShowSession() {
                             className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]"
                         >
                             <li>
-                                <a href={rootDomain + "/"}>Relays</a>
+                                <a href={rootDomain + "/?myrelays=true"}>My Relays</a>
                             </li>
                             <li>
                                 <a href={rootDomain + "/invoices"}>Invoices</a>
