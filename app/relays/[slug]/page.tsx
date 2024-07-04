@@ -93,13 +93,6 @@ export default async function Relays({
                 <div className="">
                 <Posts relay={relay} publicRelays={publicRelays}/>
             </div>
-
-            <div className="hidden">
-                {successpayment && <div>you've paid for this relay! Welcome.</div>}
-                {relay.payment_required && !successpayment && <RelayPayment relay={relay} />}
-                <RelayDetail relay={relay} />
-                <Terms />
-            </div>
         </div>
 
     )
