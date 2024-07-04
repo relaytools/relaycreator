@@ -10,6 +10,7 @@ import RelayMenuBar from "../relays/relayMenuBar"
 import RelayDetail from "../components/relayDetail"
 import RelayPayment from "../components/relayPayment"
 import Terms from "../components/terms"
+import Image from "next/image"
 
 interface Event {
     pubkey: string;
@@ -41,6 +42,13 @@ const ndk = new NDK({
 });
 
 const ndkPool = ndk.pool;
+
+function copyToClipboard(e: any, bolt: string) {
+    e.preventDefault()
+    navigator.clipboard.writeText(bolt).then(() => {
+        console.log('Copied to clipboard!');
+    });
+}
 
 export default function PostsPage(
     props: React.PropsWithChildren<{
@@ -336,7 +344,7 @@ export default function PostsPage(
         if (foundpost != undefined) {
             return (
                 <div>
-                    <div>{isReply(foundpost)}</div>
+                    {/*<div>{isReply(foundpost)}</div>*/}
                 <div
                     key={"replyfoundpost" + foundpost.id}
                     className={
@@ -538,24 +546,39 @@ export default function PostsPage(
                 <input id="my-drawer-4" type="checkbox" className="drawer-toggle"/>
                 <div className="drawer-content">
                     {/* Page content here */}
-                    <label htmlFor="my-drawer-4" className="drawer-button">
+                    <label htmlFor="my-drawer-4" className="drawer-button flex items-center w-full">
                         <div className={statusColor}>
                             {relayStatus.findLast((item, i) => (
                                 {item}
                             ))}
-                            {"->"}
+                            
                         </div>
+                        <div className="bg-primary rounded-full">
+                            <Image
+                                alt="open drawer"
+                                src="/arrow-right-square-svgrepo-com.svg"
+                                width={48}
+                                height={48}
+                            ></Image></div>
                     </label>
                 </div>
                 <div className="drawer-side z-10">
                     <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
-                    <div className="flex flex-wrap justify-center items-center bg-base-200 text-base-content min-h-full w-80">
+                    <div className="flex flex-wrap bg-base-200 text-base-content min-h-full w-80">
+                        <div className="flex-shrink">
                         {/*props.relay.payment_required && !successpayment && <RelayPayment relay={props.relay} />*/}
-                        <div className="w-full h-20 mb-4"><img src={props.relay.banner_image || "/green-check.png"}></img></div>
-                        <div className="text-lg">{props.relay.details}</div>
+                        <div className="w-full mb-4"><img src={props.relay.banner_image || "/green-check.png"}></img></div>
+                        <div className="text-lg mb-4 font-condensed">{props.relay.details}</div>
+                        <div className="mb-4">
+                            <button className="btn uppercase btn-notice"
+                                onClick={(e) => copyToClipboard(e, (nrelaydata))}>
+                                copy url to clipboard
+                            </button>
+                        </div>
                         {props.relay.payment_required && <RelayPayment relay={props.relay} pubkey={myPubkey} />}
                         {/*<RelayDetail relay={props.relay} />*/}
                         {<Terms />}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -568,14 +591,23 @@ export default function PostsPage(
         <div className="flex w-full">
             <div className="flex flex-wrap w-full fixed top-0 left-0 z-50 bg-base-100">
                 <div className="flex w-full items-center mb-4">
-                    <div className="drawer w-20">
+                    <div className="drawer w-32">
                         <input id="my-drawer" type="checkbox" className="drawer-toggle" />
                         <div className="drawer-content">
-                            <label htmlFor="my-drawer" className="drawer-button">
+                            <label htmlFor="my-drawer" className="drawer-button flex items-center">
+                            <div className="bg-primary rounded-full">
+                            <Image
+                                alt="open drawer2"
+                                src="/arrow-left-square-svgrepo-com.svg"
+                                width={48}
+                                height={48}
+                            ></Image></div>
                                 <div className="chat-image avatar">
-                                    <div className="w-10 rounded-full">
+                            
+                                    <div className="w-12 rounded-full">
                                         <img src={props.relay.banner_image || '/green-check.png'} />
                                     </div>
+                            
                                 </div>
                             </label>
                         </div>
@@ -605,7 +637,7 @@ export default function PostsPage(
                 </div>
             </div>
 
-        <div className="flex flex-wrap w-full bg-base-100">
+        <div className="flex flex-wrap w-full bg-base-100 pt-16 sm:pt-32">
             {showPost != undefined && (
                 <div className="bg-base-100">
                     <dialog
@@ -762,7 +794,7 @@ export default function PostsPage(
                     </dialog>
                 </div>
             )}
-            <div className="w-full flex flex-wrap mt-32">
+            <div className="w-full flex flex-wrap">
             {sortPosts(false).map((post) => (
                 <div
                     key={"post" + post.id}

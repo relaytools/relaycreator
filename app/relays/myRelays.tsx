@@ -1,9 +1,10 @@
 "use client"
 import { nip19 } from "nostr-tools"
 import { ModWithRelays, RelayWithEverything } from "../components/relayWithEverything"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Relay from "../components/relay"
 import PublicRelays from "./publicRelays"
+import { useSearchParams } from "next/navigation";
 
 export default function MyRelays(
     props: React.PropsWithChildren<{
@@ -13,6 +14,19 @@ export default function MyRelays(
     }>) {
 
     const [showMyRelays, setShowMyRelays] = useState(false)
+
+    const searchParams = useSearchParams();
+    const myRelays = searchParams?.get("myrelays")
+
+    useEffect(() => {
+        if (myRelays == "true") {
+            setShowMyRelays(true)
+        } else {
+            setShowMyRelays(false)
+        }
+    }
+    , [myRelays])
+
 
     const selectTypeRelays = () => {
         if (showMyRelays) {
@@ -37,7 +51,7 @@ export default function MyRelays(
         <div>
             <div className="mt-8 mb-8">
                 <div className="flex justify-center">
-                    {selectTypeRelays()}
+                    {/*selectTypeRelays()*/}
                 </div>
                 {showMyRelays &&
                     <div>
