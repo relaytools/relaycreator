@@ -642,7 +642,7 @@ export default function PostsPage(
                 </div>
             </div>
 
-        <div className="flex flex-wrap w-full bg-base-100 pt-24 sm:pt-32">
+        <div className="flex flex-wrap w-full bg-base-100 pt-32 sm:pt-32">
             {showPost != undefined && (
                 <div className="bg-base-100">
                     <dialog
