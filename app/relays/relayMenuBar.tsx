@@ -2,6 +2,7 @@
 import { RelayWithEverything } from "../components/relayWithEverything"
 import { useState } from "react"
 import RelaySmall from "../components/relaySmall"
+import Image from 'next/image'
 
 export default function RelayMenuBar(
     props: React.PropsWithChildren<{
@@ -32,6 +33,23 @@ export default function RelayMenuBar(
     return (
         <div className="">
             <div className="">
+                <div className="bg-base-200 rounded-full mb-4">
+                    <a
+                        href={process.env.NEXT_PUBLIC_ROOT_DOMAIN + "/"}
+                        className="flex items-center"
+                    >
+                        <Image
+                            className="bg-primary rounded-full"
+                            alt="open drawer2"
+                            src="/arrow-left-square-svgrepo-com.svg"
+                            width={48}
+                            height={48}
+                        ></Image>
+                        <div className="font-condensed text:lg mr-2">RELAY.TOOLS</div>
+                    </a>
+                </div>
+            </div>
+            <div className="">
                 <div>
                     <div className="items-center justify-center lg:justify-left lg:items-left">
                         <input className="input input-bordered" placeholder="Search" onChange={(e) => handleSearch(e)} />
@@ -44,6 +62,7 @@ export default function RelayMenuBar(
                     <RelaySmall key={"pub" + relay.id} relay={relay} />
                 ))}
             </div>
+            
         </div>
     )
 }
