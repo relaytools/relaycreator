@@ -163,26 +163,14 @@ export default function Relay(
                         </a>
                     </div>
 
-                    {props.modActions != null && props.modActions == true && 
                     <div className="justify-center mt-2">
-                        <a href={rootDomain + "/posts?mod=true&relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS)} className="btn uppercase btn-secondary">
+                        <a href={useRelayHttps} className="btn uppercase btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
                     </div>
-    }
 
-                    {props.modActions == null || props.modActions == false && 
-                    <div className="justify-center mt-2">
-                        <a href={rootDomain + "/posts?relay_id=" + props.relay.id + "&relay=" + nip19.nrelayEncode(useRelayWSS)} className="btn uppercase btn-secondary">
-                            open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
-                        </a>
-                    </div>
-    }
                 </div>
             }
-
-
-
         </div>
 
     )

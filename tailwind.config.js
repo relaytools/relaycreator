@@ -48,6 +48,7 @@ module.exports = {
           "accent": "#bd9fff",
           "neutral": "#1E293B",
           "base-100": "#ffffff",
+          //"base-100": "#D3D3D3",
 
           //"--rounded-box": "0.1rem", // border radius rounded-box utility class, used in card and other large boxes
           "--rounded-btn": "0.1rem", // border radius rounded-btn utility class, used in buttons and similar element
@@ -70,7 +71,7 @@ module.exports = {
           "neutral": "#1E293B",
           "base-100": "#0F172A",
           "info": "#B9E0FF",
-          "success": "#2DD4BF",
+          //"success": "#FF007c",
           "warning": "#F4BF50",
           "error": "#FB7085",
 
