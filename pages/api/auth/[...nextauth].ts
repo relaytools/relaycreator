@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import {
-    verifySignature,
+    verifyEvent,
     Event,
 } from "nostr-tools"
 import prisma from '../../../lib/prisma'
@@ -104,7 +104,7 @@ export const authOptions: NextAuthOptions = {
                     sig: credentials.sig,
                 }
 
-                let veryOk = await verifySignature(verifyThis)
+                let veryOk = verifyEvent(verifyThis)
                 //console.log(veryOk)
 
                 if (!veryOk) {

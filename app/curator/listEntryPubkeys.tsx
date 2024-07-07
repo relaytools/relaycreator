@@ -2,7 +2,6 @@
 import { useState } from "react";
 import NDK from "@nostr-dev-kit/ndk";
 import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk"
-import { Kind } from "nostr-tools"
 import { useSession } from "next-auth/react";
 
 type ListEntryPubkey = {
