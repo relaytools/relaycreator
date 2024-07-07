@@ -84,11 +84,11 @@ export default function PostsPage(
             addToStatus("relay is flapping: " + flapping.url);
         });
         ndkPool.on("relay:auth", (relay: NDKRelay, challenge: string) => {
-            addToStatus("auth: " + relay.url);
+            addToStatus("auth: " + props.relay.name);
         });
 
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
-            addToStatus("authed: " + relay.url);
+            addToStatus("authed: " + props.relay.name);
             wipePosts();
             kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: false});
             kind1Sub.on("event", (event: NDKEvent) => {
@@ -107,11 +107,11 @@ export default function PostsPage(
             if(kind1Sub != undefined) {
                 kind1Sub.stop()
             }
-            addToStatus("disconnected: " + relay.url);
+            addToStatus("disconnected: " + props.relay.name);
         });
 
         ndkPool.on("relay:connect", (relay: NDKRelay) => {
-            addToStatus("connected: " + relay.url);
+            addToStatus("connected: " + props.relay.name);
             wipePosts();
             if(!auth) {
                 kind1Sub = ndk.subscribe({ kinds: [1], limit: relayLimit }, {closeOnEose: false, groupable: false});
@@ -133,7 +133,7 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:authfail", (relay: NDKRelay) => {
-            addToStatus("unauthorized: " + relay.url);
+            addToStatus("unauthorized: " + props.relay.name);
         });
 
         //const customAuthPolicy = 
@@ -564,21 +564,23 @@ export default function PostsPage(
                 </div>
                 <div className="drawer-side z-10">
                     <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
-                    <div className="flex flex-wrap bg-base-200 text-base-content min-h-full w-80">
-                        <div className="flex-shrink">
-                        {/*props.relay.payment_required && !successpayment && <RelayPayment relay={props.relay} />*/}
-                        <div className="w-full mb-4"><img src={props.relay.banner_image || "/green-check.png"}></img></div>
-                        <div className="text-lg mb-4 font-condensed">{props.relay.details}</div>
-                        <div className="mb-4">
-                            <button className="btn uppercase btn-notice"
-                                onClick={(e) => copyToClipboard(e, (nrelaydata))}>
-                                copy url to clipboard
-                            </button>
-                        </div>
-                        {props.relay.payment_required && <RelayPayment relay={props.relay} pubkey={myPubkey} />}
-                        {/*<RelayDetail relay={props.relay} />*/}
-                        {<Terms />}
-                        </div>
+                    <div className="bg-base-200 text-base-content w-80 min-h-full">
+                            <div className="mb-4"><img src={props.relay.banner_image || "/green-check.png"}></img></div>
+                            <div className="text text-lg p-4 font-condensed">{props.relay.details}</div>
+                            { props.relay.allow_list != null && !props.relay.default_message_policy &&
+                                <div key="allowedpubkeycount" className="font-condensed p-4">
+                                    Members: {props.relay.allow_list.list_pubkeys.length}
+                                </div>
+                            }
+                            <div className="mb-4">
+                                <button className="btn uppercase btn-notice"
+                                    onClick={(e) => copyToClipboard(e, (nrelaydata))}>
+                                    copy url to clipboard
+                                </button>
+                            </div>
+                            {props.relay.payment_required && <RelayPayment relay={props.relay} pubkey={myPubkey} />}
+                            {/*<RelayDetail relay={props.relay} />*/}
+                            {<Terms />}
                     </div>
                 </div>
             </div>
@@ -614,13 +616,16 @@ export default function PostsPage(
                         <div className="drawer-side z-10">
                             <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
                             <div className="menu bg-base-200 text-base-content min-h-full w-80">
-                            {/* Sidebar content here */}
-                            <RelayMenuBar relays={props.publicRelays} />
+                                {/* Sidebar content here */}
+                                <RelayMenuBar relays={props.publicRelays} />
                             </div>
                         </div>
                     </div>
+                
                     {displayRelayStatus()}            
+
                 </div>
+                
                 <div className="flex w-full items-center justify-center">
                     <form
                         onSubmit={(e) => handleSubmitPost(e)}
