@@ -240,14 +240,12 @@ frontend unsecured
 	maxconn 10000
 	bind 0.0.0.0:80 name http
 	mode 		        http
-	timeout 		client 86400000
 	redirect 		prefix https://${usethisrootdomain} code 301 
 
 frontend secured
 	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
 
 	mode			http
-	#timeout			client   3600s
 	backlog			4096
 	maxconn			60000      
 	default_backend		main	
