@@ -47,6 +47,11 @@ export default function MyRelays(
 
     }
 
+    // find duplicated relays across myRelays vs. moderatedRelays
+    const myRelayIds = props.myRelays.map(relay => relay.id)
+    const moderatedRelayIds = props.moderatedRelays.map(relay => relay.relay.id)
+    const duplicatedRelays = myRelayIds.filter(id => moderatedRelayIds.includes(id))
+
     return (
         <div>
             <div className="mt-8 mb-8">
@@ -61,6 +66,8 @@ export default function MyRelays(
                             ))}
 
                             {props.moderatedRelays.map((relay) => (
+                                // skip duplicated relays
+                                !duplicatedRelays.includes(relay.relay.id) &&
                                 <Relay key={relay.id} relay={relay.relay} showSettings={true} showEdit={false} showDetail={false} showExplorer={false} showCopy={false} />
                             ))}
                         </div>
