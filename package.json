@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@types/qrcode": "^1.5.5",
+    "@tailwindcss/typography": "^0.5.13",
     "autoprefixer": "^10.4.19",
     "daisyui": "^4.12.10",
     "postcss": "^8.4.39",
