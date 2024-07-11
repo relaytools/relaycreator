@@ -96,7 +96,7 @@ export default function Settings(props: React.PropsWithChildren<{
                 {
                     deleteModal && <dialog id="delete_modal" className="modal modal-open">
                         <form className="modal-box bg-gray-900">
-                            <h3 className="text-base text-lg text-white">Delete Relay</h3>
+                            <h3 className="text-white">Delete Relay</h3>
                             <p className="text-base text-sm text-white">Are you SURE you want to delete this relay?</p>
                             <div className="modal-action flex justify-between">
                                 <button className="btn uppercase" onClick={(e) => handleDeleteRelay(e)}>Yes</button>
