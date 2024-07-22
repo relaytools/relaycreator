@@ -5,6 +5,7 @@ import PaymentSuccess from "./paymentSuccess";
 import prisma from "../../lib/prisma";
 import ZapAnimation from "../lightningsuccess/lightning";
 import Balances from "./balances";
+import AdminInvoices from "./adminInvoices";
 
 export const dynamic = "force-dynamic";
 
@@ -150,7 +151,8 @@ export default async function ServerStatus(
 
             return (
                 <div>
-                    <Balances IsAdmin={isAdmin} RelayBalances={relayBalances} />
+                    { isAdmin && <AdminInvoices IsAdmin={isAdmin} RelayBalances={relayBalances} /> }
+                    { !isAdmin && <Balances IsAdmin={isAdmin} RelayBalances={relayBalances} /> }
                 </div>
             );
         }
