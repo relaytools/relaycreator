@@ -148,7 +148,7 @@ export default function ListEntryKinds(props: React.PropsWithChildren<{
                     <button
                         onClick={() => setNewKindHandler()}
                         type="button"
-                        className="btn uppercase btn-primary mr-4"
+                        className="btn uppercase btn-primary mr-4 mt-4"
                     >
                         Add kind
                     </button>
