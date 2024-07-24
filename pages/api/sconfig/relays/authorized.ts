@@ -126,12 +126,20 @@ export default async function handle(req: any, res: any) {
         // since we allow both hex and npub in this list, we should check both encodings
         const authorized = relay.allow_list.list_pubkeys.find((p: any) => p.pubkey == pubkey);
         const authorizedNpub = relay.allow_list.list_pubkeys.find((p: any) => p.pubkey == npubEncoded);
-        if (authorized == null && authorizedNpub == null) {
+        // if the relay does not allow tags, and no npubs are authorized, deny access
+        if (authorized == null && authorizedNpub == null && relay.allow_tagged == false) {
             res.status(401).json({ error: "unauthorized" });
             res.end();
             return;
+        // if the relay allows tags and no npubs are authorized, send back partial (for Private Inbox Relays)
+        } else if(authorized == null && authorizedNpub == null && relay.allow_tagged == true) {
+            res.status(200).json({ authorized: true, status: "partial"});
+            console.log("partial access")
+            res.end();
+            return;
+        // if the npubs are authorized, send back full access
         } else {
-            res.status(200).json({ authorized: true});
+            res.status(200).json({ authorized: true, status: "full"});
             res.end();
             return;
         }
