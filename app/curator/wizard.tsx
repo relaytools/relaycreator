@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
+import handle from "../../pages/api/clientorders";
 
 export default function Wizard(
     props: React.PropsWithChildren<{
@@ -80,6 +81,16 @@ export default function Wizard(
 
     // Access Control Modes
     const [allow, setAllow] = useState(props.relay.default_message_policy);
+
+    const setAndPostAllow = (setting: boolean) => {
+        setAllow(setting);
+        const response = fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ default_message_policy: setting }),
+        });
+    };
+
     const isAllow = () => {
         if (allow) {
             return "swap swap-active";
@@ -100,6 +111,74 @@ export default function Wizard(
         } else {
             setAllow(true);
         }
+    };
+
+    // Allow tagged to pubkeys
+    const [allowTagged, setAllowTagged] = useState(props.relay.allow_tagged);
+
+    const setAndPostAllowTagged = (setting: boolean) => {
+        setAllowTagged(setting);
+        const response = fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ allow_tagged: setting }),
+        });
+    };
+
+    const handleTaggedChange = async (e: any) => {
+        e.preventDefault();
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ allow_tagged: !allowTagged }),
+        });
+        if (allowTagged) {
+            setAllowTagged(false);
+        } else {
+            setAllowTagged(true);
+        }
+    };
+
+    const isTagged = () => {
+        if (allowTagged) {
+            return "swap swap-active";
+        } else {
+            return "swap";
+        }
+    };
+
+    // NIP42 AUTH setting
+    const [authRequired, setAuthRequired] = useState(props.relay.auth_required);
+
+    const handleAuthChange = async (e: any) => {
+        e.preventDefault();
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ auth_required: !authRequired }),
+        });
+        if (authRequired) {
+            setAuthRequired(false);
+        } else {
+            setAuthRequired(true);
+        }
+    };
+
+    const isAuthRequired = () => {
+        if (authRequired) {
+            return "swap swap-active";
+        } else {
+            return "swap";
+        }
+    };
+
+    const setAndPostAuthRequired = (setting: boolean) => {
+        setAuthRequired(setting);
+        const response = fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ auth_required: setting }),
+        });
     };
 
     // Allow Keyword Pubkey Setting
@@ -176,6 +255,9 @@ export default function Wizard(
 
     return (
         <div className="flex flex-col lg:items-center lg:justify-center">
+            <div className="flex flex-grow w-full mb-4">
+                <Relay modActions={true} relay={props.relay} showEdit={false} showSettings={false} showDetail={true} showExplorer={true} showCopy={false} />
+            </div>
             <div className="join join-vertical w-full">
                 <div className="collapse collapse-arrow join-item border-base-300 border">
                     <input
@@ -250,16 +332,19 @@ export default function Wizard(
                                     </h2>
                                     <p>
                                         This relay can shared with multiple
-                                        people. You can optionally setup
-                                        lightning payments and invite friends.
+                                        people. You can use this relay for
+                                        backups of your notes. You can
+                                        optionally setup lightning payments and
+                                        invite friends.
                                     </p>
                                     <div className="card-actions justify-end">
                                         <button
                                             className="btn btn-primary uppercase"
-                                            onClick={() => {
+                                            onClick={(e) => {
                                                 setRelayType("Community Relay");
                                                 setChecked(3);
-                                                setAllow(false);
+                                                setAndPostAllow(false);
+                                                setAndPostAllowTagged(true);
                                             }}
                                         >
                                             select
@@ -274,18 +359,21 @@ export default function Wizard(
                                     </h2>
                                     <p>
                                         This relay can shared with multiple
-                                        people. Enhanced privacy for Nostr DMs,
-                                        and read access controls.
+                                        people. You can use this relay for
+                                        backups of your notes. Enhanced privacy
+                                        for Nostr DMs, and read access controls.
                                     </p>
                                     <div className="card-actions justify-end">
                                         <button
                                             className="btn btn-primary uppercase"
-                                            onClick={() => {
+                                            onClick={(e) => {
                                                 setRelayType(
                                                     "Private Community Relay"
                                                 );
                                                 setChecked(3);
-                                                setAllow(false);
+                                                setAndPostAllow(false);
+                                                setAndPostAllowTagged(true);
+                                                setAndPostAuthRequired(true);
                                             }}
                                         >
                                             select
@@ -306,12 +394,13 @@ export default function Wizard(
                                     <div className="card-actions justify-end">
                                         <button
                                             className="btn btn-primary uppercase"
-                                            onClick={() => {
+                                            onClick={(e) => {
                                                 setRelayType(
                                                     "Public Paid Relay"
                                                 );
                                                 setChecked(3);
-                                                setAllow(false);
+                                                setAndPostAllow(false);
+                                                setAndPostAllowTagged(false);
                                             }}
                                         >
                                             select
@@ -333,12 +422,12 @@ export default function Wizard(
                                     <div className="card-actions justify-end">
                                         <button
                                             className="btn btn-primary uppercase"
-                                            onClick={() => {
+                                            onClick={(e) => {
                                                 setRelayType(
                                                     "Public Free Relay"
                                                 );
                                                 setChecked(3);
-                                                setAllow(true);
+                                                setAndPostAllow(true);
                                             }}
                                         >
                                             select
@@ -358,7 +447,7 @@ export default function Wizard(
                         checked={isChecked(3)}
                     />
                     <div className="collapse-title text-xl font-medium">
-                        <h2>Image and summary</h2>
+                        <h2>Relay Profile and Directory Listing</h2>
                     </div>
                     <div className="collapse-content">
                         <article className="prose">
@@ -524,13 +613,13 @@ export default function Wizard(
 
                         {!allow && (
                             <div className="collapse-title text-xl font-medium">
-                                <h2>Allow and Block Lists</h2>
+                                <h2>Access Control Lists (ACLs)</h2>
                             </div>
                         )}
 
                         {allow && (
                             <div className="collapse-title text-xl font-medium">
-                                <h2>Block Lists</h2>
+                                <h2>Access Control Lists (ACLs)</h2>
                             </div>
                         )}
 
@@ -543,7 +632,11 @@ export default function Wizard(
                                             keywords and event kinds.
                                         </p>
                                         <p>
-                                            Owners and moderators are already allowed by default.
+                                            You can also set settings for authentication, and tagging.
+                                        </p>
+                                        <p>
+                                            Owners and moderators are already
+                                            allowed by default.
                                         </p>
                                     </div>
                                 )}
@@ -569,12 +662,132 @@ export default function Wizard(
 
                             {isChecked(5) && (
                                 <div>
+                                    <div className="collapse collapse-arrow join-item border-base-300 border">
+                                        <input
+                                            type="radio"
+                                            name="my-accordion-allow-lists"
+                                            defaultChecked
+                                        />
+                                        <div className="collapse-title text-lg font-condensed">
+                                            <h2>
+                                                READ authentication (NIP42 AUTH)
+                                            </h2>
+                                        </div>
+                                        <div className="collapse-content">
+                                            <article className="prose">
+                                                <p>
+                                                    This setting controls
+                                                    whether your relay requires
+                                                    authentication to connect.
+                                                </p>
+                                                <p>Also known as NIP-42 AUTH</p>
+                                                <p>
+                                                    Most clients support this,
+                                                    however blastr and nostr
+                                                    search engines do not (yet).
+                                                    So if you enjoy having the
+                                                    greater nostr network
+                                                    discover and blast your
+                                                    relay you may want to have
+                                                    this off. But if you are
+                                                    providing private messaging
+                                                    support to your members you
+                                                    will want it on.
+                                                </p>
+                                                <p>
+                                                    In the future, all relays
+                                                    will likely use this. You
+                                                    can turn it on and
+                                                    off depending on your needs.
+                                                </p>
+                                            </article>
+                                            <div className="mt-4">
+                                                <label
+                                                    className={isAuthRequired()}
+                                                    onClick={(e) =>
+                                                        handleAuthChange(e)
+                                                    }
+                                                >
+                                                    <div className="btn uppercase btn-accent swap-on">
+                                                        Relay requires AUTH
+                                                        (NIP42) ✅
+                                                    </div>
+                                                    <div className="btn uppercase btn-accent swap-off">
+                                                        Relay does not require
+                                                        AUTH (NIP42) 🙈
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {!allow && (
                                         <div className="collapse collapse-arrow join-item border-base-300 border">
                                             <input
                                                 type="radio"
                                                 name="my-accordion-allow-lists"
-                                                defaultChecked
+                                            />
+                                            <div className="collapse-title text-lg font-condensed">
+                                                <h2>Allow Tags</h2>
+                                            </div>
+                                            <div className="collapse-content">
+                                                <article className="prose">
+                                                    <p>
+                                                        This setting will allow
+                                                        users on the wider nostr
+                                                        network to send events
+                                                        to this relay that are
+                                                        tagged to your pubkeys.
+                                                    </p>
+                                                    <p>
+                                                        This is useful if you
+                                                        want people to be able
+                                                        to DM you that are not a
+                                                        member of the relay or
+                                                        if you want to backup
+                                                        conversations with
+                                                        non-member users.
+                                                    </p>
+                                                    <p>
+                                                        Since this is a commonly
+                                                        requested feature we
+                                                        recommend you start with
+                                                        this turned on. However
+                                                        if you get a lot of
+                                                        unwanted comments or
+                                                        stalkers and get tired
+                                                        of blocking them you can
+                                                        turn it off at any time.
+                                                    </p>
+                                                </article>
+                                                <div className="mt-4">
+                                                    <label
+                                                        className={isTagged()}
+                                                        onClick={(e) =>
+                                                            handleTaggedChange(
+                                                                e
+                                                            )
+                                                        }
+                                                    >
+                                                        <div className="btn uppercase btn-accent swap-on">
+                                                            Allow Events Tagged
+                                                            to Pubkeys ✅
+                                                        </div>
+                                                        <div className="btn uppercase btn-accent swap-off">
+                                                            Do NOT Allow Events
+                                                            Tagged to Pubkeys 🙈
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!allow && (
+                                        <div className="collapse collapse-arrow join-item border-base-300 border">
+                                            <input
+                                                type="radio"
+                                                name="my-accordion-allow-lists"
                                             />
                                             <div className="collapse-title text-lg font-condensed">
                                                 <h2>Allowed Pubkeys</h2>
