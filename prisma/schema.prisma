@@ -86,6 +86,7 @@ model Relay {
   auth_required          Boolean       @default(false)
   // false is keyword -or- pubkey, true is keyword -and- pubkey. default to false.
   allow_keyword_pubkey   Boolean       @default(false)
+  relay_kind_description String       @db.VarChar(255) @default("")
 
   @@index([ownerId])
 }
