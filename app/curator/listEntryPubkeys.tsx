@@ -265,7 +265,6 @@ export default function ListEntryPubkeys(
                                     >
                                         Add pubkey(s)
                                     </button>
-                                    
                                 </div>
                             )}
                         </div>
@@ -281,21 +280,23 @@ export default function ListEntryPubkeys(
                             )}
                             {showHidePubkeys && (
                                 <div>
-                                <button
-                                    className="btn btn-secondary uppercase flex-grow w-full mt-4 mb-4"
-                                    onClick={() => setShowHidePubkeys(false)}
-                                >
-                                    hide {pubkeys.length.toString()}{" "}
-                                    {props.kind}
-                                </button>
-<button
+                                    <button
+                                        className="btn btn-secondary uppercase flex-grow w-full mt-4 mb-4"
+                                        onClick={() =>
+                                            setShowHidePubkeys(false)
+                                        }
+                                    >
+                                        hide {pubkeys.length.toString()}{" "}
+                                        {props.kind}
+                                    </button>
+                                    <button
                                         onClick={handleDeleteAll}
-                                        className="btn uppercase btn-primary flex-grow w-full mt-4"
+                                        className="btn uppercase btn-warning flex-grow w-full mt-4"
                                         id="all"
                                     >
                                         Delete All Pubkeys
                                     </button>
-                                    </div>
+                                </div>
                             )}
                         </div>
                         {newpubkey && (
