@@ -2,15 +2,10 @@
 import ListEntryKeywords from "./listEntryKeywords";
 import ListEntryPubkeys from "./listEntryPubkeys";
 import ListEntryKinds from "./listEntryKinds";
-import EnableAllowList from "./enableAllowList";
-import EnableBlockList from "./enableBlockList";
-import DefaultPolicy from "./defaultPolicy";
 import Moderators from "./moderators";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
-import handle from "../../pages/api/clientorders";
 
 export default function Wizard(
     props: React.PropsWithChildren<{

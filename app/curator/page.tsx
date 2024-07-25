@@ -83,17 +83,7 @@ export default async function Curator({
         )
     }
 
-    const { wizard } = searchParams
-
-    if(wizard != null && wizard == "true") {
-        return (
-            <Wizard relay={relay} />
-        )
-    } else {
-        return (
-            <div>
-                <Settings relay={relay} />
-            </div>
-        )
-    }
+    return (
+        <Wizard relay={relay} />
+    )
 }
