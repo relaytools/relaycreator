@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
 import Settings from "./settings"
+import Wizard from "./wizard"
 
 export default async function Curator({
     params,
@@ -33,6 +34,8 @@ export default async function Curator({
             </>
         )
     }
+
+    
 
     const relay = await prisma.relay.findFirst({
         where: {
@@ -81,8 +84,6 @@ export default async function Curator({
     }
 
     return (
-        <div>
-            <Settings relay={relay} />
-        </div>
+        <Wizard relay={relay} />
     )
 }
