@@ -125,7 +125,7 @@ export default function Moderators(
                         onClick={() => actionsModToggle(entry.id)}
                         className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-screen-2xl"
                     >
-                        <div className="overflow-none mr-2">
+                        <div className="overflow-none mr-2 p-2">
                             {entry.user.pubkey}
                         </div>
                         {showActionsMod == entry.id && (
