@@ -13,8 +13,14 @@ export default function Wizard(
     }>
 ) {
     // Nav and relay types
-    const [checked, setChecked] = useState(1);
-    const [relayType, setRelayType] = useState("");
+    const [relayKindDescription, setRelayKindDescription] = useState(props.relay.relay_kind_description);
+
+    let useInitialCheck = 1;
+    if(props.relay.relay_kind_description != "") {
+        useInitialCheck = 0;
+    }
+
+    const [checked, setChecked] = useState(useInitialCheck);
 
     const isChecked = (step: number): boolean => {
         if (step === checked) {
@@ -23,6 +29,15 @@ export default function Wizard(
             return false;
         }
     };
+
+    const setAndPostRelayKindDescription = (description: string) => {
+        setRelayKindDescription(description);
+        const response = fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ relay_kind_description: description }),
+        });
+    }
 
     // Image and Summary
     const [profileDetail, setProfileDetails] = useState(props.relay.details);
@@ -250,6 +265,7 @@ export default function Wizard(
 
     return (
         <div className="flex flex-col lg:items-center lg:justify-center">
+            <div className="badge badge-neutral mt-4 mb-4">status: {props.relay.status}</div>
             <div className="flex flex-grow w-full mb-4">
                 <Relay
                     modActions={true}
@@ -322,8 +338,8 @@ export default function Wizard(
                     />
 
                     <div className="collapse-title text-lg">
-                        {relayType == "" && <h2>Choose a Relay Type</h2>}
-                        {relayType != "" && <h2>{relayType}</h2>}
+                        {relayKindDescription == "" && <h2>Choose a Relay Type</h2>}
+                        {relayKindDescription != "" && <h2>{relayKindDescription}</h2>}
                     </div>
 
                     <div className="collapse-content">
@@ -344,7 +360,7 @@ export default function Wizard(
                                         <button
                                             className="btn btn-primary uppercase"
                                             onClick={(e) => {
-                                                setRelayType("Community Relay");
+                                                setAndPostRelayKindDescription("Community Relay");
                                                 setChecked(3);
                                                 setAndPostAllow(false);
                                                 setAndPostAllowTagged(true);
@@ -370,7 +386,7 @@ export default function Wizard(
                                         <button
                                             className="btn btn-primary uppercase"
                                             onClick={(e) => {
-                                                setRelayType(
+                                                setAndPostRelayKindDescription(
                                                     "Private Community Relay"
                                                 );
                                                 setChecked(3);
@@ -398,7 +414,7 @@ export default function Wizard(
                                         <button
                                             className="btn btn-primary uppercase"
                                             onClick={(e) => {
-                                                setRelayType(
+                                                setAndPostRelayKindDescription(
                                                     "Public Paid Relay"
                                                 );
                                                 setChecked(3);
@@ -426,7 +442,7 @@ export default function Wizard(
                                         <button
                                             className="btn btn-primary uppercase"
                                             onClick={(e) => {
-                                                setRelayType(
+                                                setAndPostRelayKindDescription(
                                                     "Public Free Relay"
                                                 );
                                                 setChecked(3);
@@ -590,27 +606,27 @@ export default function Wizard(
                                 You may still allow or block pubkeys, keywords
                                 and kinds regardless of the default mode.
                             </p>
-                            {relayType == "Community Relay" && (
+                            {relayKindDescription == "Community Relay" && (
                                 <p>
-                                    Since you would like a {relayType} we
+                                    Since you would like a {relayKindDescription} we
                                     recommend you start with Blocking
                                 </p>
                             )}
-                            {relayType == "Private Community Relay" && (
+                            {relayKindDescription == "Private Community Relay" && (
                                 <p>
-                                    Since you would like a {relayType} we
+                                    Since you would like a {relayKindDescription} we
                                     recommend you start with Blocking
                                 </p>
                             )}
-                            {relayType == "Public Paid Relay" && (
+                            {relayKindDescription == "Public Paid Relay" && (
                                 <p>
-                                    Since you would like a {relayType} we
+                                    Since you would like a {relayKindDescription} we
                                     recommend you start with Blocking
                                 </p>
                             )}
-                            {relayType == "Public Free Relay" && (
+                            {relayKindDescription == "Public Free Relay" && (
                                 <p>
-                                    Since you would like a {relayType} we
+                                    Since you would like a {relayKindDescription} we
                                     recommend you start with Allowing
                                 </p>
                             )}
@@ -1038,7 +1054,7 @@ export default function Wizard(
                                             )}
                                     </div>
                                 </div>
-                                <div className="collapse  join-item border-base-300 border">
+                                <div className="collapse collapse-plus join-item border-base-300 border">
                                     <input
                                         type="radio"
                                         name="my-accordion-allow-lists"
