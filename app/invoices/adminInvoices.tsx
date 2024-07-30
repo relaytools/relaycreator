@@ -68,6 +68,50 @@ export default function AdminInvoices(
         return false;
     }
 
+    const handlePauseRelay = async(relayBalance: any) => {
+        // pause relay call to api
+        const response = await fetch(`/api/relay/${relayBalance.relayId}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "status": "paused" })
+        })
+
+        // handle user notification
+        const nip07signer = new NDKNip07Signer();
+        const activeUser = await nip07signer.blockUntilReady();
+        ndk.signer = nip07signer;
+        ndk.addExplicitRelay("wss://purplepag.es");
+        ndk.addExplicitRelay("wss://nostr21.com");
+        ndk.addExplicitRelay("wss://relay.damus.io");
+        ndk.addExplicitRelay("wss://nos.lol");
+        ndk.addExplicitRelay("wss://relay.nostr.band");
+        const recipient = ndk.getUser({pubkey: relayBalance.owner});
+        console.log("getting recipient profile")
+        await recipient.fetchProfile();
+        console.log("got recipient profile")
+        console.log("getting relay list for recipient", recipient)
+        let relayList = await getRelayListForUser(recipient.pubkey, ndk);
+        const recipientProfile = recipient.profile;
+        const newEvent = new NDKEvent(ndk);
+        newEvent.kind = 1;
+        let recipientName = "";
+        if (recipientProfile && recipientProfile.name) {
+            recipientName = recipientProfile.name;
+        }
+
+        newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + " Your relay has been paused for non-payment.  Please visit https://relay.tools/invoices to top up your balance and resume service.  Your relay data is still available, but may be deleted if left paused for too long.  Contact me for more details.";
+        newEvent.tag(recipient, "mention");
+
+        ndk.on("event:publish-failed", (event: NDKEvent, error: NDKPublishError, relays: any) => {
+            console.log("event publish failed", event, error);
+            console.log("event publish failed to send to all relays:", relays);
+        });
+
+        const howMany = relayList.relaySet.size;
+        const publishedTo = await newEvent.publish(relayList.relaySet, 5000, howMany);
+        console.log("event was published to: ", publishedTo);
+    }
+
     const handleNotifyUser = async(pubkey: string) => {
         const nip07signer = new NDKNip07Signer();
         const activeUser = await nip07signer.blockUntilReady();
@@ -76,6 +120,7 @@ export default function AdminInvoices(
         ndk.addExplicitRelay("wss://nostr21.com");
         ndk.addExplicitRelay("wss://relay.damus.io");
         ndk.addExplicitRelay("wss://nos.lol");
+        ndk.addExplicitRelay("wss://relay.nostr.band");
         const recipient = ndk.getUser({pubkey: pubkey});
         console.log("getting recipient profile")
         await recipient.fetchProfile();
@@ -104,7 +149,7 @@ export default function AdminInvoices(
 
     //const sortedRelays = props.RelayBalances.sort((a: any, b: any) => a.owner.localeCompare(b.owner));
     const sortedRelays = props.RelayBalances
-    .filter((relayBalance: any) => relayBalance.relayStatus === 'running')
+    .filter((relayBalance: any) => relayBalance.relayStatus === 'running' || relayBalance.relayStatus === 'paused')
     .sort((a: any, b: any) => {
         const ownerComparison = a.owner.localeCompare(b.owner);
         return ownerComparison !== 0 ? ownerComparison : a.balance - b.balance;
@@ -170,6 +215,14 @@ export default function AdminInvoices(
                                 onClick={(e) => handleNotifyUser(b.owner)}
                             >
                             Send Balance Notify
+                            </button>
+                        </div>
+                        <div className="flex mt-4">
+                            <button
+                                className="mr-2 btn btn-secondary"
+                                onClick={(e) => handlePauseRelay(b)}
+                            >
+                            Pause relay and send Notify
                             </button>
                         </div>
                         
