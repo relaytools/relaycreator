@@ -21,7 +21,7 @@ export default async function ServerStatus(
             // list the relays for the account
             let relays = await prisma.relay.findMany({
                 where: {
-                    //OR: [{ status: "running" }, { status: "provision" }, { status: null }],
+                    OR: [{ status: "running" }, { status: "paused" }],
                     owner: {
                         pubkey: (session as any).user.name,
                     },
@@ -62,7 +62,7 @@ export default async function ServerStatus(
             if (isAdmin) {
                 relays = await prisma.relay.findMany({
                     where: {
-                        status: "running", 
+                        OR: [{ status: "running" }, { status: "paused" }],
                     },
                     include: {
                         Order: true,
