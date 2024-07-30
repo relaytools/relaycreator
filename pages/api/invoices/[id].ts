@@ -76,6 +76,17 @@ export default async function handle(req: any, res: any) {
                 }
             })
         }
+        // if relay is paused, set to running
+        if (findOrder.relay.status == "paused") {
+            const updateRelayStatus = await prisma.relay.update({
+                where: {
+                    id: findOrder.relay.id,
+                },
+                data: {
+                    status: "running",
+                }
+            })
+        }
         res.status(200).json({ checkinvoice });
     } else {
         res.status(200).json({ checkinvoice });

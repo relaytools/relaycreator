@@ -122,6 +122,13 @@ export default async function handle(req: any, res: any) {
         }
     })
 
+    const fetchPausedDomains = await prisma.relay.findMany({
+        where: {
+            domain: usethisdomain,
+            status: "paused"
+        }
+    })
+
 	// top level
 	let haproxy_subdomains_cfg = `
 		acl host_ws hdr_beg(Host) -i ws.
@@ -196,6 +203,13 @@ backend ${element.name}
         `
     })
 
+    let paused_domains = ``
+    fetchPausedDomains.forEach((element, counter) => {
+        paused_domains = paused_domains + `
+        http-request return content-type text/html status 402 file /etc/haproxy/static/402.http if { hdr(Host) -i ${element.name}.${element.domain} }
+        `
+    })
+
 	const haproxy_cfg = `
 global
 	log /dev/log	local0
@@ -261,6 +275,8 @@ frontend secured
 	http-request return content-type application/json file /etc/haproxy/static/apple-touch-icon.png if { path /site.webmanifest }
 
     ${deleted_domains}
+
+    ${paused_domains}
 
 	${haproxy_subdomains_cfg}
     
