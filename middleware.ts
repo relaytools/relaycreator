@@ -29,11 +29,11 @@ export async function middleware(req: NextRequest) {
         // Skip public files
         if (PUBLIC_FILE.test(url.pathname) || url.pathname.includes('_next') || url.pathname.includes('/api/')) return;
 
-        const host = req.headers.get('host');
+        const host = req.headers.get('host')?.toLowerCase();
 
         let skipThis = "nostr1.com"
         if( process.env.NEXT_PUBLIC_CREATOR_DOMAIN ) {
-            skipThis = process.env.NEXT_PUBLIC_CREATOR_DOMAIN
+            skipThis = process.env.NEXT_PUBLIC_CREATOR_DOMAIN.toLowerCase()
         }
         
         // Skip root domains and local IPs
