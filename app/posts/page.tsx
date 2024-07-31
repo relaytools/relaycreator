@@ -189,6 +189,9 @@ export default function PostsPage(
     if(props.relay == null || props.relay.name == null) {
         nrelaydata = "wss://nostr21.com"
         useAuth = false
+    } else if(props.relay.is_external) {
+        nrelaydata = "wss://" + props.relay.domain;
+        useAuth = props.relay.auth_required
     } else {
         nrelaydata = "wss://" + props.relay.name + "." + props.relay.domain;
         useAuth = props.relay.auth_required
