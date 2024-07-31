@@ -66,7 +66,7 @@ export default function PostsPage(
     const [replyPost, setReplyPost] = useState("");
     const [myPubkey, setMyPubkey] = useState("");
 
-    const relayLimit = 50
+    const relayLimit = 100
     const modActions = false
 
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
