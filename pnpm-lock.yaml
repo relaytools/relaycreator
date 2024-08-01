@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@influxdata/influxdb-client':
+        specifier: ^1.34.0
+        version: 1.34.0
       '@nostr-dev-kit/ndk':
         specifier: github:jeremyd/ndk#release&path:ndk
         version: https://codeload.github.com/jeremyd/ndk/tar.gz/f73ab21af961b0a80b61da02e04dfbbd9c5738f1#path:ndk(typescript@5.5.4)
@@ -340,6 +343,9 @@ packages:
     engines: {node: ^14 || ^16 || >=18}
     peerDependencies:
       postcss: ^8.4
+
+  '@influxdata/influxdb-client@1.34.0':
+    resolution: {integrity: sha512-pZ0YW593az8wtPbwEYzpDZrQ+He+UmcQb30VZOYWftHsAUXY19NbfHuIJgly/h/qPfiN9zeJp7NbKFEJKMt/Ww==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -1837,6 +1843,8 @@ snapshots:
   '@csstools/utilities@1.0.0(postcss@8.4.39)':
     dependencies:
       postcss: 8.4.39
+
+  '@influxdata/influxdb-client@1.34.0': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:
