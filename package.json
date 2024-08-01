@@ -11,6 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@influxdata/influxdb-client": "^1.34.0",
     "@nostr-dev-kit/ndk": "github:jeremyd/ndk#release&path:ndk",
     "@prisma/client": "^5.17.0",
     "@react-spring/web": "^9.7.4",

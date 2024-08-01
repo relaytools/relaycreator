@@ -1,10 +1,7 @@
 import prisma from '../../../lib/prisma'
-import Relay from '../../components/relay'
-import Terms from '../../components/terms'
-import RelayDetail from '../../components/relayDetail'
-import RelayPayment from '../../components/relayPayment'
 import Posts from '../../posts/page'
 import { headers } from 'next/headers'
+import { InfluxDB } from '@influxdata/influxdb-client'
 
 export default async function Relays({
     params,
@@ -88,10 +85,35 @@ export default async function Relays({
         )
     }
 
+    var result
+    if(process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN && process.env.INFLUXDB_ORG && process.env.INFLUXDB_BUCKET) {
+
+        // Set up InfluxDB client
+        const influxDB = new InfluxDB({url: process.env.INFLUXDB_URL, token: process.env.INFLUXDB_TOKEN})
+
+            const queryApi = influxDB.getQueryApi(process.env.INFLUXDB_ORG)
+            const fluxQuery = `
+                from(bucket: "relays")
+                |> range(start: -24h)
+                |> filter(fn: (r) => r["_measurement"] == "events1")
+                |> filter(fn: (r) => r["_field"] == "allowed")
+                |> group(columns: ["_measurement", "_field", "relay", "kind"])
+                |> filter(fn: (r) => r["relay"] == "${relay.id}")
+                |> group(columns: ["kind"])
+                |> sum() 
+                |> yield(name: "sum")
+                `
+
+            result = await queryApi.collectRows(fluxQuery)
+            
+    }
+
+    console.log(result)
+
     return (
             <div className="flex flex-wrap">
                 <div className="">
-                <Posts relay={relay} publicRelays={publicRelays}/>
+                <Posts relay={relay} publicRelays={publicRelays} stats={result}/>
             </div>
         </div>
 
