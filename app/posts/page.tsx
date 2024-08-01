@@ -65,9 +65,10 @@ export default function PostsPage(
     const [showImages, setShowImages] = useState(false);
     const [replyPost, setReplyPost] = useState("");
     const [myPubkey, setMyPubkey] = useState("");
+    const [modActions, setModActions] = useState(false);
 
     const relayLimit = 100
-    const modActions = false
+
 
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
         var kind1Sub: NDKSubscription
@@ -79,6 +80,12 @@ export default function PostsPage(
         } catch (e) {
             console.log("signer extension timed out")
         }
+
+        // detect if current user is mod or owner and set modActions=true
+        
+        
+        
+
         
         ndkPool.on("flapping", (flapping: NDKRelay) => {
             addToStatus("relay is flapping: " + flapping.url);
@@ -202,6 +209,9 @@ export default function PostsPage(
     if(activePubkey != null && activePubkey != myPubkey) {
         console.log("setting my pubkey", activePubkey)
         setMyPubkey(activePubkey);
+        const isModOrOwner = props.relay.moderators.some(mod => mod.user.pubkey == activePubkey) || props.relay.owner.pubkey == activePubkey;
+        if(isModOrOwner && modActions == false) { setModActions(true); }
+        console.log("setting mod status", isModOrOwner)
     }
 
     useEffect(() => {
