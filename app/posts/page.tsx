@@ -278,6 +278,9 @@ export default function PostsPage(
     }, []);
 
     function summarizePubkey(pubkey: string): string {
+        if(pubkey == null){
+            return "";
+        }
         if (pubkey.length <= 60) {
             return pubkey;
         }
