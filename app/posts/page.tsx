@@ -826,9 +826,9 @@ export default function PostsPage(
                                     <div className="chat-image avatar">
                                         {lookupProfileImg(showPost.pubkey)}
                                     </div>
-                                    <div className="chat-header">
+                                    <div className="chat-header max-w-screen overflow-hidden">
                                         <div className="flex items-center space-x-2">
-                                            <div className="hover:text-white overflow-x-auto">
+                                            <div className="hover:text-white max-w-screen overflow-hidden">
                                                 {summarizePubkey(
                                                     lookupProfileName(
                                                         showPost.pubkey
@@ -853,7 +853,7 @@ export default function PostsPage(
 
                                 {parseOutAndShowLinks(showPost.content).map(
                                     (url) => (
-                                        <div key={"2" + url} className="mb-4">
+                                        <div key={"2" + url} className="mb-4 overflow-hidden max-w-screen">
                                             <a
                                                 href={url}
                                                 className="link link-primary"
@@ -988,7 +988,7 @@ export default function PostsPage(
                             </div>
 
                             {post.kind == 1 && (
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden">
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden max-w-screen">
                                     {post.content}
                                 </div>
                             )}
