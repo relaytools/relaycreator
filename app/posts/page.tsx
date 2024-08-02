@@ -421,7 +421,7 @@ export default function PostsPage(
                         key={"replyfoundpost" + foundpost.id}
                         className={
                             chatStartOrEnd(foundpost) +
-                            " max-w-screen overflow-hidden"
+                            " overflow-hidden"
                         }
                         onClick={(e) => handleClick(e, foundpost)}
                     >
@@ -441,7 +441,7 @@ export default function PostsPage(
                             </div>
                         </div>
 
-                        <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-hidden max-w-screen">
+                        <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-hidden">
                             {showContentWithoutLinks(foundpost.content)}
                         </div>
                         <div className="chat-footer opacity-50">
@@ -804,7 +804,7 @@ export default function PostsPage(
                     <div className="bg-base-100">
                         <dialog
                             key={"my_modal_5" + showPost.id}
-                            className="modal modal-top modal-open sm:modal-middle max-w-screen h-auto"
+                            className="modal modal-top modal-open sm:modal-middle h-auto"
                         >
                             <form method="dialog" className="modal-box w-full">
                                 <div className="flex justify-end">
@@ -820,15 +820,15 @@ export default function PostsPage(
                                     key={"post" + showPost.id}
                                     className={
                                         chatStartOrEnd(showPost) +
-                                        "max-w-screen overflow-hidden"
+                                        "overflow-hidden"
                                     }
                                 >
                                     <div className="chat-image avatar">
                                         {lookupProfileImg(showPost.pubkey)}
                                     </div>
-                                    <div className="chat-header max-w-screen overflow-hidden">
+                                    <div className="chat-header overflow-hidden">
                                         <div className="flex items-center space-x-2">
-                                            <div className="hover:text-white max-w-screen overflow-hidden">
+                                            <div className="hover:text-white overflow-hidden">
                                                 {summarizePubkey(
                                                     lookupProfileName(
                                                         showPost.pubkey
@@ -841,7 +841,7 @@ export default function PostsPage(
                                         </div>
                                     </div>
 
-                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-words max-w-screen ">
+                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-words ">
                                         {showContentWithoutLinks(
                                             showPost.content
                                         )}
@@ -853,7 +853,7 @@ export default function PostsPage(
 
                                 {parseOutAndShowLinks(showPost.content).map(
                                     (url) => (
-                                        <div key={"2" + url} className="mb-4 overflow-hidden max-w-screen">
+                                        <div key={"2" + url} className="mb-4 overflow-hidden">
                                             <a
                                                 href={url}
                                                 className="link link-primary"
@@ -875,7 +875,7 @@ export default function PostsPage(
                                                 <div key={"1" + url}>
                                                     <img
                                                         src={url}
-                                                        className="max-w-screen h-auto overflow-hidden"
+                                                        className="h-auto overflow-hidden"
                                                     ></img>
                                                 </div>
                                             ))}
@@ -960,13 +960,13 @@ export default function PostsPage(
                         </dialog>
                     </div>
                 )}
-                <div className="w-full flex flex-wrap max-w-screen">
+                <div className="w-full flex flex-col">
                     {sortPosts(false).map((post) => (
                         <div
                             key={"post" + post.id}
                             className={
                                 chatStartOrEnd(post) +
-                                "w-full flex-grow max-w-screen overflow-wrap"
+                                "w-full flex-grow overflow-wrap"
                             }
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
@@ -974,9 +974,9 @@ export default function PostsPage(
                             <div className="chat-image avatar">
                                 {lookupProfileImg(post.pubkey)}
                             </div>
-                            <div className="chat-header max-w-screen overflow-hidden">
+                            <div className="chat-header overflow-hidden">
                                 <div className="flex items-center space-x-2">
-                                    <div className="hover:text-white max-w-screen overflow-hidden">
+                                    <div className="hover:text-white overflow-hidden">
                                         {summarizePubkey(
                                             lookupProfileName(post.pubkey)
                                         )}
@@ -989,12 +989,12 @@ export default function PostsPage(
 
 
                             {post.kind == 1 && (
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-wrap max-w-screen break-words">
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-wrap break-words">
                                     {post.content}
                                 </div>
                             )}
                             {post.kind != 1 && (
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden">
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-hidden">
                                     <div className="label label-text-sm">
                                         content
                                     </div>
