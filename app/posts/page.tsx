@@ -823,7 +823,7 @@ export default function PostsPage(
                                     key={"post" + showPost.id}
                                     className={
                                         chatStartOrEnd(showPost) +
-                                        "overflow-hidden"
+                                        "overflow-wrap break-words"
                                     }
                                 >
                                     <div className="chat-image avatar">
@@ -844,7 +844,7 @@ export default function PostsPage(
                                         </div>
                                     </div>
 
-                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-words ">
+                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-words break-all whitespace-pre-line">
                                         {showContentWithoutLinks(
                                             showPost.content
                                         )}
@@ -969,7 +969,7 @@ export default function PostsPage(
                             key={"post" + post.id}
                             className={
                                 chatStartOrEnd(post) +
-                                "overflow-hidden"
+                                "overflow-wrap break-words"
                             }
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
@@ -992,7 +992,7 @@ export default function PostsPage(
 
 
                             {post.kind == 1 && (
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-wrap break-words">
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-wrap break-words break-all whitespace-pre-line">
                                     {post.content}
                                 </div>
                             )}
