@@ -708,7 +708,7 @@ export default function PostsPage(
     };
 
     return (
-        <div className="flex w-full">
+        <div className="flex w-full overflow-wrap break-words">
             <div className="flex flex-wrap w-full fixed top-0 left-0 z-50 bg-base-100">
                 <div className="flex w-full items-center mb-4">
                     <div className="drawer w-32">
