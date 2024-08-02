@@ -104,6 +104,8 @@ export default function PostsPage(
         });
     }
 
+    let signerFailed = false
+
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
         var kind1Sub: NDKSubscription;
 
@@ -113,6 +115,9 @@ export default function PostsPage(
             ndk.signer = nip07signer;
         } catch (e) {
             console.log("signer extension timed out");
+            if(useAuth == true) {
+                signerFailed = true
+            }
         }
 
         ndkPool.on("flapping", (flapping: NDKRelay) => {
@@ -175,6 +180,8 @@ export default function PostsPage(
                     }
                     addPost(event);
                 });
+            } else if(signerFailed) {
+                addToStatus("sign-in required: " + props.relay.name);
             }
         });
 
@@ -613,7 +620,8 @@ export default function PostsPage(
         }
         if (
             lastStatus.includes("disconnected:") ||
-            lastStatus.includes("unauthorized:")
+            lastStatus.includes("unauthorized:") ||
+            lastStatus.includes("sign-in")
         ) {
             statusColor = "text-sm font-condensed ml-auto badge badge-warning";
         }
@@ -633,10 +641,13 @@ export default function PostsPage(
                         <div className={statusColor}>
                             {relayStatus.findLast((item, i) => ({ item }))}
                         </div>
+                        <div className="text-sm font-condensed ml-auto badge badge-neutral">
+                            show options
+                        </div>
                         <div className="bg-primary rounded-full">
                             <Image
                                 alt="open drawer"
-                                src="/arrow-right-square-svgrepo-com.svg"
+                                src="/gear-svgrepo-com.svg"
                                 width={48}
                                 height={48}
                             ></Image>
