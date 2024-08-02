@@ -841,7 +841,7 @@ export default function PostsPage(
                                         </div>
                                     </div>
 
-                                    <div className="chat-bubble text-white selectable h-auto overflow-hidden max-w-screen ">
+                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-words max-w-screen ">
                                         {showContentWithoutLinks(
                                             showPost.content
                                         )}
@@ -966,7 +966,7 @@ export default function PostsPage(
                             key={"post" + post.id}
                             className={
                                 chatStartOrEnd(post) +
-                                "flex-grow w-full max-w-screen overflow-hidden"
+                                "max-w-screen overflow-hidden"
                             }
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
@@ -987,8 +987,9 @@ export default function PostsPage(
                                 </div>
                             </div>
 
+
                             {post.kind == 1 && (
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-hidden max-w-screen">
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable max-w-screen h-auto overflow-wrap max-w-screen break-words">
                                     {post.content}
                                 </div>
                             )}
