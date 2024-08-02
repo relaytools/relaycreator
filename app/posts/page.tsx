@@ -960,13 +960,13 @@ export default function PostsPage(
                         </dialog>
                     </div>
                 )}
-                <div className="w-full flex flex-wrap">
+                <div className="w-full flex flex-wrap max-w-screen">
                     {sortPosts(false).map((post) => (
                         <div
                             key={"post" + post.id}
                             className={
                                 chatStartOrEnd(post) +
-                                "max-w-screen overflow-hidden"
+                                "w-full flex-grow max-w-screen overflow-wrap"
                             }
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
