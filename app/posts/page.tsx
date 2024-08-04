@@ -463,10 +463,12 @@ export default function PostsPage(
             },
             { regex: "(nostr:note[a-z,0-9]+)", replace: () => "<note1>" },
             {
-                regex: "(https?:\\/\\/[^\\s^\\n]+?\\.(?:jpg|png|gif|jpeg))",
+                regex: "(https?:\\/\\/[^\\s^\\n]+\\.(?:jpg|png|gif|jpeg))",
                 replace: () => "<image>",
             },
             { regex: "(https?://[^\\s,^\\n]+)", replace: () => "<link>" },
+            { regex: "lnbc[a-z,0-9]+", replace: () => "<invoice>" }
+
         ];
 
         let result = [];
@@ -971,20 +973,20 @@ export default function PostsPage(
                                     </div>
                                     <div className="chat-header overflow-hidden">
                                         <div className="flex flex-wrap items-center space-x-2">
-                                            <div className="hover:text-white overflow-hidden break-normal">
+                                            <div className="hover:text-white overflow-hidden break-words break-all">
                                                 {summarizePubkey(
                                                     lookupProfileName(
                                                         showPost.pubkey
                                                     )
                                                 )}
                                             </div>
-                                            <time className="text-xs text-notice opacity-80 overflow-hidden break-all">
+                                            <time className="text-xs text-notice opacity-80 overflow-hidden break-words break-all">
                                                 {lookupNip05(showPost.pubkey)}
                                             </time>
                                         </div>
                                     </div>
 
-                                    <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
+                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-normal whitespace-pre-line">
                                         {showContentWithoutLinks2(
                                             showPost.content
                                         )}
