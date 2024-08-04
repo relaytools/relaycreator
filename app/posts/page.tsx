@@ -104,7 +104,7 @@ export default function PostsPage(
         });
     }
 
-    let signerFailed = false
+    let signerFailed = false;
 
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
         var kind1Sub: NDKSubscription;
@@ -115,8 +115,8 @@ export default function PostsPage(
             ndk.signer = nip07signer;
         } catch (e) {
             console.log("signer extension timed out");
-            if(useAuth == true) {
-                signerFailed = true
+            if (useAuth == true) {
+                signerFailed = true;
             }
         }
 
@@ -138,15 +138,32 @@ export default function PostsPage(
             );
             kind1Sub.on("event", (event: NDKEvent) => {
                 // do profile lookups on the fly
+
+                // p tagged profiles
+                let pro: string[] = [];
+                event.tags.map((tag: any) => {
+                    if (tag[0] == "p") {
+                        if (lookupProfileName(tag[1]) == tag[1]) {
+                            pro.push(tag[1]);
+                        }
+                    }
+                });
+
+                // lookup author profile
                 if (lookupProfileName(event.pubkey) == event.pubkey) {
+                    pro.push(event.pubkey);
+                }
+
+                if (pro.length > 0) {
                     const profileSubAuth = ndk.subscribe(
-                        { kinds: [0], authors: [event.pubkey] },
+                        { kinds: [0], authors: pro },
                         { closeOnEose: true, groupable: true }
                     );
                     profileSubAuth.on("event", (pevent: NDKEvent) => {
                         addProfile(pevent);
                     });
                 }
+
                 addPost(event);
             });
         });
@@ -169,6 +186,31 @@ export default function PostsPage(
                 );
                 kind1Sub.on("event", (event: NDKEvent) => {
                     // do profile lookups on the fly
+
+                    // p tagged profiles
+                    let pro: string[] = [];
+                    event.tags.map((tag: any) => {
+                        if (tag[0] == "p") {
+                            if (lookupProfileName(tag[1]) == tag[1]) {
+                                pro.push(tag[1]);
+                            }
+                        }
+                    });
+
+                    // lookup author profile
+                    if (lookupProfileName(event.pubkey) == event.pubkey) {
+                        pro.push(event.pubkey);
+                    }
+
+                    if (pro.length > 0) {
+                        const profileSubAuth = ndk.subscribe(
+                            { kinds: [0], authors: pro },
+                            { closeOnEose: true, groupable: true }
+                        );
+                        profileSubAuth.on("event", (pevent: NDKEvent) => {
+                            addProfile(pevent);
+                        });
+                    }
                     if (lookupProfileName(event.pubkey) == event.pubkey) {
                         const profileSubAuth = ndk.subscribe(
                             { kinds: [0], authors: [event.pubkey] },
@@ -180,7 +222,7 @@ export default function PostsPage(
                     }
                     addPost(event);
                 });
-            } else if(signerFailed) {
+            } else if (signerFailed) {
                 addToStatus("sign-in required: " + props.relay.name);
             }
         });
@@ -278,7 +320,7 @@ export default function PostsPage(
     }, []);
 
     function summarizePubkey(pubkey: string): string {
-        if(pubkey == null){
+        if (pubkey == null) {
             return "";
         }
         if (pubkey.length <= 60) {
@@ -361,7 +403,107 @@ export default function PostsPage(
 
     const showContentWithoutLinks = (content: string) => {
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return content.replace(urlRegex, "");
+        const njumpRegex = new RegExp("nostr:(npub[a-z,0-9]+)", "g");
+        const nEvent = new RegExp("nostr:nevent[a-z,0-9]+", "g");
+        const nProfile = new RegExp("nostr:nprofile[a-z,0-9]+", "g");
+        const nNote = new RegExp("nostr:note[a-z,0-9]+", "g");
+        const imageRegex = /(https?:\/\/[^\s]+?\.(jpg|png|gif|jpeg))/g;
+
+        content = content.replace(njumpRegex, (match: string, p1: string) => {
+            var usePub: any;
+            const decoded = nip19.decode(p1);
+            usePub = decoded.data;
+            lookupProfileName(usePub);
+            const prettyName = summarizePubkey(lookupProfileName(usePub));
+            return "@(" + prettyName + ")";
+        });
+
+        content = content.replace(nEvent, (match: string) => {
+            return "<nevent>";
+        });
+
+        content = content.replace(nNote, (match: string) => {
+            return "<note1>";
+        });
+
+        content = content.replace(nProfile, (match: string) => {
+            return "<nprofile>";
+        });
+
+        // images before links..
+        content = content.replace(imageRegex, (url: string) => {
+            return "<image>";
+        });
+
+        content = content.replace(urlRegex, (url: string) => {
+            return "<link>";
+        });
+
+        return content;
+    };
+
+    const showContentWithoutLinks2 = (content: string) => {
+        const substrings = [
+            {
+                regex: "nostr:(npub[a-z0-9]+)",
+                replace: (match: string, p1: string) => {
+                    var usePub: any;
+                    const decoded = nip19.decode(p1);
+                    usePub = decoded.data;
+                    const prettyName = summarizePubkey(
+                        lookupProfileName(usePub)
+                    );
+                    return "@(" + prettyName + ")";
+                },
+            },
+            { regex: "(nostr:nevent[a-z,0-9]+)", replace: () => "<nevent>" },
+            {
+                regex: "(nostr:nprofile[a-z,0-9]+)",
+                replace: () => "<nprofile>",
+            },
+            { regex: "(nostr:note[a-z,0-9]+)", replace: () => "<note1>" },
+            {
+                regex: "(https?:\\/\\/[^\\s^\\n]+?\\.(?:jpg|png|gif|jpeg))",
+                replace: () => "<image>",
+            },
+            { regex: "(https?://[^\\s,^\\n]+)", replace: () => "<link>" },
+        ];
+
+        let result = [];
+        let i = 0;
+
+        while (i < content.length) {
+            let matched = false;
+
+            for (const { regex, replace } of substrings) {
+                const re = new RegExp(regex);
+                const match = content.slice(i).match(re);
+
+                if (match && match.index === 0) {
+                    if (i > 0) {
+                        result.push(content.slice(0, i));
+                    }
+                    const newThing = [...match];
+                    const replaceResult = replace(newThing[0], newThing[1]);
+                    result.push(replaceResult);
+                    content = content.slice(i + match[0].length);
+                    i = 0;
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched) {
+                i++;
+            }
+        }
+
+        if (content.length > 0) {
+            result.push(content);
+        }
+
+        console.log(result);
+        return result.join("");
     };
 
     const parseOutAndShowLinks = (content: string) => {
@@ -423,8 +565,7 @@ export default function PostsPage(
                     <div
                         key={"replyfoundpost" + foundpost.id}
                         className={
-                            chatStartOrEnd(foundpost) +
-                            " overflow-hidden"
+                            chatStartOrEnd(foundpost) + " overflow-hidden"
                         }
                         onClick={(e) => handleClick(e, foundpost)}
                     >
@@ -708,7 +849,7 @@ export default function PostsPage(
     };
 
     return (
-        <div className="flex w-full overflow-wrap break-words">
+        <div className="">
             <div className="flex flex-wrap w-full fixed top-0 left-0 z-50 bg-base-100">
                 <div className="flex w-full items-center mb-4">
                     <div className="drawer w-32">
@@ -802,7 +943,7 @@ export default function PostsPage(
                 )}
             </div>
 
-            <div className="flex flex-wrap w-full bg-base-100 pt-32 sm:pt-32">
+            <div className="flex flex-wrap bg-base-100 pt-32 sm:pt-32">
                 {showPost != undefined && (
                     <div className="bg-base-100">
                         <dialog
@@ -822,30 +963,29 @@ export default function PostsPage(
                                 <div
                                     key={"post" + showPost.id}
                                     className={
-                                        chatStartOrEnd(showPost) +
-                                        "overflow-wrap break-words"
+                                        chatStartOrEnd(showPost)
                                     }
                                 >
                                     <div className="chat-image avatar">
                                         {lookupProfileImg(showPost.pubkey)}
                                     </div>
                                     <div className="chat-header overflow-hidden">
-                                        <div className="flex items-center space-x-2">
-                                            <div className="hover:text-white overflow-hidden">
+                                        <div className="flex flex-wrap items-center space-x-2">
+                                            <div className="hover:text-white overflow-hidden break-normal">
                                                 {summarizePubkey(
                                                     lookupProfileName(
                                                         showPost.pubkey
                                                     )
                                                 )}
                                             </div>
-                                            <time className="text-xs text-notice opacity-80">
+                                            <time className="text-xs text-notice opacity-80 overflow-hidden break-all">
                                                 {lookupNip05(showPost.pubkey)}
                                             </time>
                                         </div>
                                     </div>
 
-                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-words break-all whitespace-pre-line">
-                                        {showContentWithoutLinks(
+                                    <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
+                                        {showContentWithoutLinks2(
                                             showPost.content
                                         )}
                                     </div>
@@ -856,10 +996,13 @@ export default function PostsPage(
 
                                 {parseOutAndShowLinks(showPost.content).map(
                                     (url) => (
-                                        <div key={"2" + url} className="mb-4 overflow-hidden">
+                                        <div
+                                            key={"2" + url}
+                                            className="mb-4 overflow-hidden"
+                                        >
                                             <a
                                                 href={url}
-                                                className="link link-primary"
+                                                className="link link-primary overflow-hidden"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
@@ -963,13 +1106,12 @@ export default function PostsPage(
                         </dialog>
                     </div>
                 )}
-                <div className="w-full flex flex-col h-auto">
+                <div className="flex flex-col h-auto w-full">
                     {sortPosts(false).map((post) => (
                         <div
                             key={"post" + post.id}
                             className={
-                                chatStartOrEnd(post) +
-                                "overflow-wrap break-words"
+                                chatStartOrEnd(post)
                             }
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
@@ -978,30 +1120,29 @@ export default function PostsPage(
                                 {lookupProfileImg(post.pubkey)}
                             </div>
                             <div className="chat-header overflow-hidden">
-                                <div className="flex items-center space-x-2">
-                                    <div className="hover:text-white overflow-hidden">
+                                <div className="flex flex-wrap items-center space-x-2">
+                                    <div className="hover:text-white overflow-hidden break-normal">
                                         {summarizePubkey(
                                             lookupProfileName(post.pubkey)
                                         )}
                                     </div>
-                                    <time className="text-xs text-notice opacity-80">
+                                    <time className="text-xs text-notice opacity-80 overflow-hidden break-all">
                                         {lookupNip05(post.pubkey)}
                                     </time>
                                 </div>
                             </div>
 
-
                             {post.kind == 1 && (
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-wrap break-words break-all whitespace-pre-line">
-                                    {post.content}
+                                <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
+                                    {showContentWithoutLinks2(post.content)}
                                 </div>
                             )}
                             {post.kind != 1 && (
-                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-hidden">
+                                <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto whitespace-pre-line break-normal">
                                     <div className="label label-text-sm">
                                         content
                                     </div>
-                                    <div className="border-2 border-gray-300 rounded-lg p-4">
+                                    <div className="border-2 border-gray-300 rounded-lg p-4 whitespace-pre-line break-normal">
                                         {post.content && post.content}
                                         {!post.content && "no content"}
                                     </div>
@@ -1019,7 +1160,7 @@ export default function PostsPage(
                                                             i: number
                                                         ) => (
                                                             <div
-                                                                className="border-2 border-primary p-2"
+                                                                className="border-2 border-primary p-2 overflow-x-auto"
                                                                 key={tval + i}
                                                             >
                                                                 {tval}
