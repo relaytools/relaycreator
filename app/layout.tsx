@@ -60,7 +60,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
     <html data-theme={currentTheme} className={`${openSans.variable} ${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal`}>
       <head></head>
       <body>
-        <div className="bg-base-100 lg:max-w-7xl max-w-screen">
+        <div className="bg-base-100 mx-auto lg:max-w-7xl max-w-screen">
           <AuthContext>
 
             {rewritten == null && 
