@@ -99,7 +99,7 @@ export default function PostsPage(
                     addProfile(pevent);
                 });
             } */
-            console.log("got new event", event);
+            //console.log("got new event", event);
             addPost(event);
         });
     }
@@ -401,48 +401,7 @@ export default function PostsPage(
         return sortedPosts;
     };
 
-    const showContentWithoutLinks = (content: string) => {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const njumpRegex = new RegExp("nostr:(npub[a-z,0-9]+)", "g");
-        const nEvent = new RegExp("nostr:nevent[a-z,0-9]+", "g");
-        const nProfile = new RegExp("nostr:nprofile[a-z,0-9]+", "g");
-        const nNote = new RegExp("nostr:note[a-z,0-9]+", "g");
-        const imageRegex = /(https?:\/\/[^\s]+?\.(jpg|png|gif|jpeg))/g;
-
-        content = content.replace(njumpRegex, (match: string, p1: string) => {
-            var usePub: any;
-            const decoded = nip19.decode(p1);
-            usePub = decoded.data;
-            lookupProfileName(usePub);
-            const prettyName = summarizePubkey(lookupProfileName(usePub));
-            return "@(" + prettyName + ")";
-        });
-
-        content = content.replace(nEvent, (match: string) => {
-            return "<nevent>";
-        });
-
-        content = content.replace(nNote, (match: string) => {
-            return "<note1>";
-        });
-
-        content = content.replace(nProfile, (match: string) => {
-            return "<nprofile>";
-        });
-
-        // images before links..
-        content = content.replace(imageRegex, (url: string) => {
-            return "<image>";
-        });
-
-        content = content.replace(urlRegex, (url: string) => {
-            return "<link>";
-        });
-
-        return content;
-    };
-
-    const showContentWithoutLinks2 = (content: string) => {
+    const showContentWithoutLinks4 = (content: string) => {
         const substrings = [
             {
                 regex: "nostr:(npub[a-z0-9]+)",
@@ -453,59 +412,125 @@ export default function PostsPage(
                     const prettyName = summarizePubkey(
                         lookupProfileName(usePub)
                     );
-                    return "@(" + prettyName + ")";
+                    return {
+                        content: "@" + prettyName,
+                        className: "link link-primary",
+                    };
                 },
             },
-            { regex: "(nostr:nevent[a-z,0-9]+)", replace: () => "<nevent>" },
+            {
+                regex: "(nostr:nevent[a-z,0-9]+)",
+                replace: () => ({
+                    content: "<nevent>",
+                    className: "font-condensed",
+                }),
+            },
             {
                 regex: "(nostr:nprofile[a-z,0-9]+)",
-                replace: () => "<nprofile>",
+                replace: () => ({
+                    content: "<nprofile>",
+                    className: "font-condensed",
+                }),
             },
-            { regex: "(nostr:note[a-z,0-9]+)", replace: () => "<note1>" },
+            {
+                regex: "(nostr:note[a-z,0-9]+)",
+                replace: () => ({
+                    content: "<note1>",
+                    className: "font-condensed",
+                }),
+            },
             {
                 regex: "(https?:\\/\\/[^\\s^\\n]+\\.(?:jpg|png|gif|jpeg))",
-                replace: () => "<image>",
+                replace: () => ({
+                    content: "<image>",
+                    className: "link link-primary",
+                }),
             },
-            { regex: "(https?://[^\\s,^\\n]+)", replace: () => "<link>" },
-            { regex: "lnbc[a-z,0-9]+", replace: () => "<invoice>" }
-
+            {
+                regex: "(https?://[^\\s,^\\n]+)",
+                replace: () => ({
+                    content: "<link>",
+                    className: "link link-secondary",
+                }),
+            },
+            {
+                regex: "lnbc[a-z,0-9]+",
+                replace: () => ({
+                    content: "<invoice>",
+                    className: "link link-secondary",
+                }),
+            },
+            {
+                regex: "bc1[a-z,0-9]+",
+                replace: () => ({
+                    content: "<btcaddr>",
+                    className: "link link-secondary",
+                }),
+            },
         ];
-
-        let result = [];
+        var elementResult: React.JSX.Element[] = [];
+        var result = [];
         let i = 0;
-
         while (i < content.length) {
             let matched = false;
-
             for (const { regex, replace } of substrings) {
                 const re = new RegExp(regex);
                 const match = content.slice(i).match(re);
-
                 if (match && match.index === 0) {
                     if (i > 0) {
-                        result.push(content.slice(0, i));
+                        let textContent = content.slice(0, i);
+
+                        textContent = textContent.split(/(\s+)/).map((segment) => {
+                            if (segment.length > 23) {
+                                return segment.match(/.{1,23}/g)?.join(" ") || segment;
+                            }
+                            return segment;
+                        }).join("");
+
+                        result.push(textContent);
+                        elementResult.push(
+                            <span
+                                key={`text-${elementResult.length}`}
+                                className="overflow-wrap break-normal whitespace-pre-line"
+                            >
+                                {textContent}
+                            </span>
+                        );
                     }
                     const newThing = [...match];
                     const replaceResult = replace(newThing[0], newThing[1]);
-                    result.push(replaceResult);
+                    result.push(replaceResult.content);
+                    elementResult.push(
+                        <span
+                            key={`match-${elementResult.length}`}
+                            className={replaceResult.className}
+                        >
+                            {replaceResult.content}
+                        </span>
+                    );
                     content = content.slice(i + match[0].length);
                     i = 0;
                     matched = true;
                     break;
                 }
             }
-
             if (!matched) {
                 i++;
             }
         }
-
         if (content.length > 0) {
             result.push(content);
+            elementResult.push(
+                <span
+                    key={`text-${elementResult.length}`}
+                    className="overflow-wrap break-normal whitespace-pre-line"
+                >
+                    {content}
+                </span>
+            );
         }
 
-        console.log(result);
-        return result.join("");
+        return elementResult;
     };
 
     const parseOutAndShowLinks = (content: string) => {
@@ -523,18 +548,6 @@ export default function PostsPage(
         });
 
         return urls;
-    };
-
-    const parseOutAndShowNjumps = (content: string) => {
-        const njumpRegex = /(nostr:n[^\s]+)/g;
-        const njumps: string[] = [];
-
-        content.replace(njumpRegex, (njump: string) => {
-            njumps.push("https://njump.me/" + njump);
-            return "";
-        });
-
-        return njumps;
     };
 
     const showLocalTime = (unixTime: any) => {
@@ -588,7 +601,7 @@ export default function PostsPage(
                         </div>
 
                         <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto overflow-hidden">
-                            {showContentWithoutLinks(foundpost.content)}
+                            {showContentWithoutLinks4(foundpost.content)}
                         </div>
                         <div className="chat-footer opacity-50">
                             {showLocalTime(foundpost.created_at)}
@@ -731,12 +744,10 @@ export default function PostsPage(
 
     const handleChangeKind = async (e: any) => {
         e.preventDefault();
-        console.log("setting kind to " + e.target.value);
         setShowKindPicker(false);
         setShowKind(e.target.value);
         wipePosts();
         await grabNewKinds(e.target.value);
-        console.log("grabbed");
     };
 
     const detectImages = (content: string) => {
@@ -964,9 +975,7 @@ export default function PostsPage(
                                 <div>{isReply(showPost)}</div>
                                 <div
                                     key={"post" + showPost.id}
-                                    className={
-                                        chatStartOrEnd(showPost)
-                                    }
+                                    className={chatStartOrEnd(showPost)}
                                 >
                                     <div className="chat-image avatar">
                                         {lookupProfileImg(showPost.pubkey)}
@@ -987,7 +996,7 @@ export default function PostsPage(
                                     </div>
 
                                     <div className="chat-bubble text-white selectable h-auto overflow-wrap break-normal whitespace-pre-line">
-                                        {showContentWithoutLinks2(
+                                        {showContentWithoutLinks4(
                                             showPost.content
                                         )}
                                     </div>
@@ -1004,7 +1013,7 @@ export default function PostsPage(
                                         >
                                             <a
                                                 href={url}
-                                                className="link link-primary overflow-hidden"
+                                                className="link link-secondary overflow-hidden"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
@@ -1108,13 +1117,11 @@ export default function PostsPage(
                         </dialog>
                     </div>
                 )}
-                <div className="flex flex-col h-auto w-full">
+                <div className="flex flex-wrap h-auto w-full">
                     {sortPosts(false).map((post) => (
                         <div
                             key={"post" + post.id}
-                            className={
-                                chatStartOrEnd(post)
-                            }
+                            className={chatStartOrEnd(post) + "flex-grow w-full"}
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
                         >
@@ -1136,7 +1143,7 @@ export default function PostsPage(
 
                             {post.kind == 1 && (
                                 <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
-                                    {showContentWithoutLinks2(post.content)}
+                                    {showContentWithoutLinks4(post.content)}
                                 </div>
                             )}
                             {post.kind != 1 && (
