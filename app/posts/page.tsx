@@ -402,6 +402,9 @@ export default function PostsPage(
     };
 
     const showContentWithoutLinks4 = (content: string) => {
+        if(content.length > 1000) {
+            content = content.substring(0, 4096) + "...<truncated>";
+        }
         const substrings = [
             {
                 regex: "nostr:(npub[a-z0-9]+)",
