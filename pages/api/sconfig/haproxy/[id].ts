@@ -145,6 +145,10 @@ export default async function handle(req: any, res: any) {
         if(element.auth_required) {
             usePort = interceptorPort
         }
+        let useIP = "127.0.0.1"
+        if(element.ip) {
+            useIP = element.ip
+        }
 		haproxy_subdomains_cfg = haproxy_subdomains_cfg + `
 		acl ${element.name + "_root"} path_beg -i /
 		acl ${element.name} hdr(Host) -i ${element.name}.${element.domain}
@@ -161,7 +165,7 @@ backend ${element.name}
 	option 		        redispatch
 	balance 	        source
 	option forwardfor except 127.0.0.1 header x-real-ip
-	server     websocket-001 127.0.0.1:${usePort} maxconn 50000 weight 10 check
+	server     websocket-001 ${useIP}:${usePort} maxconn 50000 weight 10 check
 	`
 
 	})

@@ -42,6 +42,7 @@ export default async function handle(req: any, res: any) {
             owner: true,
             port: true,
             domain: true,
+            ip: true,
             name: true,
             details: true,
         }
@@ -50,6 +51,11 @@ export default async function handle(req: any, res: any) {
     if (thisRelay == null) {
         res.status(500).json({ "error": "relay not found" })
         return
+    }
+
+    let useIP = "127.0.0.1"
+    if (thisRelay.ip != null) {
+        useIP = thisRelay.ip
     }
 
     if (req.method == "GET") {
@@ -72,7 +78,7 @@ dbParams {
 relay {
     # Interface to listen on. Use 0.0.0.0 to listen on all interfaces (restart required)
     #bind = "0.0.0.0"
-    bind = "127.0.0.1"
+    bind = "${useIP}"
 
     # Port to open for the nostr websocket protocol (restart required)
     port = ${thisRelay.port}
