@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 import NDK, { NDKEvent, NDKNip07Signer, NDKPublishError, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet, NDKSubscription } from "@nostr-dev-kit/ndk";
 import { getRelayListForUser, getRelayListForUsers } from "@nostr-dev-kit/ndk";
+import handle from "../../pages/api/clientorders";
 
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();
@@ -68,14 +69,7 @@ export default function AdminInvoices(
         return false;
     }
 
-    const handlePauseRelay = async(relayBalance: any) => {
-        // pause relay call to api
-        const response = await fetch(`/api/relay/${relayBalance.relayId}/settings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "status": "paused" })
-        })
-
+    const handleUserNotification = async(relayBalance: any, notifyType: string) => {
         // handle user notification
         const nip07signer = new NDKNip07Signer();
         const activeUser = await nip07signer.blockUntilReady();
@@ -85,6 +79,7 @@ export default function AdminInvoices(
         ndk.addExplicitRelay("wss://relay.damus.io");
         ndk.addExplicitRelay("wss://nos.lol");
         ndk.addExplicitRelay("wss://relay.nostr.band");
+        const specialRelay = ndk.addExplicitRelay("wss://" + relayBalance.relayName + "." + relayBalance.relayDomain);
         const recipient = ndk.getUser({pubkey: relayBalance.owner});
         console.log("getting recipient profile")
         await recipient.fetchProfile();
@@ -99,7 +94,12 @@ export default function AdminInvoices(
             recipientName = recipientProfile.name;
         }
 
-        newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + " Your relay has been paused for non-payment.  Please visit https://relay.tools/invoices to top up your balance and resume service.  Your relay data is still available, but may be deleted if left paused for too long.  Contact me for more details.";
+        if(notifyType == "pause") {
+            newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + " Your relay has been paused for non-payment.  Please visit https://relay.tools/invoices to top up your balance and resume service.  Your relay data is still available, but may be deleted if left paused for too long.  Contact me for more details.";
+        } else if(notifyType == "notify" ) {
+            newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + " Please visit https://relay.tools/invoices to top up your balance.";
+        }
+
         newEvent.tag(recipient, "mention");
 
         ndk.on("event:publish-failed", (event: NDKEvent, error: NDKPublishError, relays: any) => {
@@ -107,44 +107,26 @@ export default function AdminInvoices(
             console.log("event publish failed to send to all relays:", relays);
         });
 
-        const howMany = relayList.relaySet.size;
-        const publishedTo = await newEvent.publish(relayList.relaySet, 5000, howMany);
+        //relayList.relaySet.addRelay(new NDKRelay("wss://" + relayBalance.relayName + "." + relayBalance.relayDomain));
+        const newSet = relayList.relaySet;
+        newSet.addRelay(specialRelay);
+        const howMany = newSet.size;
+        const publishedTo = await newEvent.publish(newSet, 10000, howMany);
         console.log("event was published to: ", publishedTo);
     }
 
-    const handleNotifyUser = async(pubkey: string) => {
-        const nip07signer = new NDKNip07Signer();
-        const activeUser = await nip07signer.blockUntilReady();
-        ndk.signer = nip07signer;
-        ndk.addExplicitRelay("wss://purplepag.es");
-        ndk.addExplicitRelay("wss://nostr21.com");
-        ndk.addExplicitRelay("wss://relay.damus.io");
-        ndk.addExplicitRelay("wss://nos.lol");
-        ndk.addExplicitRelay("wss://relay.nostr.band");
-        const recipient = ndk.getUser({pubkey: pubkey});
-        console.log("getting recipient profile")
-        await recipient.fetchProfile();
-        console.log("got recipient profile")
-        console.log("getting relay list for recipient", recipient)
-        let relayList = await getRelayListForUser(recipient.pubkey, ndk);
-        const recipientProfile = recipient.profile;
-        const newEvent = new NDKEvent(ndk);
-        newEvent.kind = 1;
-        let recipientName = "";
-        if (recipientProfile && recipientProfile.name) {
-            recipientName = recipientProfile.name;
-        }
-        newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(pubkey) + " Please visit https://relay.tools/invoices to top up your balance.";
-        newEvent.tag(recipient, "mention");
+    const handlePauseRelay = async(relayBalance: any) => {
+        // pause relay call to api
+        const response = await fetch(`/api/relay/${relayBalance.relayId}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "status": "paused" })
+        })
+        await handleUserNotification(relayBalance, "pause");
+    }
 
-        ndk.on("event:publish-failed", (event: NDKEvent, error: NDKPublishError, relays: any) => {
-            console.log("event publish failed", event, error);
-            console.log("event publish failed to send to all relays:", relays);
-        });
-
-        const howMany = relayList.relaySet.size;
-        const publishedTo = await newEvent.publish(relayList.relaySet, 5000, howMany);
-        console.log("event was published to: ", publishedTo);
+    const handleNotifyUser = async(b: any) => {
+        handleUserNotification(b, "notify");
     }
 
     //const sortedRelays = props.RelayBalances.sort((a: any, b: any) => a.owner.localeCompare(b.owner));
@@ -212,7 +194,7 @@ export default function AdminInvoices(
                         <div className="flex mt-4">
                             <button
                                 className="mr-2 btn btn-secondary"
-                                onClick={(e) => handleNotifyUser(b.owner)}
+                                onClick={(e) => handleNotifyUser(b)}
                             >
                             Send Balance Notify
                             </button>

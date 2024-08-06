@@ -142,6 +142,7 @@ export default async function ServerStatus(
                     relayName: relay.name,
                     relayStatus: relay.status,
                     relayId: relay.id,
+                    relayDomain: relay.domain,
                     balance: balance,
                     orders: paidOrders,
                     unpaidOrders: unpaidOrders,
