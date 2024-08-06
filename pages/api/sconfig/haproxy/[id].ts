@@ -288,6 +288,7 @@ backend main
 	balance 	        source
 	option forwardfor except 127.0.0.1 header x-real-ip
 	server     main-001 127.0.0.1:3000 maxconn 50000 weight 10 check
+	server     main-002 127.0.0.1:3001 maxconn 50000 weight 10 check
 
 	${haproxy_backends_cfg}
 
