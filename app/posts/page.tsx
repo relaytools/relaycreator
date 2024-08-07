@@ -402,8 +402,8 @@ export default function PostsPage(
     };
 
     const showContentWithoutLinks4 = (content: string) => {
-        if(content.length > 1000) {
-            content = content.substring(0, 4096) + "...<truncated>";
+        if (content.length > 10020) {
+            content = content.substring(0, 10020) + "...<truncated>";
         }
         const substrings = [
             {
@@ -472,8 +472,67 @@ export default function PostsPage(
             },
         ];
         var elementResult: React.JSX.Element[] = [];
+        let otherResult = "";
         var result = [];
         let i = 0;
+        const processTextContent = (textContent: string) => {
+            textContent.split("\n").forEach((line, lineIndex) => {
+                line.split(/(\s+)/).forEach((segment, segmentIndex) => {
+                    if (segment.length > 23) {
+                        const brokenSegments = segment.match(/.{1,23}/g) || [
+                            segment,
+                        ];
+                        brokenSegments.forEach((brokenSegment, brokenIndex) => {
+                            elementResult.push(
+                                <span
+                                    key={`text-${elementResult.length}-${lineIndex}-${segmentIndex}-${brokenIndex}`}
+                                    className="overflow-wrap break-words whitespace-pre-line"
+                                >
+                                    {brokenSegment}
+                                </span>
+                            );
+                        });
+                    } else {
+                        otherResult += segment + " ";
+                        /*
+                        elementResult.push(
+                            <span
+                                key={`text-${elementResult.length}-${lineIndex}-${segmentIndex}`}
+                                className="overflow-wrap break-normal whitespace-pre-line"
+                            >
+                                {segment}
+                            </span>
+                        );
+                        */
+                    }
+                });
+                /*
+                if (lineIndex < textContent.split("\n").length - 1) {
+                    elementResult.push(
+                        <br key={`br-${elementResult.length}-${lineIndex}`} />
+                    );
+                }*/
+                if (otherResult.length > 0) {
+
+                    elementResult.push(
+                        <span
+                            key={`text-${elementResult.length}-${lineIndex}`}
+                            className="overflow-wrap break-normal whitespace-pre-line"
+                        >
+                            {otherResult}
+                        </span>
+                    );
+
+                    if (lineIndex < textContent.split("\n").length - 1) {
+                    elementResult.push(
+                        <br key={`br-${elementResult.length}-${lineIndex}`} />
+                    );
+                }
+                    otherResult = "";
+                }
+            });
+        };
+
         while (i < content.length) {
             let matched = false;
             for (const { regex, replace } of substrings) {
@@ -482,23 +541,7 @@ export default function PostsPage(
                 if (match && match.index === 0) {
                     if (i > 0) {
                         let textContent = content.slice(0, i);
-
-                        textContent = textContent.split(/(\s+)/).map((segment) => {
-                            if (segment.length > 23) {
-                                return segment.match(/.{1,23}/g)?.join(" ") || segment;
-                            }
-                            return segment;
-                        }).join("");
-
-                        result.push(textContent);
-                        elementResult.push(
-                            <span
-                                key={`text-${elementResult.length}`}
-                                className="overflow-wrap break-normal whitespace-pre-line"
-                            >
-                                {textContent}
-                            </span>
-                        );
+                        processTextContent(textContent);
                     }
                     const newThing = [...match];
                     const replaceResult = replace(newThing[0], newThing[1]);
@@ -522,15 +565,7 @@ export default function PostsPage(
             }
         }
         if (content.length > 0) {
-            result.push(content);
-            elementResult.push(
-                <span
-                    key={`text-${elementResult.length}`}
-                    className="overflow-wrap break-normal whitespace-pre-line"
-                >
-                    {content}
-                </span>
-            );
+            processTextContent(content);
         }
 
         return elementResult;
@@ -1124,7 +1159,9 @@ export default function PostsPage(
                     {sortPosts(false).map((post) => (
                         <div
                             key={"post" + post.id}
-                            className={chatStartOrEnd(post) + "flex-grow w-full"}
+                            className={
+                                chatStartOrEnd(post) + "flex-grow w-full"
+                            }
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
                         >
