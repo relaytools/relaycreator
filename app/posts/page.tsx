@@ -479,19 +479,14 @@ export default function PostsPage(
             textContent.split("\n").forEach((line, lineIndex) => {
                 line.split(/(\s+)/).forEach((segment, segmentIndex) => {
                     if (segment.length > 23) {
-                        const brokenSegments = segment.match(/.{1,23}/g) || [
-                            segment,
-                        ];
-                        brokenSegments.forEach((brokenSegment, brokenIndex) => {
                             elementResult.push(
                                 <span
-                                    key={`text-${elementResult.length}-${lineIndex}-${segmentIndex}-${brokenIndex}`}
-                                    className="overflow-wrap break-words whitespace-pre-line"
+                                    key={`text-${elementResult.length}-${lineIndex}-${segmentIndex}`}
+                                    className="overflow-wrap break-all whitespace-pre-line"
                                 >
-                                    {brokenSegment}
+                                    {segment}
                                 </span>
                             );
-                        });
                     } else {
                         otherResult += segment + " ";
                         /*
