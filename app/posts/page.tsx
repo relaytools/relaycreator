@@ -16,6 +16,7 @@ import NDK, {
     NDKRelaySet,
     NDKSubscription,
 } from "@nostr-dev-kit/ndk";
+
 import { useSearchParams } from "next/navigation";
 import { RelayWithEverything } from "../components/relayWithEverything";
 import RelayMenuBar from "../relays/relayMenuBar";
@@ -80,6 +81,7 @@ export default function PostsPage(
     const [modActions, setModActions] = useState(false);
     const [showKind, setShowKind] = useState("1");
     const [showKindPicker, setShowKindPicker] = useState(false);
+    const [anonPost, setAnonPost] = useState(false);
 
     const relayLimit = 100;
 
@@ -479,14 +481,14 @@ export default function PostsPage(
             textContent.split("\n").forEach((line, lineIndex) => {
                 line.split(/(\s+)/).forEach((segment, segmentIndex) => {
                     if (segment.length > 23) {
-                            elementResult.push(
-                                <span
-                                    key={`text-${elementResult.length}-${lineIndex}-${segmentIndex}`}
-                                    className="overflow-wrap break-all whitespace-pre-line"
-                                >
-                                    {segment}
-                                </span>
-                            );
+                        elementResult.push(
+                            <span
+                                key={`text-${elementResult.length}-${lineIndex}-${segmentIndex}`}
+                                className="overflow-wrap break-all whitespace-pre-line"
+                            >
+                                {segment}
+                            </span>
+                        );
                     } else {
                         otherResult += segment + " ";
                         /*
@@ -508,7 +510,6 @@ export default function PostsPage(
                     );
                 }*/
                 if (otherResult.length > 0) {
-
                     elementResult.push(
                         <span
                             key={`text-${elementResult.length}-${lineIndex}`}
@@ -519,10 +520,12 @@ export default function PostsPage(
                     );
 
                     if (lineIndex < textContent.split("\n").length - 1) {
-                    elementResult.push(
-                        <br key={`br-${elementResult.length}-${lineIndex}`} />
-                    );
-                }
+                        elementResult.push(
+                            <br
+                                key={`br-${elementResult.length}-${lineIndex}`}
+                            />
+                        );
+                    }
                     otherResult = "";
                 }
             });
@@ -752,24 +755,27 @@ export default function PostsPage(
 
         // anonymous postin!
         // generates new key each time
-        /*
+        if (anonPost) {
             const newSK = generateSecretKey();
             const newPK = getPublicKey(newSK);
-            const event = finalizeEvent({
-                kind: 1,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [],
-                content: post,
-              }, newSK)
+            const event = finalizeEvent(
+                {
+                    kind: 1,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [],
+                    content: post,
+                },
+                newSK
+            );
 
             const newEvent = new NDKEvent(ndk, event);
             await newEvent.publish();
-            */
-
-        const newEvent = new NDKEvent(ndk);
-        newEvent.kind = 1;
-        newEvent.content = post;
-        await newEvent.publish();
+        } else {
+            const newEvent = new NDKEvent(ndk);
+            newEvent.kind = 1;
+            newEvent.content = post;
+            await newEvent.publish();
+        }
 
         //clear the form
         form.elements[0].value = "";
@@ -874,12 +880,47 @@ export default function PostsPage(
                             )}
                         <div className="mb-4">
                             <button
-                                className="btn uppercase btn-notice"
+                                className="btn uppercase btn-secondary"
                                 onClick={(e) => copyToClipboard(e, nrelaydata)}
                             >
                                 copy url to clipboard
                             </button>
                         </div>
+                        <div className="flex flex-wrap items-center">
+                            <div className="text-primary font-condensed text-lg font-bold">
+                                anonymous posting {anonPost ? "ON" : "OFF"}
+                            </div>
+                            <label className="swap">
+                                {/* this hidden checkbox controls the state */}
+                                <input
+                                    type="checkbox"
+                                    onChange={(e) => setAnonPost(!anonPost)}
+                                />
+
+                                {/* volume on icon */}
+                                <svg
+                                    className="swap-off fill-current"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="48"
+                                    height="48"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                                </svg>
+
+                                {/* volume off icon */}
+                                <svg
+                                    className="swap-on fill-current"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="48"
+                                    height="48"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M3,9H7L12,4V20L7,15H3V9M16.59,12L14,9.41L15.41,8L18,10.59L20.59,8L22,9.41L19.41,12L22,14.59L20.59,16L18,13.41L15.41,16L14,14.59L16.59,12Z" />
+                                </svg>
+                            </label>
+                        </div>
+
                         {props.relay.payment_required && (
                             <RelayPayment
                                 relay={props.relay}
