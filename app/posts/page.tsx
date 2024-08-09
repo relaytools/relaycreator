@@ -675,14 +675,33 @@ export default function PostsPage(
 
     const handleReply = async () => {
         if (showPost != undefined) {
-            const replyEvent = new NDKEvent(ndk);
-            replyEvent.kind = 1;
-            replyEvent.tags = [
+            if (anonPost) {
+                const newSK = generateSecretKey();
+                const newPK = getPublicKey(newSK);
+const event = finalizeEvent(
+                    {
+                        kind: 1,
+                        content: replyPost,
+                        tags: [
+                            ["p", showPost.pubkey],
+                            ["e", showPost.id],
+                        ],
+                        created_at: Math.floor(Date.now() / 1000),
+                    },
+                    newSK,
+                );
+                const newEvent = new NDKEvent(ndk, event);
+                await newEvent.publish();
+        } else {
+            const newEvent = new NDKEvent(ndk);
+            newEvent.content = replyPost;
+            newEvent.kind = 1;
+            newEvent.tags = [
                 ["p", showPost.pubkey],
                 ["e", showPost.id],
             ];
-            replyEvent.content = replyPost;
-            await replyEvent.publish();
+            await newEvent.publish();
+        }
             //clear the form
             setShowPost(undefined);
         }
