@@ -88,7 +88,7 @@ export default function AdminInvoices(
         let relayList = await getRelayListForUser(recipient.pubkey, ndk);
         const recipientProfile = recipient.profile;
         const newEvent = new NDKEvent(ndk);
-        newEvent.kind = 1;
+        newEvent.kind = 4;
         let recipientName = "";
         if (recipientProfile && recipientProfile.name) {
             recipientName = recipientProfile.name;
@@ -101,6 +101,8 @@ export default function AdminInvoices(
         }
 
         newEvent.tag(recipient, "mention");
+
+        await newEvent.encrypt();
 
         ndk.on("event:publish-failed", (event: NDKEvent, error: NDKPublishError, relays: any) => {
             console.log("event publish failed", event, error);
