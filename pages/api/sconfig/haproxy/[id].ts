@@ -258,7 +258,7 @@ frontend unsecured
 	maxconn 10000
 	bind 0.0.0.0:80 name http
 	mode 		        http
-	redirect 		prefix https://${usethisrootdomain} code 301 
+    redirect scheme https code 301 if !{ ssl_fc }
 
 frontend secured
 	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
