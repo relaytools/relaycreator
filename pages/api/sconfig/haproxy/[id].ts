@@ -270,6 +270,7 @@ frontend secured
 	http-request del-header x-real-ip
 	option forwardfor except 127.0.0.1 header x-real-ip
 
+    http-request set-header host %[hdr(host),field(1,:)]
     capture request header Host len 30
 
 	http-request return content-type image/x-icon file /etc/haproxy/static/favicon.ico if { path /favicon.ico }
