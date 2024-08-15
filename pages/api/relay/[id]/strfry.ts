@@ -73,6 +73,9 @@ dbParams {
 
     # Size of mmap() to use when loading LMDB (default is 10TB, does *not* correspond to disk-space used) (restart required)
     mapsize = 10995116277760
+
+    # Disables read-ahead when accessing the LMDB mapping. Reduces IO activity when DB size is larger than RAM. (restart required)
+    noReadAhead = false
 }
 
 relay {
@@ -149,6 +152,9 @@ relay {
 
         # Log performance metrics for initial REQ database scans
         dbScanPerf = false
+
+        # Log reason for invalid event rejection? Can be disabled to silence excessive logging
+        invalidEvents = false
     }
 
     numThreads {
@@ -163,6 +169,14 @@ relay {
 
         # negentropy threads: Handle negentropy protocol messages (restart required)
         negentropy = 2
+    }
+    
+    negentropy {
+       # Support negentropy protocol messages
+        enabled = true
+
+        # Maximum records that sync will process before returning an error
+        maxSyncEvents = 1000000
     }
 }
 
