@@ -92,15 +92,13 @@ export default async function handle(req: any, res: any) {
 
     const relay = await prisma.relay.findFirst({
         where: { name: subdomain, domain: domain},
-        select: {
-            id: true,
-            name: true,
-            status: true,
-            default_message_policy: true,
-            allow_giftwrap: true,
-            allow_tagged: true,
+        include: {
+            owner: true,
+            moderators: {
+                include: { user: true },
+            },
             allow_list: {
-                select: {
+                include: {
                     list_keywords: true,
                     list_pubkeys: true,
                     list_kinds: true,
@@ -117,6 +115,20 @@ export default async function handle(req: any, res: any) {
 
     // if the default message policy is allow, send back allow for all
     if(relay.default_message_policy) {
+        res.status(200).json({ authorized: true});
+        res.end();
+        return;
+    }
+
+    // allow for owner
+    if(relay.owner.pubkey == pubkey) {
+        res.status(200).json({ authorized: true});
+        res.end();
+        return;
+    }
+
+    // allow for mods
+    if(relay.moderators.find((m: any) => m.user.pubkey == pubkey)) {
         res.status(200).json({ authorized: true});
         res.end();
         return;
