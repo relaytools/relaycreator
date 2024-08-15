@@ -26,7 +26,7 @@ export default async function handle(req: any, res: any) {
         "pubkey": relay.owner.pubkey,
         "software": "git+https://github.com/hoytech/strfry.git",
         "supported_nips": [1, 2, 4, 9, 11, 12, 16, 20, 22, 28, 33, 40],
-        "version": "0.9.5",
+        "version": "0.9.6",
         "posting_policy": "https://" + useUrl + "#policy",
     }
 
@@ -49,6 +49,11 @@ export default async function handle(req: any, res: any) {
     nostrjson["limitation"]["max_content_length"] = 262140
     nostrjson["limitation"]["min_pow_difficulty"] = 0
     nostrjson["limitation"]["auth_required"] = relay.auth_required
+
+    // NIP42 auth
+    if(relay.auth_required) {
+        nostrjson["supported_nips"].push(42)
+    }
 
     // nip11 pull-req pending for created_at limits
     // https://github.com/nostr-protocol/nips/pull/756
