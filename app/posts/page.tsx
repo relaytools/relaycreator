@@ -24,6 +24,7 @@ import RelayDetail from "../components/relayDetail";
 import RelayPayment from "../components/relayPayment";
 import Terms from "../components/terms";
 import Image from "next/image";
+import ShowSmallSession from '../smallsession';
 
 interface Event {
     pubkey: string;
@@ -1165,6 +1166,7 @@ const event = finalizeEvent(
                                         <div className="w-full bg-gradient-to-r from-gray-600 to-gray-900 items-center h-5 px-3 sm:text-sm text-center mb-4">
                                             - actions -{" "}
                                         </div>
+                                        <ShowSmallSession pubkey={myPubkey}/>
                                         <div className="mb-4">
                                             <button
                                                 className="btn uppercase"
