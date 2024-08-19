@@ -65,6 +65,7 @@ model Relay {
   moderators             Moderator[]
   Order                  Order[]
   ClientOrder            ClientOrder[]
+  streams                Stream[]
   allow_list             AllowList?
   block_list             BlockList?
   details                String?       @db.Text
@@ -89,6 +90,23 @@ model Relay {
   relay_kind_description String       @db.VarChar(255) @default("")
 
   @@index([ownerId])
+}
+
+model Server {
+    id           String    @id @default(cuid())
+    ip           String    @db.VarChar(255)
+    available    Boolean   @default(true)
+}
+
+model Stream {
+    id           String    @id @default(cuid())
+    relayId      String
+    relay        Relay     @relation(fields: [relayId], references: [id])
+    url          String    @db.VarChar(1024)
+    direction    String    @db.VarChar(255)
+    internal     Boolean   @default(false)
+    sync       Boolean   @default(false)
+    status       String    @db.VarChar(1024)
 }
 
 model Moderator {
