@@ -139,6 +139,20 @@ export default async function handle(req: any, res: any) {
     // no relays exist yet, start at 7777
     if (p == 1) { p = 7777 }
 
+    // find available server IP address
+    const servers = await prisma.server.findMany({
+        where: {
+            available: true 
+        },
+    })
+
+    // todo, we could calculate capacity
+    let useIP = "127.0.0.1"
+    if (servers && servers.length > 0) {
+        // first available server
+        useIP = servers[0].ip
+    }
+
     var currentdate = new Date();
     // create relay with user association
     let useStatus = null;
@@ -153,6 +167,7 @@ export default async function handle(req: any, res: any) {
             created_at: currentdate,
             status: useStatus,
             port: p,
+            ip: useIP,
         }
     })
     const newbl = await prisma.blockList.create({
