@@ -45,9 +45,15 @@ export default async function handle(req: any, res: any) {
         }
     }
 
+    // get hostip from query string
+    const { ip } = req.query
+    console.log("strfrycheck hostip", ip)
+
+
     const allRelays = await prisma.relay.findMany({
         where: {
             status: "provision",
+            ip: ip,
         },
         select:
         {
@@ -56,7 +62,8 @@ export default async function handle(req: any, res: any) {
             port: true,
             domain: true,
             status: true,
-        }
+            streams: true,
+        },
     })
     res.status(200).json(allRelays)
 }
