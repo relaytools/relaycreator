@@ -60,6 +60,35 @@ export default async function handle(req: any, res: any) {
         interceptorPort = parseInt(process.env.INTERCEPTOR_PORT)
     }
 
+    const fetchServers = await prisma.server.findMany()
+
+    let useInterceptors = []
+    if(fetchServers && fetchServers.length > 0) {
+        for (let i = 0; i < fetchServers.length; i++) {
+            useInterceptors.push(fetchServers[i].ip)
+        }
+    } else {
+        useInterceptors = ["127.0.0.1"]
+    }
+
+    let useApps = []
+    if(fetchServers && fetchServers.length > 0) {
+        for (let i = 0; i < fetchServers.length; i++) {
+            useApps.push(fetchServers[i].ip)
+        }
+    } else {
+        useApps = ["127.0.0.1"]
+    }
+
+    // two app servers per server
+    let app_servers_cfg = ``
+    for(let i = 0; i < useApps.length; i++) {
+        app_servers_cfg = app_servers_cfg + `
+    server     app-${i} ${useApps[i]}:3000 maxconn 50000 weight 10 check
+    server    app-${i}-1 ${useApps[i]}:3001 maxconn 50000 weight 10 check`
+    }
+
+
 	// load the following from prisma:
 	// the hostnames that haproxy serves on this machine
 	// the backends with port# for strfry backends
@@ -156,7 +185,6 @@ export default async function handle(req: any, res: any) {
 		use_backend ${element.name} if host_ws ${element.name}
 		use_backend ${element.name} if hdr_connection_upgrade hdr_upgrade_websocket ${element.name} 
 		http-request set-path /api/relay/${element.id}/nostrjson if ${element.name} ${element.name + "_root"} ${element.name + "_nostrjson"}
-
 		`
 
 		haproxy_backends_cfg = haproxy_backends_cfg + `
@@ -164,9 +192,19 @@ backend ${element.name}
 	mode  		        http
 	option 		        redispatch
 	balance 	        source
-	option forwardfor except 127.0.0.1 header x-real-ip
-	server     websocket-001 ${useIP}:${usePort} maxconn 50000 weight 10 check
-	`
+	option forwardfor except 127.0.0.1 header x-real-ip`
+
+    if(element.auth_required) {
+        for(let i = 0; i < useInterceptors.length; i++) {
+            haproxy_backends_cfg = haproxy_backends_cfg + `
+    server     interceptor-${i} ${useInterceptors[i]}:${interceptorPort} maxconn 50000 weight 10 check`
+        }
+
+    } else {
+	    haproxy_backends_cfg = haproxy_backends_cfg + `
+    server     websocket-001 ${useIP}:${usePort} maxconn 50000 weight 10 check`
+
+    }
 
 	})
 
@@ -213,6 +251,7 @@ backend ${element.name}
         http-request return content-type text/html status 402 file /etc/haproxy/static/402.http if { hdr(Host) -i ${element.name}.${element.domain} }
         `
     })
+
 
 	const haproxy_cfg = `
 global
@@ -292,8 +331,7 @@ backend main
 	option 		        redispatch
 	balance 	        source
 	option forwardfor except 127.0.0.1 header x-real-ip
-	server     main-001 127.0.0.1:3000 maxconn 50000 weight 10 check
-	server     main-002 127.0.0.1:3001 maxconn 50000 weight 10 check
+    ${app_servers_cfg}
 
 	${haproxy_backends_cfg}
 
