@@ -6,7 +6,6 @@ export const relayWithEverything = Prisma.validator<Prisma.RelayArgs>()({
         moderators: {
             include: { user: true },
         },
-        streams: true,
         block_list: {
             include: {
                 list_keywords: true,
