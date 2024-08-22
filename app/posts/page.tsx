@@ -24,7 +24,7 @@ import RelayDetail from "../components/relayDetail";
 import RelayPayment from "../components/relayPayment";
 import Terms from "../components/terms";
 import Image from "next/image";
-import ShowSmallSession from '../smallsession';
+import ShowSmallSession from "../smallsession";
 
 interface Event {
     pubkey: string;
@@ -109,6 +109,50 @@ export default function PostsPage(
 
     let signerFailed = false;
 
+    async function eventListener(relay: NDKRelay) {
+        const kindToInteger = parseInt(showKind);
+        const kind1Sub = ndk.subscribe(
+            { kinds: [kindToInteger], limit: relayLimit },
+            { closeOnEose: false, groupable: false }
+        );
+        kind1Sub.on("event", (event: NDKEvent) => {
+            // do profile lookups on the fly
+
+            // p tagged profiles
+            let pro: string[] = [];
+            event.tags.map((tag: any) => {
+                if (tag[0] == "p") {
+                    if (lookupProfileName(tag[1]) == tag[1]) {
+                        pro.push(tag[1]);
+                    }
+                }
+            });
+
+            // lookup author profile
+            if (lookupProfileName(event.pubkey) == event.pubkey) {
+                pro.push(event.pubkey);
+            }
+
+            if (pro.length > 0) {
+                // main sub
+                const profilesRelays = NDKRelaySet.fromRelayUrls(
+                    [nrelaydata, "wss://profiles.nostr1.com", "wss://purplepag.es"],
+                    ndk
+                );
+                const profileSubAuth = ndk.subscribe(
+                    { kinds: [0], authors: pro },
+                    { closeOnEose: true, groupable: true },
+                    profilesRelays,
+                    true
+                );
+                profileSubAuth.on("event", (pevent: NDKEvent) => {
+                    addProfile(pevent);
+                });
+            }
+            addPost(event);
+        });
+    }
+
     async function grabStuff(nrelaydata: string, auth: boolean = false) {
         var kind1Sub: NDKSubscription;
 
@@ -131,102 +175,39 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
-            addToStatus("authed: " + props.relay.name);
-            wipePosts();
-            console.log("authing?");
-            const kindToInteger = parseInt(showKind);
-            kind1Sub = ndk.subscribe(
-                { kinds: [kindToInteger], limit: relayLimit },
-                { closeOnEose: false, groupable: false }
-            );
-            kind1Sub.on("event", (event: NDKEvent) => {
-                // do profile lookups on the fly
-
-                // p tagged profiles
-                let pro: string[] = [];
-                event.tags.map((tag: any) => {
-                    if (tag[0] == "p") {
-                        if (lookupProfileName(tag[1]) == tag[1]) {
-                            pro.push(tag[1]);
-                        }
-                    }
-                });
-
-                // lookup author profile
-                if (lookupProfileName(event.pubkey) == event.pubkey) {
-                    pro.push(event.pubkey);
-                }
-
-                if (pro.length > 0) {
-                    const profileSubAuth = ndk.subscribe(
-                        { kinds: [0], authors: pro },
-                        { closeOnEose: true, groupable: true }
-                    );
-                    profileSubAuth.on("event", (pevent: NDKEvent) => {
-                        addProfile(pevent);
-                    });
-                }
-
-                addPost(event);
-            });
+            let normalized_url = nrelaydata + "/";
+            normalized_url = normalized_url.toLowerCase();
+            if (relay.url == normalized_url) {
+                addToStatus("authed: " + props.relay.name);
+                wipePosts();
+                eventListener(relay);
+                console.log("authing?");
+            }
         });
 
         ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
+
+            let normalized_url = nrelaydata + "/";
+            normalized_url = normalized_url.toLowerCase();
+            if (relay.url == normalized_url) {
             if (kind1Sub != undefined) {
                 kind1Sub.stop();
             }
             addToStatus("disconnected: " + props.relay.name);
+        }
         });
 
         ndkPool.on("relay:connect", (relay: NDKRelay) => {
-            addToStatus("connected: " + props.relay.name);
-            wipePosts();
-            if (!auth) {
-                const kindToInteger = parseInt(showKind);
-                kind1Sub = ndk.subscribe(
-                    { kinds: [kindToInteger], limit: relayLimit },
-                    { closeOnEose: false, groupable: false }
-                );
-                kind1Sub.on("event", (event: NDKEvent) => {
-                    // do profile lookups on the fly
-
-                    // p tagged profiles
-                    let pro: string[] = [];
-                    event.tags.map((tag: any) => {
-                        if (tag[0] == "p") {
-                            if (lookupProfileName(tag[1]) == tag[1]) {
-                                pro.push(tag[1]);
-                            }
-                        }
-                    });
-
-                    // lookup author profile
-                    if (lookupProfileName(event.pubkey) == event.pubkey) {
-                        pro.push(event.pubkey);
-                    }
-
-                    if (pro.length > 0) {
-                        const profileSubAuth = ndk.subscribe(
-                            { kinds: [0], authors: pro },
-                            { closeOnEose: true, groupable: true }
-                        );
-                        profileSubAuth.on("event", (pevent: NDKEvent) => {
-                            addProfile(pevent);
-                        });
-                    }
-                    if (lookupProfileName(event.pubkey) == event.pubkey) {
-                        const profileSubAuth = ndk.subscribe(
-                            { kinds: [0], authors: [event.pubkey] },
-                            { closeOnEose: true, groupable: true }
-                        );
-                        profileSubAuth.on("event", (pevent: NDKEvent) => {
-                            addProfile(pevent);
-                        });
-                    }
-                    addPost(event);
-                });
-            } else if (signerFailed) {
-                addToStatus("sign-in required: " + props.relay.name);
+            let normalized_url = nrelaydata + "/";
+            normalized_url = normalized_url.toLowerCase();
+            if (relay.url == normalized_url) {
+                addToStatus("connected: " + props.relay.name);
+                wipePosts();
+                if (!auth) {
+                   eventListener(relay);
+                } else if (signerFailed) {
+                    addToStatus("sign-in required: " + props.relay.name);
+                }
             }
         });
 
@@ -235,7 +216,12 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:authfail", (relay: NDKRelay) => {
-            addToStatus("unauthorized: " + props.relay.name);
+
+            let normalized_url = nrelaydata + "/";
+            normalized_url = normalized_url.toLowerCase();
+            if (relay.url == normalized_url) {
+                addToStatus("unauthorized: " + props.relay.name);
+            }
         });
 
         //const customAuthPolicy =
@@ -679,7 +665,7 @@ export default function PostsPage(
             if (anonPost) {
                 const newSK = generateSecretKey();
                 const newPK = getPublicKey(newSK);
-const event = finalizeEvent(
+                const event = finalizeEvent(
                     {
                         kind: 1,
                         content: replyPost,
@@ -689,20 +675,20 @@ const event = finalizeEvent(
                         ],
                         created_at: Math.floor(Date.now() / 1000),
                     },
-                    newSK,
+                    newSK
                 );
                 const newEvent = new NDKEvent(ndk, event);
                 await newEvent.publish();
-        } else {
-            const newEvent = new NDKEvent(ndk);
-            newEvent.content = replyPost;
-            newEvent.kind = 1;
-            newEvent.tags = [
-                ["p", showPost.pubkey],
-                ["e", showPost.id],
-            ];
-            await newEvent.publish();
-        }
+            } else {
+                const newEvent = new NDKEvent(ndk);
+                newEvent.content = replyPost;
+                newEvent.kind = 1;
+                newEvent.tags = [
+                    ["p", showPost.pubkey],
+                    ["e", showPost.id],
+                ];
+                await newEvent.publish();
+            }
             //clear the form
             setShowPost(undefined);
         }
@@ -1166,7 +1152,7 @@ const event = finalizeEvent(
                                         <div className="w-full bg-gradient-to-r from-gray-600 to-gray-900 items-center h-5 px-3 sm:text-sm text-center mb-4">
                                             - actions -{" "}
                                         </div>
-                                        <ShowSmallSession pubkey={myPubkey}/>
+                                        <ShowSmallSession pubkey={myPubkey} />
                                         <div className="mb-4">
                                             <button
                                                 className="btn uppercase"
