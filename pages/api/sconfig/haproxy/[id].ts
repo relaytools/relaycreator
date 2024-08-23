@@ -297,7 +297,10 @@ frontend unsecured
 	maxconn 10000
 	bind 0.0.0.0:80 name http
 	mode 		        http
-    redirect scheme https code 301 if !{ ssl_fc }
+    acl is_acme_challenge path_beg /.well-known/acme-challenge/
+    use_backend certbot_server if is_acme_challenge
+    http-request allow if is_acme_challenge
+    redirect scheme https code 301 if !is_acme_challenge !{ ssl_fc }
 
 frontend secured
 	bind			0.0.0.0:443 ssl crt /etc/haproxy/certs/${pemName}
@@ -336,6 +339,9 @@ backend main
 	${haproxy_backends_cfg}
 
     ${previewBackend}
+
+backend certbot_server
+    server certbot 127.0.0.1:10000
 
 listen stats
 	bind 0.0.0.0:8888 ssl crt  /etc/haproxy/certs/${pemName}
