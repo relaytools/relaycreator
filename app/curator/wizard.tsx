@@ -6,6 +6,7 @@ import Moderators from "./moderators";
 import { useState } from "react";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
+import { useRouter } from 'next/navigation'
 
 export default function Wizard(
     props: React.PropsWithChildren<{
@@ -262,6 +263,21 @@ export default function Wizard(
             }
         }
     };
+
+    // Advanced
+    // Delete
+    const [deleteModal, setDeleteModal] = useState(false)
+    const router = useRouter();
+    const handleDeleteRelay = async (event: any) => {
+        event.preventDefault();
+        // call to API to delete relay
+        setDeleteModal(false)
+        const response = await fetch(`/api/relay/${props.relay.id}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+        });
+        router.push("/")
+    }
 
     return (
         <div className="flex flex-col lg:items-center lg:justify-center">
@@ -1235,7 +1251,24 @@ export default function Wizard(
                                     DONE
                                 </div>
                             </div>
+
+                
                         </div>
+<div className="divider">Advanced</div>
+
+                <button className="btn uppercase btn-neutral" onClick={() => setDeleteModal(true)}>Delete relay</button>
+                {
+                    deleteModal && <dialog id="delete_modal" className="modal modal-open">
+                        <form className="modal-box bg-gray-900">
+                            <h3 className="text-white">Delete Relay</h3>
+                            <p className="text-base text-sm text-white">Are you SURE you want to delete this relay?</p>
+                            <div className="modal-action flex justify-between">
+                                <button className="btn uppercase" onClick={(e) => handleDeleteRelay(e)}>Yes</button>
+                                <button className="btn uppercase" onClick={() => setDeleteModal(false)}>No</button>
+                            </div>
+                        </form>
+                    </dialog>
+                }
                     </div>
                 </div>
             </div>
