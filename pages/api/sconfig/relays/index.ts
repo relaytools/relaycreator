@@ -52,7 +52,9 @@ export default async function handle(req: any, res: any) {
     if(running && running == "true") {
         const allRelays = await prisma.relay.findMany({
         where: {
-            status: "running",
+            OR: [
+                { status: "running" }, { status: "provision" },
+            ]
         },
         select:
         {
