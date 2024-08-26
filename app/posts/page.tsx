@@ -399,11 +399,16 @@ export default function PostsPage(
                 regex: "nostr:(npub[a-z0-9]+)",
                 replace: (match: string, p1: string) => {
                     var usePub: any;
-                    const decoded = nip19.decode(p1);
-                    usePub = decoded.data;
-                    const prettyName = summarizePubkey(
-                        lookupProfileName(usePub)
-                    );
+                    var prettyName: string
+                    try {
+                        const decoded = nip19.decode(p1);
+                        usePub = decoded.data;
+                        prettyName = summarizePubkey(
+                            lookupProfileName(usePub)
+                        );
+                    } catch {
+                        prettyName = "unknown"
+                    }
                     return {
                         content: "@" + prettyName,
                         className: "link link-primary",
