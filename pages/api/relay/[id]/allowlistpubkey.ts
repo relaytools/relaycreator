@@ -48,15 +48,24 @@ export default async function handle(req: any, res: any) {
     } else if (req.method == "DELETE") {
         // delete AllowList
         const listId = req.query.list_id;
-        if (listId == null) {
-            res.status(500).json({ "error": "no list_id" })
+        const pubkey = req.query.pubkey;
+        if (listId == null && pubkey == null) {
+            res.status(500).json({ "error": "no list_id or pubkey" })
             return
         }
-        await prisma.listEntryPubkey.delete({
-            where: {
-                id: listId,
-            }
-        })
+        if(listId) {
+            await prisma.listEntryPubkey.delete({
+                where: {
+                    id: listId,
+                }
+            })
+        } else if(pubkey) {
+            let pks = await prisma.listEntryPubkey.deleteMany({
+                where: {
+                    pubkey: pubkey,
+                },
+            })
+        }
 
         res.status(200).json({});
     } else {
