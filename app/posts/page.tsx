@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
 import {
@@ -83,6 +83,11 @@ export default function PostsPage(
     const [showKind, setShowKind] = useState("1");
     const [showKindPicker, setShowKindPicker] = useState(false);
     const [anonPost, setAnonPost] = useState(false);
+    const [postContent, setPostContent] = useState("");
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const textareaReplyRef = useRef<HTMLTextAreaElement>(null);
+    const postFormRef = useRef<HTMLFormElement>(null);
+    const replyFormRef = useRef<HTMLFormElement>(null);
 
     const relayLimit = 100;
 
@@ -136,7 +141,11 @@ export default function PostsPage(
             if (pro.length > 0) {
                 // main sub
                 const profilesRelays = NDKRelaySet.fromRelayUrls(
-                    [nrelaydata, "wss://profiles.nostr1.com", "wss://purplepag.es"],
+                    [
+                        nrelaydata,
+                        "wss://profiles.nostr1.com",
+                        "wss://purplepag.es",
+                    ],
                     ndk
                 );
                 const profileSubAuth = ndk.subscribe(
@@ -186,15 +195,14 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
-
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
-            if (kind1Sub != undefined) {
-                kind1Sub.stop();
+                if (kind1Sub != undefined) {
+                    kind1Sub.stop();
+                }
+                addToStatus("disconnected: " + props.relay.name);
             }
-            addToStatus("disconnected: " + props.relay.name);
-        }
         });
 
         ndkPool.on("relay:connect", (relay: NDKRelay) => {
@@ -204,7 +212,7 @@ export default function PostsPage(
                 addToStatus("connected: " + props.relay.name);
                 wipePosts();
                 if (!auth) {
-                   eventListener(relay);
+                    eventListener(relay);
                 } else if (signerFailed) {
                     addToStatus("sign-in required: " + props.relay.name);
                 }
@@ -216,7 +224,6 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:authfail", (relay: NDKRelay) => {
-
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
@@ -399,15 +406,13 @@ export default function PostsPage(
                 regex: "nostr:(npub[a-z0-9]+)",
                 replace: (match: string, p1: string) => {
                     var usePub: any;
-                    var prettyName: string
+                    var prettyName: string;
                     try {
                         const decoded = nip19.decode(p1);
                         usePub = decoded.data;
-                        prettyName = summarizePubkey(
-                            lookupProfileName(usePub)
-                        );
+                        prettyName = summarizePubkey(lookupProfileName(usePub));
                     } catch {
-                        prettyName = "unknown"
+                        prettyName = "unknown";
                     }
                     return {
                         content: "@" + prettyName,
@@ -665,7 +670,8 @@ export default function PostsPage(
         );
     };
 
-    const handleReply = async () => {
+    const handleReply = async (e: any) => {
+        e.preventDefault();
         if (showPost != undefined) {
             if (anonPost) {
                 const newSK = generateSecretKey();
@@ -696,6 +702,7 @@ export default function PostsPage(
             }
             //clear the form
             setShowPost(undefined);
+            setReplyPost("");
         }
     };
 
@@ -755,6 +762,7 @@ export default function PostsPage(
 
     const handleClosePost = async () => {
         setShowPost(undefined);
+        setReplyPost("");
         setShowImages(false);
     };
 
@@ -790,6 +798,7 @@ export default function PostsPage(
 
         //clear the form
         form.elements[0].value = "";
+        setPostContent("");
     };
 
     const handleChangeKind = async (e: any) => {
@@ -811,6 +820,41 @@ export default function PostsPage(
             return true;
         } else {
             return false;
+        }
+    };
+
+    // textarea effects: auto expand multi-line
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [postContent]);
+
+    useEffect(() => {
+        if (textareaReplyRef.current) {
+            textareaReplyRef.current.style.height = "auto";
+            textareaReplyRef.current.style.height = `${textareaReplyRef.current.scrollHeight}px`;
+        }
+    }, [replyPost]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && e.shiftKey) {
+            e.preventDefault();
+            postFormRef.current?.dispatchEvent(
+                new Event("submit", { cancelable: true, bubbles: true })
+            );
+        }
+    };
+
+    const handleKeyDownReply = (
+        e: React.KeyboardEvent<HTMLTextAreaElement>
+    ) => {
+        if (e.key === "Enter" && e.shiftKey) {
+            e.preventDefault();
+            replyFormRef.current?.dispatchEvent(
+                new Event("submit", { cancelable: true, bubbles: true })
+            );
         }
     };
 
@@ -996,15 +1040,23 @@ export default function PostsPage(
                     {displayRelayStatus()}
                 </div>
 
-                <div className="flex w-full items-center justify-center">
-                    <form onSubmit={(e) => handleSubmitPost(e)} className="">
-                        <input
-                            type="text"
+                <div className="w-full p-2">
+                    <form
+                        ref={postFormRef}
+                        onSubmit={(e) => handleSubmitPost(e)}
+                        className="flex flex-wrap w-full items-center justify-center"
+                    >
+                        <textarea
+                            ref={textareaRef}
                             key="post1"
                             placeholder="say something"
-                            className="input input-bordered input-primary"
+                            className="flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none overflow-hidden"
+                            onChange={(e) => setPostContent(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            value={postContent}
+                            rows={1}
                         />
-                        <button className="btn uppercase btn-primary">
+                        <button className="btn uppercase btn-primary justify-end">
                             Post
                         </button>
                         {!showKindPicker && (
@@ -1012,7 +1064,7 @@ export default function PostsPage(
                                 onClick={(e) => setShowKindPicker(true)}
                                 value={showKind}
                                 key={showKind}
-                                className="btn btn-secondary ml-4"
+                                className="btn btn-secondary ml-2"
                             >
                                 kind: {showKind}
                             </button>
@@ -1048,7 +1100,10 @@ export default function PostsPage(
                             key={"my_modal_5" + showPost.id}
                             className="modal modal-top modal-open sm:modal-middle h-auto"
                         >
-                            <form method="dialog" className="modal-box w-full">
+                            <form method="dialog" className="modal-box w-full"
+                                        ref={replyFormRef}
+                                        onSubmit={(e) => handleReply(e)}
+                            >
                                 <div className="flex justify-end">
                                     <div
                                         className="btn uppercase"
@@ -1134,22 +1189,25 @@ export default function PostsPage(
                                     </div>
                                 )}
 
-                                <div className="flex items-center justify-center mb-4 mt-2">
-                                    <input
-                                        onChange={(e) =>
-                                            setReplyPost(e.target.value)
-                                        }
-                                        type="text"
-                                        key="replypost"
-                                        placeholder="send reply"
-                                        className="input input-bordered input-primary w-full"
-                                    />
-                                    <button
-                                        className="btn uppercase btn-primary"
-                                        onClick={() => handleReply()}
-                                    >
-                                        reply
-                                    </button>
+                                <div className="flex flex-wrap items-center justify-center mb-4 mt-2">
+                                        <textarea
+                                            ref={textareaReplyRef}
+                                            key="replypost"
+                                            placeholder="send reply"
+                                            className="flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none overflow-hidden"
+                                            onChange={(e) =>
+                                                setReplyPost(e.target.value)
+                                            }
+                                            onKeyDown={handleKeyDownReply}
+                                            value={replyPost}
+                                            rows={1}
+                                        />
+                                        <button
+                                            className="btn uppercase btn-primary"
+                                            onClick={(e) => handleReply(e)}
+                                        >
+                                            reply
+                                        </button>
                                 </div>
 
                                 {modActions && (
