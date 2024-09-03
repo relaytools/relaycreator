@@ -20,6 +20,9 @@ importers:
       '@react-spring/web':
         specifier: ^9.7.4
         version: 9.7.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tailwindcss/typography':
+        specifier: ^0.5.13
+        version: 0.5.13(tailwindcss@3.4.6)
       '@types/node':
         specifier: 20.14.12
         version: 20.14.12
@@ -35,6 +38,12 @@ importers:
       alby-js-sdk:
         specifier: ^2.3.0
         version: 2.3.0
+      autoprefixer:
+        specifier: ^10.4.19
+        version: 10.4.19(postcss@8.4.39)
+      daisyui:
+        specifier: ^4.12.10
+        version: 4.12.10(postcss@8.4.39)
       lnbits:
         specifier: github:jeremyd/lnbits-js#noyarn
         version: https://codeload.github.com/jeremyd/lnbits-js/tar.gz/9915074c76adec5228a455c23204aebb5f6b87ae
@@ -53,6 +62,15 @@ importers:
       nostr-tools:
         specifier: ^2.7.1
         version: 2.7.1(typescript@5.5.4)
+      postcss:
+        specifier: ^8.4.39
+        version: 8.4.39
+      postcss-preset-env:
+        specifier: ^9.6.0
+        version: 9.6.0(postcss@8.4.39)
+      prisma:
+        specifier: ^5.18.0
+        version: 5.18.0
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -65,34 +83,15 @@ importers:
       react-icons:
         specifier: ^5.2.1
         version: 5.2.1(react@18.3.1)
+      tailwindcss:
+        specifier: ^3.4.6
+        version: 3.4.6
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
       usehooks-ts:
         specifier: ^3.1.0
         version: 3.1.0(react@18.3.1)
-    devDependencies:
-      '@tailwindcss/typography':
-        specifier: ^0.5.13
-        version: 0.5.13(tailwindcss@3.4.6)
-      autoprefixer:
-        specifier: ^10.4.19
-        version: 10.4.19(postcss@8.4.39)
-      daisyui:
-        specifier: ^4.12.10
-        version: 4.12.10(postcss@8.4.39)
-      postcss:
-        specifier: ^8.4.39
-        version: 8.4.39
-      postcss-preset-env:
-        specifier: ^9.6.0
-        version: 9.6.0(postcss@8.4.39)
-      prisma:
-        specifier: ^5.18.0
-        version: 5.18.0
-      tailwindcss:
-        specifier: ^3.4.6
-        version: 3.4.6
 
 packages:
 
