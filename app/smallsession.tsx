@@ -9,7 +9,8 @@ export default function ShowSmallSession(
         pubkey: string;
     }>
 ) {
-    const doNip07Login = async () => {
+    const doNip07Login = async (e: any) => {
+        e.preventDefault();
         // call to api to get a LoginToken
 
         const tokenResponse = await fetch(`/api/auth/logintoken`, {
@@ -120,7 +121,7 @@ export default function ShowSmallSession(
             {!session ? (
                 <div className="text-center items-center">
                 <button
-                    onClick={doNip07Login}
+                    onClick={(e) => doNip07Login(e)}
                     className="btn btn-primary uppercase ml-2"
                 >
                     sign-in for mod actions
