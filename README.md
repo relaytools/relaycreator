@@ -10,6 +10,13 @@ The rest can be left as default.
 cp env.develop .env
 ```
 
+Initially you may need to install packages using pnpm due to github dependencies:
+
+```bash
+sudo npm install -g pnpm # if you don't have pnpm
+pnpm install
+```
+
 Next, run the development server:
 
 ```bash
