@@ -55,6 +55,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
         // check for hex chars
         const validHex = /^[0-9a-fA-F]{64}$/.test(pubkey)
         const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey)
+        setPubkeyError("")
         if (validHex) {
             setPubkeyError("✅")
             setPubkeyErrorDescription("")
@@ -87,7 +88,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     }
 
     function isValidForm() {
-        if (pubkey != "" && pubkeyError == "" && nameError == "" && name != "") {
+        if (pubkey != "" && pubkeyError == "✅" && nameError == "" && name != "") {
             return true
         } else {
             return false
