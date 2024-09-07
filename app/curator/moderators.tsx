@@ -100,6 +100,10 @@ export default function Moderators(
             newMods.push({ id: j.id, user: { pubkey: submitHex } });
             setModerators(newMods);
             setPubkey("");
+        } else {
+            const j = await response.json();
+            setPubkeyError("❌");
+            setPubkeyErrorDescription(j.error);
         }
     };
 
