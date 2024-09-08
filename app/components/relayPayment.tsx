@@ -25,11 +25,15 @@ export default function RelayPayment(
     const router = useRouter();
 
     function setAndValidatePubkey(pubkey: string) {
-        setPubkey(pubkey);
+        // some clients hand out MALFORMED npubs with mixed case :()
+        const lowerPubkey = pubkey.toLowerCase()
+        setPubkey(lowerPubkey);
+
         // use javascript regex to detect if length is 64 characters
         const validHex = /^[0-9a-fA-F]{64}$/.test(pubkey);
+
         // use javascript regex to detect if pubkey starts with npub
-        const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey);
+        const validNpub = /npub1[023456789acdefghjklmnpqrstuvwxyz]{6,}/.test(lowerPubkey);
 
         if (validHex) {
             setPubkeyError("✅");
