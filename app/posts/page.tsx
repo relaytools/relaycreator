@@ -403,7 +403,9 @@ export default function PostsPage(
         }
         const substrings = [
             {
-                regex: "nostr:(npub[a-z0-9]+)",
+                // full BECH32 regex for reference
+                //regex: /[\x21-\x7E]{1,83}1[023456789acdefghjklmnpqrstuvwxyz]{6,}/,
+                regex: "nostr:(npub1[023456789acdefghjklmnpqrstuvwxyz]{6,})",
                 replace: (match: string, p1: string) => {
                     var usePub: any;
                     var prettyName: string;
@@ -421,21 +423,21 @@ export default function PostsPage(
                 },
             },
             {
-                regex: "(nostr:nevent[a-z,0-9]+)",
+                regex: "(nostr:nevent1[023456789acdefghjklmnpqrstuvwxyz]{6,})",
                 replace: () => ({
                     content: "<nevent>",
                     className: "font-condensed",
                 }),
             },
             {
-                regex: "(nostr:nprofile[a-z,0-9]+)",
+                regex: "(nostr:nprofile1[023456789acdefghjklmnpqrstuvwxyz]{6,})",
                 replace: () => ({
                     content: "<nprofile>",
                     className: "font-condensed",
                 }),
             },
             {
-                regex: "(nostr:note[a-z,0-9]+)",
+                regex: "(nostr:note1[023456789acdefghjklmnpqrstuvwxyz]{6,})",
                 replace: () => ({
                     content: "<note1>",
                     className: "font-condensed",
@@ -452,20 +454,6 @@ export default function PostsPage(
                 regex: "(https?://[^\\s,^\\n]+)",
                 replace: () => ({
                     content: "<link>",
-                    className: "link link-secondary",
-                }),
-            },
-            {
-                regex: "lnbc[a-z,0-9]+",
-                replace: () => ({
-                    content: "<invoice>",
-                    className: "link link-secondary",
-                }),
-            },
-            {
-                regex: "bc1[a-z,0-9]+",
-                replace: () => ({
-                    content: "<btcaddr>",
                     className: "link link-secondary",
                 }),
             },
