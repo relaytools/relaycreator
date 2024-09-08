@@ -3,7 +3,7 @@ import { useState } from "react";
 import NDK from "@nostr-dev-kit/ndk";
 import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk";
 import { useSession } from "next-auth/react";
-import { validatePubkey } from "../../lib/pubkeyValidation";
+import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 
 type ListEntryPubkey = {
     pubkey: string;
@@ -94,7 +94,7 @@ export default function ListEntryPubkeys(
         const id = event.currentTarget.id;
         console.log(event.currentTarget.id);
         // call to API to add new keyword
-        const validPubkey = validatePubkey(pubkey);
+        const validPubkey = convertOrValidatePubkey(pubkey);
         if (validPubkey) {
             const response = await fetch(
                 `/api/relay/${props.relay_id}/${idkind}pubkey`,
