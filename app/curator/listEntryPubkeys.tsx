@@ -101,7 +101,10 @@ export default function ListEntryPubkeys(
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ pubkey: validPubkey, reason: reason }),
+                    body: JSON.stringify({
+                        pubkey: validPubkey,
+                        reason: reason,
+                    }),
                 }
             );
 
@@ -159,18 +162,28 @@ export default function ListEntryPubkeys(
                 if (name[0][1] == listName) {
                     const pubkeysFromList = n.getMatchingTags("p");
                     pubkeysFromList.forEach((pk) => {
+                        const validKey = convertOrValidatePubkey(pk[1]);
+                        if (validKey != null) {
+                            stringPubkeysFromList.push(validKey);
+                        }
                         stringPubkeysFromList.push(pk[1]);
                     });
                 }
             } else if (n.kind == 10000 && listName == "mute") {
                 const pubkeysFromList = n.getMatchingTags("p");
                 pubkeysFromList.forEach((pk) => {
-                    stringPubkeysFromList.push(pk[1]);
+                    const validKey = convertOrValidatePubkey(pk[1]);
+                    if (validKey != null) {
+                        stringPubkeysFromList.push(validKey);
+                    }
                 });
             } else if (n.kind == 3 && listName == "follows") {
                 const pubkeysFromList = n.getMatchingTags("p");
                 pubkeysFromList.forEach((pk) => {
-                    stringPubkeysFromList.push(pk[1]);
+                    const validKey = convertOrValidatePubkey(pk[1]);
+                    if (validKey != null) {
+                        stringPubkeysFromList.push(validKey);
+                    }
                 });
             }
         });
@@ -203,9 +216,12 @@ export default function ListEntryPubkeys(
         const listName = e.currentTarget.id;
         const postThese = getPubkeysFromList(listName);
 
-        let simplePub = ""
-        if(session && session.user?.name) {
-            simplePub = session.user.name.slice(0,4) + "." + session.user.name.slice(-4)
+        let simplePub = "";
+        if (session && session.user?.name) {
+            simplePub =
+                session.user.name.slice(0, 4) +
+                "." +
+                session.user.name.slice(-4);
         }
 
         // remove from UI, the current selected list: items
