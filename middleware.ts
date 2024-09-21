@@ -27,7 +27,10 @@ export async function middleware(req: NextRequest) {
         const url = req.nextUrl.clone();
 
         // Skip public files
-        if (PUBLIC_FILE.test(url.pathname) || url.pathname.includes('_next') || url.pathname.includes('/api/')) return;
+        // it skips .well-known
+        if (!url.pathname.includes("/.well-known/nostr.json")) {
+            if (PUBLIC_FILE.test(url.pathname) || url.pathname.includes('_next') || url.pathname.includes('/api/'))  return;
+        }
 
         const host = req.headers.get('host')?.toLowerCase();
 
@@ -40,10 +43,23 @@ export async function middleware(req: NextRequest) {
         if (host == "relay.tools" || host == skipThis || host?.includes("10.0") || host?.includes("192.168") || host?.includes("127.0")) return
 
         const subdomain = getValidSubdomain(host);
+
         if (subdomain) {
-            // Subdomain available, rewriting
-            console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);
-            url.pathname = `/relays/${subdomain}/${url.pathname}`;
+            if(url.pathname.includes('.well-known/nostr.json')) {
+                // nip05 for subdomains
+                console.log(`>>> Rewriting for nip05: ${url.pathname} to ->`)
+                url.pathname = `/api/nip05/${host}`;
+            } else {
+                // Subdomain available, rewriting
+                console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);
+                url.pathname = `/relays/${subdomain}/${url.pathname}`;
+            }
+        } else {
+            if(url.pathname.includes('/.well-known/nostr.json')) {
+                // root domains nip05
+                console.log(`>>> Rewriting for nip05: ${url.pathname} to ->`)
+                url.pathname = `/api/nip05/${host}`;
+            }
         }
 
         const requestHeaders = new Headers(req.headers)
