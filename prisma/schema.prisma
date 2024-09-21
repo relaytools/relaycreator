@@ -71,7 +71,6 @@ model RelayUrl {
     id  String  @id @default(cuid())
     nip05   Nip05  @relation(fields: nip05Id, references: [id])
     nip05Id String
-    relayId String
     url String
 
     @@index([nip05Id])

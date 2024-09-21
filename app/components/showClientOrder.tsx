@@ -59,7 +59,7 @@ export default function ShowClientOrder(
                     Copy ⚡ invoice to clipboard
                 </button>
             </div>
-            {status && <div>success<ZapAnimation redirect_to="/?successpayment=true"></ZapAnimation></div>}
+            {status && <div>success<ZapAnimation redirect_to=""></ZapAnimation></div>}
             {!status && <div>waiting</div>}
         </div>
     )

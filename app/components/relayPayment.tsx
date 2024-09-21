@@ -84,6 +84,7 @@ export default function RelayPayment(
     };
 
     let alreadyPaid = false
+
     if(props.relay.allow_list && props.pubkey != null) {
         props.relay.allow_list.list_pubkeys.map((p) => {
             var usePub: any
@@ -99,6 +100,9 @@ export default function RelayPayment(
             }
         })
     }
+    // to display their nip05 here, we need to get passed in, nip05 name/domain.. (already have pubkey)
+    let alreadyNip05 = false
+
 
     // flow
     // 1. user enters pubkey and clicks pay
@@ -117,7 +121,7 @@ export default function RelayPayment(
                             <div className="lg:text-lg">
                                 This relay requires payment of{" "}
                                 {props.relay.payment_amount} sats to post. ⚡
-                                {alreadyPaid && <div className="text-sm text-green-600">You've already paid for this relay.</div>}
+                                {alreadyPaid && <div className="text-sm text-green-600">You've already paid for this relay, <a className="link-secondary" href={`${rootDomain}` + "/nip05"}>got nip05?</a></div>}
                             </div>
                             {showPubkeyInput && (
 
