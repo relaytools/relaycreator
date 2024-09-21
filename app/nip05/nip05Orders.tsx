@@ -41,13 +41,17 @@ export default function Nip05Orders(
             }
         );
 
+        const nip05Order = await response.json();
         if (response.ok) {
             // do response for nip05 order..
-            const nip05Order = await response.json();
             setNip05Order(nip05Order.nip05Order);
             setShowPubkeyInput(false);
             setShowSpinner(false);
             setShowInvoice(true);
+        } else {
+            if (nip05Order["error"]) setPubkeyError("error: ");
+            setPubkeyErrorDescription(nip05Order.error);
+            setShowSpinner(false);
         }
     };
 
@@ -55,20 +59,68 @@ export default function Nip05Orders(
         <div className="p-4">
             <div className="mt-4">
                 <h2 className="text-lg font-bold">Your Nip05s</h2>
-                <ul>
+                <div className="flex flex-col mb-4 bg-gradient-to-r from-accent to-base-100 p-4">
                     {props.user.nip05Orders.map(
                         (nip05Order: any, index: number) => (
-                            <li
+                            <div
+                                className="flex flex-col border mb-4"
                                 key={index + "-nip05orders123"}
-                                className="mt-2"
                             >
-                                {nip05Order.nip05.name}
-                                {"@"}
-                                {nip05Order.nip05.domain}
-                            </li>
+                                <div className="w-1/2 text-lg font-condensed">
+                                    {nip05Order.nip05.name}
+                                    {"@"}
+                                    {nip05Order.nip05.domain}
+                                </div>
+                                <div className="flex">
+                                    {nip05Order.paid && (
+                                        <div className="w-1/2">
+                                            Active Since
+                                        </div>
+                                    )}
+                                    {!nip05Order.paid && (
+                                        <div className="w-1/2">
+                                            Waiting Activation
+                                        </div>
+                                    )}
+                                    <div className="w-1/2">
+                                        {nip05Order.paid && nip05Order.paid_at
+                                            ? new Date(
+                                                  nip05Order.paid_at
+                                              ).toLocaleString()
+                                            : ""}
+                                    </div>
+                                    
+                                </div>
+                                {!nip05Order.paid && (
+                                    <div>
+                                        <div className="w-1/2">Expires At</div>
+                                        <div className="w-1/2">
+                                            {nip05Order.expires_at
+                                                ? new Date(
+                                                      nip05Order.expires_at
+                                                  ).toLocaleString()
+                                                : ""}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex border-t">
+                                    <div className="w-1/2">
+                                        Relay Urls
+                                    </div>
+
+                                    <div className="w-full">
+                                        {nip05Order.nip05.relayUrls.map((o: any) => <div className="flex-grow overflow-hidden">{o.url}</div>)}
+                                    </div>
+                                </div>
+                                {nip05Order.paid && (
+                                        <button className="btn-secondary btn">
+                                            edit
+                                        </button>
+                                )}
+                            </div>
                         )
                     )}
-                </ul>
+                </div>
             </div>
             <div className="mt-4">
                 <h2 className="text-lg font-bold">Create New Nip05</h2>
@@ -105,6 +157,10 @@ export default function Nip05Orders(
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    <div className="text-bold text-sm text-error">
+                        {pubkeyError}
+                        {pubkeyErrorDescription}
                     </div>
                     <div className="form-control mt-4">
                         <button type="submit" className="btn btn-primary">
