@@ -203,12 +203,17 @@ export default function ListEntryPubkeys(
         const listName = e.currentTarget.id;
         const postThese = getPubkeysFromList(listName);
 
+        let simplePub = ""
+        if(session && session.user?.name) {
+            simplePub = session.user.name.slice(0,4) + "." + session.user.name.slice(-4)
+        }
+
         // remove from UI, the current selected list: items
         let newlist: ListEntryPubkey[] = [];
         pubkeys.forEach((entry) => {
             if (
                 entry.reason?.startsWith("list:") &&
-                entry.reason?.split(":")[1] != listName
+                entry.reason?.split(":")[1] != simplePub + listName
             ) {
                 newlist.push(entry);
             } else if (!entry.reason?.startsWith("list:")) {
@@ -217,7 +222,7 @@ export default function ListEntryPubkeys(
         });
 
         // post to API, pubkeys with reason set to listname
-        const thisReason = "list:" + listName;
+        const thisReason = "list:" + simplePub + listName;
         const response = await fetch(
             `/api/relay/${props.relay_id}/${idkind}pubkeys`,
             {
