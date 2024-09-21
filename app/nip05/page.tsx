@@ -21,7 +21,11 @@ export default async function Nip05Page(searchParams: Record<string, string>) {
         include: {
             nip05Orders: {
                 include: {
-                    nip05: true,
+                    nip05: {
+                        include: {
+                            relayUrls: true,
+                        }
+                    }
                 },
             },
         },
@@ -78,7 +82,7 @@ export default async function Nip05Page(searchParams: Record<string, string>) {
     const combinedRelays = [...userOwnedRelays, ...userModeratedRelays];
 
     // Create an array of strings combining the domain and name of the relay
-    const relayDomainNames = combinedRelays.map(
+    let relayDomainNames = combinedRelays.map(
         (relay) => `${relay.name}.${relay.domain}`
     );
 
@@ -94,12 +98,12 @@ export default async function Nip05Page(searchParams: Record<string, string>) {
                 }
             });
             if (found) {
-                relayDomainNames.push(r.name + " " + r.domain);
+                relayDomainNames.push(r.name + "." + r.domain);
             }
         }
     });
 
-    console.log(relayDomainNames);
+    relayDomainNames = Array.from(new Set(relayDomainNames));
 
     return <Nip05Orders user={user} domains={relayDomainNames}></Nip05Orders>;
 }

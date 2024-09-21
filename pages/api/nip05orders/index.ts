@@ -81,7 +81,7 @@ export default async function handle(req: any, res: any) {
                 }
             });
             if (found) {
-                relayDomainNames.push(r.name + " " + r.domain);
+                relayDomainNames.push(r.name + "." + r.domain);
             }
         }
     });
@@ -101,7 +101,7 @@ export default async function handle(req: any, res: any) {
 
     if(nip05 != null) {
         console.log("nip05 already exists")
-        res.status(500).json({ "error": "nip05 already taken" })
+        res.status(500).json({ "error": "name already exists" })
         return
     }
 
