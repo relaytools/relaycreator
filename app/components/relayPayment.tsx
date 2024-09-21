@@ -19,9 +19,6 @@ export default function RelayPayment(
     const [showInvoice, setShowInvoice] = useState(false);
     const [clientOrder, setClientOrder] = useState({} as any);
     const [showSpinner, setShowSpinner] = useState(false);
-
-    const { data: session, status } = useSession();
-
     const router = useRouter();
 
     function setAndValidatePubkey(pubkey: string) {

@@ -20,6 +20,7 @@ model User {
   relays    Relay[]
   moderator Moderator[]
   admin     Boolean @default(false)
+  nip05Orders Nip05Order[]
 
   @@index([id])
 }
@@ -54,6 +55,41 @@ model ClientOrder {
   amount       Int       @default(21)
 
   @@index([relayId])
+}
+
+model Nip05 {
+    id  String  @id @default(cuid())
+    pubkey String
+    name String
+    domain String
+    relayUrls RelayUrl[]
+    nip05Orders Nip05Order[]
+}
+
+// used by nip05
+model RelayUrl {
+    id  String  @id @default(cuid())
+    nip05   Nip05  @relation(fields: nip05Id, references: [id])
+    nip05Id String
+    relayId String
+    url String
+
+    @@index([nip05Id])
+}
+
+model Nip05Order {
+  id           String    @id @default(cuid())
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String
+  status       String    @db.VarChar(255)
+  paid         Boolean   @default(false)
+  payment_hash String    @db.VarChar(64)
+  lnurl        String    @db.VarChar(1024)
+  expires_at   DateTime?
+  paid_at      DateTime?
+  amount       Int       @default(21000)
+  nip05        Nip05  @relation(fields: [nip05Id], references: [id])
+  nip05Id      String
 }
 
 model Relay {
