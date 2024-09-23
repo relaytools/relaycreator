@@ -5,13 +5,10 @@ import authOptions from "../../pages/api/auth/[...nextauth]";
 import { UserWithNip05s } from "../components/userWithNip05s";
 
 export default async function Nip05Page(searchParams: Record<string, string>) {
-
     const session = await getServerSession(authOptions);
 
-    if(!session) {
-        return(
-            <div>login required</div>
-        )
+    if (!session) {
+        return <div>login required</div>;
     }
 
     const user = await prisma.user.findFirst({
@@ -24,25 +21,20 @@ export default async function Nip05Page(searchParams: Record<string, string>) {
                     nip05: {
                         include: {
                             relayUrls: true,
-                        }
-                    }
+                        },
+                    },
                 },
             },
         },
     });
 
-    if(user == null) {
-        return(
-            <div>user not found</div>
-        )
+    if (user == null) {
+        return <div>user not found</div>;
     }
 
     const relays = await prisma.relay.findMany({
         where: {
-            OR: [
-                {status: "running"},
-                {status: "provision"},
-            ]
+            OR: [{ status: "running" }, { status: "provision" }],
         },
         include: {
             owner: true,
@@ -88,20 +80,26 @@ export default async function Nip05Page(searchParams: Record<string, string>) {
 
     // is a member of
     let userRelays = [];
-    relays.forEach((r) => {
-        if (r.allow_list != null) {
-            let found = false;
-            r.allow_list.list_pubkeys.forEach((p) => {
-                //todo bech32 matches
-                if (p.pubkey == user.pubkey) {
-                    found = true;
+    if (user.admin) {
+        relays.forEach((r) => {
+            relayDomainNames.push(r.name + "." + r.domain);
+        });
+    } else {
+        relays.forEach((r) => {
+            if (r.allow_list != null) {
+                let found = false;
+                r.allow_list.list_pubkeys.forEach((p) => {
+                    //todo bech32 matches
+                    if (p.pubkey == user.pubkey) {
+                        found = true;
+                    }
+                });
+                if (found) {
+                    relayDomainNames.push(r.name + "." + r.domain);
                 }
-            });
-            if (found) {
-                relayDomainNames.push(r.name + "." + r.domain);
             }
-        }
-    });
+        });
+    }
 
     relayDomainNames = Array.from(new Set(relayDomainNames));
 
