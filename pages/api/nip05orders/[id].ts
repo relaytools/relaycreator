@@ -57,6 +57,7 @@ export default async function handle(req: any, res: any) {
             },
             data: {
                 paid: true,
+                status: "active",
                 paid_at: new Date(),
             }
         })
