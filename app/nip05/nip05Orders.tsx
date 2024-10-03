@@ -6,6 +6,14 @@ import ShowClientOrder from "../components/showClientOrder";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
 import ShowNip05Order from "../components/showNip05Order";
+import {
+    Label,
+    Listbox,
+    ListboxButton,
+    ListboxOption,
+    ListboxOptions,
+} from "@headlessui/react";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 export default function Nip05Orders(
     props: React.PropsWithChildren<{
@@ -69,30 +77,32 @@ export default function Nip05Orders(
     };
 
     const handleRemoveRelayUrl = (urlToRemove: string) => {
-        setEditingRelayUrls(editingRelayUrls.filter(url => url !== urlToRemove));
+        setEditingRelayUrls(
+            editingRelayUrls.filter((url) => url !== urlToRemove)
+        );
     };
 
     const handleSaveEdit = async () => {
         if (!editingOrderId) return;
 
         try {
-            const response = await fetch(`${rootDomain}/api/nip05/${editingOrderId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ relayUrls: editingRelayUrls }),
-            });
+            const response = await fetch(
+                `${rootDomain}/api/nip05/${editingOrderId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ relayUrls: editingRelayUrls }),
+                }
+            );
 
             if (response.ok) {
                 // Update the local state to reflect the changes
-                const updatedOrders = props.user.nip05Orders.map(order => 
-                    order.id === editingOrderId 
-                        ? { ...order, nip05: { ...order.nip05, relayUrls: editingRelayUrls.map(url => ({ url })) } }
-                        : order
-                );
                 // Note: You might need to implement a way to update the user prop here
                 // This depends on how you're managing state in your Next.js app
+                // TODO
+
                 setEditingOrderId(null);
             } else {
                 console.error("Failed to update relay URLs");
@@ -120,26 +130,53 @@ export default function Nip05Orders(
                             required
                         />
                     </div>
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Nip05 Domain</span>
-                        </label>
-                        <select
-                            value={nip05Domain}
-                            onChange={(e) => setNip05Domain(e.target.value)}
-                            className="dropdown menu"
-                            required
-                        >
-                            <option value="" disabled>
-                                Select Nip05 domain
-                            </option>
-                            {props.domains.map((domain, index) => (
-                                <option key={index} value={domain}>
-                                    {domain}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+
+                    <Listbox
+                        value={nip05Domain}
+                        onChange={(e) => setNip05Domain(e)}
+                    >
+                        <Label className="label-text leading-6">
+                            Nip05 Domain
+                        </Label>
+                        <div className="relative mt-2">
+                            <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                <span className="block truncate">
+                                    {nip05Domain || "Select a Nip05 Domain"}
+                                </span>
+                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                    <ChevronUpDownIcon
+                                        aria-hidden="true"
+                                        className="h-5 w-5 text-gray-400"
+                                    />
+                                </span>
+                            </ListboxButton>
+
+                            <ListboxOptions
+                                transition
+                                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
+                            >
+                                {props.domains.map((domain, index) => (
+                                    <ListboxOption
+                                        key={domain + index}
+                                        value={domain}
+                                        className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
+                                    >
+                                        <span className="block truncate font-normal group-data-[selected]:font-semibold">
+                                            {domain}
+                                        </span>
+
+                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
+                                            <CheckIcon
+                                                aria-hidden="true"
+                                                className="h-5 w-5"
+                                            />
+                                        </span>
+                                    </ListboxOption>
+                                ))}
+                            </ListboxOptions>
+                        </div>
+                    </Listbox>
+
                     <div className="text-bold text-sm text-error">
                         {pubkeyError}
                         {pubkeyErrorDescription}
@@ -153,98 +190,151 @@ export default function Nip05Orders(
                 {showSpinner && (
                     <span className="loading loading-spinner text-primary" />
                 )}
-                {showInvoice && (
-                    <ShowNip05Order nip05Order={nip05Order} />
-                )}
+                {showInvoice && <ShowNip05Order nip05Order={nip05Order} />}
                 <h2 className="text-lg font-bold mt-8">Your Nip05s</h2>
                 <div className="flex flex-col mb-4 bg-gradient-to-r from-accent to-base-100 p-4">
-                    {props.user.nip05Orders.map((nip05Order: any, index: number) => (
-                        <div className="flex flex-col border mb-4" key={index + "-nip05orders123"}>
-                            <div className="w-1/2 text-lg font-condensed">
-                                {nip05Order.nip05.name}@{nip05Order.nip05.domain}
-                            </div>
-                            <div className="flex">
-                                {nip05Order.paid && (
-                                    <div className="w-1/2">Active Since</div>
-                                )}
-                                {!nip05Order.paid && (
-                                    <div className="w-1/2">Waiting Activation</div>
-                                )}
-                                <div className="w-1/2">
-                                    {nip05Order.paid && nip05Order.paid_at
-                                        ? new Date(nip05Order.paid_at).toLocaleString()
-                                        : ""}
+                    {props.user.nip05Orders.map(
+                        (nip05Order: any, index: number) => (
+                            <div
+                                className="flex flex-col border mb-4"
+                                key={index + "-nip05orders123"}
+                            >
+                                <div className="w-1/2 text-lg font-condensed">
+                                    {nip05Order.nip05.name}@
+                                    {nip05Order.nip05.domain}
                                 </div>
-                            </div>
-                            {!nip05Order.paid && (
-                                <div>
-                                    <div className="w-1/2">Expires At</div>
+                                <div className="flex">
+                                    {nip05Order.paid && (
+                                        <div className="w-1/2">
+                                            Active Since
+                                        </div>
+                                    )}
+                                    {!nip05Order.paid && (
+                                        <div className="w-1/2">
+                                            Waiting Activation
+                                        </div>
+                                    )}
                                     <div className="w-1/2">
-                                        {nip05Order.expires_at
-                                            ? new Date(nip05Order.expires_at).toLocaleString()
+                                        {nip05Order.paid && nip05Order.paid_at
+                                            ? new Date(
+                                                  nip05Order.paid_at
+                                              ).toLocaleString()
                                             : ""}
                                     </div>
                                 </div>
-                            )}
-                            <div className="flex border-t">
-                                <div className="w-1/2">Relay Urls</div>
-                                <div className="w-full">
-                                    {editingOrderId === nip05Order.nip05.id ? (
-                                        <div>
-                                            {editingRelayUrls.map((url, idx) => (
-                                                <div key={idx} className="flex items-center mb-2">
-                                                    <span className="flex-grow">{url}</span>
+                                {!nip05Order.paid && (
+                                    <div>
+                                        <div className="w-1/2">Expires At</div>
+                                        <div className="w-1/2">
+                                            {nip05Order.expires_at
+                                                ? new Date(
+                                                      nip05Order.expires_at
+                                                  ).toLocaleString()
+                                                : ""}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex border-t">
+                                    <div className="w-1/2">Relay Urls</div>
+                                    <div className="w-full">
+                                        {editingOrderId ===
+                                        nip05Order.nip05.id ? (
+                                            <div>
+                                                {editingRelayUrls.map(
+                                                    (url, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="flex items-center mb-2"
+                                                        >
+                                                            <span className="flex-grow">
+                                                                {url}
+                                                            </span>
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleRemoveRelayUrl(
+                                                                        url
+                                                                    )
+                                                                }
+                                                                className="btn btn-xs btn-error ml-2"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    )
+                                                )}
+                                                <div className="flex items-center mt-2">
+                                                    <input
+                                                        type="text"
+                                                        value={newRelayUrl}
+                                                        onChange={(e) =>
+                                                            setNewRelayUrl(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="New relay URL"
+                                                        className="input input-bordered flex-grow"
+                                                    />
                                                     <button
-                                                        onClick={() => handleRemoveRelayUrl(url)}
-                                                        className="btn btn-xs btn-error ml-2"
+                                                        onClick={
+                                                            handleAddRelayUrl
+                                                        }
+                                                        className="btn btn-xs btn-success ml-2"
                                                     >
-                                                        Remove
+                                                        Add
                                                     </button>
                                                 </div>
-                                            ))}
-                                            <div className="flex items-center mt-2">
-                                                <input
-                                                    type="text"
-                                                    value={newRelayUrl}
-                                                    onChange={(e) => setNewRelayUrl(e.target.value)}
-                                                    placeholder="New relay URL"
-                                                    className="input input-bordered flex-grow"
-                                                />
-                                                <button
-                                                    onClick={handleAddRelayUrl}
-                                                    className="btn btn-xs btn-success ml-2"
-                                                >
-                                                    Add
-                                                </button>
+                                                <div className="mt-4">
+                                                    <button
+                                                        onClick={handleSaveEdit}
+                                                        className="btn btn-primary mr-2"
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            setEditingOrderId(
+                                                                null
+                                                            )
+                                                        }
+                                                        className="btn"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="mt-4">
-                                                <button onClick={handleSaveEdit} className="btn btn-primary mr-2">
-                                                    Save
-                                                </button>
-                                                <button onClick={() => setEditingOrderId(null)} className="btn">
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        nip05Order.nip05.relayUrls.map((o: any) => (
-                                            <div key={o.url} className="flex-grow overflow-hidden">
-                                                {o.url}
-                                            </div>
-                                        ))
-                                    )}
+                                        ) : (
+                                            nip05Order.nip05.relayUrls.map(
+                                                (o: any) => (
+                                                    <div
+                                                        key={o.url}
+                                                        className="flex-grow overflow-hidden"
+                                                    >
+                                                        {o.url}
+                                                    </div>
+                                                )
+                                            )
+                                        )}
+                                    </div>
                                 </div>
+                                {nip05Order.paid &&
+                                    editingOrderId !== nip05Order.id && (
+                                        <button
+                                            className="btn btn-secondary mt-2"
+                                            onClick={() =>
+                                                handleEdit(
+                                                    nip05Order.nip05.id,
+                                                    nip05Order.nip05.relayUrls.map(
+                                                        (o: any) => o.url
+                                                    )
+                                                )
+                                            }
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
                             </div>
-                            {nip05Order.paid && editingOrderId !== nip05Order.id && (
-                                <button
-                                    className="btn btn-secondary mt-2"
-                                    onClick={() => handleEdit(nip05Order.nip05.id, nip05Order.nip05.relayUrls.map((o: any) => o.url))}
-                                >
-                                    Edit
-                                </button>
-                            )}
-                        </div>
-                    ))}
+                        )
+                    )}
                 </div>
             </div>
         </div>

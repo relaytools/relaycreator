@@ -4,7 +4,7 @@ import Nip05Orders from "./nip05Orders";
 import authOptions from "../../pages/api/auth/[...nextauth]";
 import { UserWithNip05s } from "../components/userWithNip05s";
 
-export default async function Nip05Page(searchParams: Record<string, string>) {
+export default async function Nip05Page() {
     const session = await getServerSession(authOptions);
 
     if (!session) {
