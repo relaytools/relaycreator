@@ -25,6 +25,7 @@ import RelayPayment from "../components/relayPayment";
 import Terms from "../components/terms";
 import Image from "next/image";
 import ShowSmallSession from "../smallsession";
+import React from "react";
 
 interface Event {
     pubkey: string;
@@ -631,7 +632,7 @@ export default function PostsPage(
                 </div>
             );
         } else {
-            return <></>;
+            return(<></>);
         }
     };
 
