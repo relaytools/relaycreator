@@ -3,6 +3,7 @@ import { useState } from "react";
 import NDK from "@nostr-dev-kit/ndk";
 import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk";
 import { useSession } from "next-auth/react";
+import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 
 type ListEntryPubkey = {
     pubkey: string;
@@ -35,6 +36,8 @@ export default function ListEntryPubkeys(
     const [pubkeys, setPubkeys] = useState(props.pubkeys);
     const [showHidePubkeys, setShowHidePubkeys] = useState(false);
     const [showActionsPubkey, setShowActionsPubkey] = useState("");
+    const [pubkeyError, setPubkeyError] = useState("");
+    const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("");
 
     let ndkevents: Set<NDKEvent> = new Set();
     const blankevents: String[] = [];
@@ -91,21 +94,30 @@ export default function ListEntryPubkeys(
         const id = event.currentTarget.id;
         console.log(event.currentTarget.id);
         // call to API to add new keyword
-        const response = await fetch(
-            `/api/relay/${props.relay_id}/${idkind}pubkey`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ pubkey: pubkey, reason: reason }),
-            }
-        );
+        const validPubkey = convertOrValidatePubkey(pubkey);
+        if (validPubkey) {
+            const response = await fetch(
+                `/api/relay/${props.relay_id}/${idkind}pubkey`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        pubkey: validPubkey,
+                        reason: reason,
+                    }),
+                }
+            );
 
-        if (response.ok) {
-            const j = await response.json();
-            setNewPubkey(false);
-            pubkeys.push({ pubkey: pubkey, reason: reason, id: j.id });
-            setPubkey("");
-            setReason("");
+            if (response.ok) {
+                const j = await response.json();
+                setNewPubkey(false);
+                pubkeys.push({ pubkey: validPubkey, reason: reason, id: j.id });
+                setPubkey("");
+                setReason("");
+            }
+        } else {
+            setPubkeyError("❌");
+            setPubkeyErrorDescription("invalid pubkey");
         }
     };
 
@@ -150,18 +162,28 @@ export default function ListEntryPubkeys(
                 if (name[0][1] == listName) {
                     const pubkeysFromList = n.getMatchingTags("p");
                     pubkeysFromList.forEach((pk) => {
+                        const validKey = convertOrValidatePubkey(pk[1]);
+                        if (validKey != null) {
+                            stringPubkeysFromList.push(validKey);
+                        }
                         stringPubkeysFromList.push(pk[1]);
                     });
                 }
             } else if (n.kind == 10000 && listName == "mute") {
                 const pubkeysFromList = n.getMatchingTags("p");
                 pubkeysFromList.forEach((pk) => {
-                    stringPubkeysFromList.push(pk[1]);
+                    const validKey = convertOrValidatePubkey(pk[1]);
+                    if (validKey != null) {
+                        stringPubkeysFromList.push(validKey);
+                    }
                 });
             } else if (n.kind == 3 && listName == "follows") {
                 const pubkeysFromList = n.getMatchingTags("p");
                 pubkeysFromList.forEach((pk) => {
-                    stringPubkeysFromList.push(pk[1]);
+                    const validKey = convertOrValidatePubkey(pk[1]);
+                    if (validKey != null) {
+                        stringPubkeysFromList.push(validKey);
+                    }
                 });
             }
         });
@@ -194,9 +216,12 @@ export default function ListEntryPubkeys(
         const listName = e.currentTarget.id;
         const postThese = getPubkeysFromList(listName);
 
-        let simplePub = ""
-        if(session && session.user?.name) {
-            simplePub = session.user.name.slice(0,4) + "." + session.user.name.slice(-4)
+        let simplePub = "";
+        if (session && session.user?.name) {
+            simplePub =
+                session.user.name.slice(0, 4) +
+                "." +
+                session.user.name.slice(-4);
         }
 
         // remove from UI, the current selected list: items
@@ -350,6 +375,16 @@ export default function ListEntryPubkeys(
                                         >
                                             Cancel
                                         </button>
+                                        <button
+                                            type="button"
+                                            disabled
+                                            className="button btn-primary"
+                                        >
+                                            {pubkeyError}
+                                        </button>
+                                        <span className="flex items-center font-condensed tracking-wide text-red-500 text-xs mt-1 ml-1">
+                                            {pubkeyErrorDescription}
+                                        </span>
                                     </form>
                                 )}
                                 {newpubkey &&
