@@ -13,7 +13,6 @@ import {
     ListboxOption,
     ListboxOptions,
 } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 export default function Nip05Orders(
     props: React.PropsWithChildren<{
@@ -144,10 +143,6 @@ export default function Nip05Orders(
                                     {nip05Domain || "Select a Nip05 Domain"}
                                 </span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                    <ChevronUpDownIcon
-                                        aria-hidden="true"
-                                        className="h-5 w-5 text-gray-400"
-                                    />
                                 </span>
                             </ListboxButton>
 
@@ -166,10 +161,6 @@ export default function Nip05Orders(
                                         </span>
 
                                         <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
-                                            <CheckIcon
-                                                aria-hidden="true"
-                                                className="h-5 w-5"
-                                            />
                                         </span>
                                     </ListboxOption>
                                 ))}
