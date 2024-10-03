@@ -1,5 +1,5 @@
 import prisma from '../../../../lib/prisma'
-import { checkSessionForRelay } from "../../../../lib/checkSessionForRelay"
+import { checkSessionForRelay } from "../../../../lib/checkSession"
 import { getSession } from 'next-auth/react'
 
 export default async function handle(req: any, res: any) {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ShowClientOrder from "./showClientOrder";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
+import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 
 export default function RelayPayment(
     props: React.PropsWithChildren<{
@@ -19,26 +20,12 @@ export default function RelayPayment(
     const [showInvoice, setShowInvoice] = useState(false);
     const [clientOrder, setClientOrder] = useState({} as any);
     const [showSpinner, setShowSpinner] = useState(false);
-
-    const { data: session, status } = useSession();
-
     const router = useRouter();
 
     function setAndValidatePubkey(pubkey: string) {
-        // some clients hand out MALFORMED npubs with mixed case :()
-        const lowerPubkey = pubkey.toLowerCase()
-        setPubkey(lowerPubkey);
+        const validPubkey = convertOrValidatePubkey(pubkey);
 
-        // use javascript regex to detect if length is 64 characters
-        const validHex = /^[0-9a-fA-F]{64}$/.test(pubkey);
-
-        // use javascript regex to detect if pubkey starts with npub
-        const validNpub = /npub1[023456789acdefghjklmnpqrstuvwxyz]{6,}/.test(lowerPubkey);
-
-        if (validHex) {
-            setPubkeyError("✅");
-            setPubkeyErrorDescription("");
-        } else if (validNpub) {
+        if (validPubkey) {
             setPubkeyError("✅");
             setPubkeyErrorDescription("");
         } else {
@@ -55,11 +42,7 @@ export default function RelayPayment(
             return false;
         }
 
-        if (pubkeyError == "✅") {
-            return true;
-        } else {
-            return false;
-        }
+        return pubkeyError == "✅";
 
     }
 
@@ -75,26 +58,33 @@ export default function RelayPayment(
         } else {
             usePub = props.pubkey
         }
-        const response = await fetch(
-            `${rootDomain}/api/clientorders?relayid=${props.relay.id}&pubkey=${usePub}`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        const validPubkey = convertOrValidatePubkey(usePub);
+        if (validPubkey) {
+            const response = await fetch(
+                `${rootDomain}/api/clientorders?relayid=${props.relay.id}&pubkey=${validPubkey}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
-        if (response.ok) {
-            const clientOrder = await response.json();
-            setClientOrder(clientOrder.clientOrder);
-            setShowPubkeyInput(false);
-            setShowSpinner(false);
-            setShowInvoice(true);
+            if (response.ok) {
+                const clientOrder = await response.json();
+                setClientOrder(clientOrder.clientOrder);
+                setShowPubkeyInput(false);
+                setShowSpinner(false);
+                setShowInvoice(true);
+            }
+        } else {
+            setPubkeyError("❌");
+            setPubkeyErrorDescription("key must be valid hex or npub");
         }
     };
 
     let alreadyPaid = false
+
     if(props.relay.allow_list && props.pubkey != null) {
         props.relay.allow_list.list_pubkeys.map((p) => {
             var usePub: any
@@ -110,6 +100,9 @@ export default function RelayPayment(
             }
         })
     }
+    // to display their nip05 here, we need to get passed in, nip05 name/domain.. (already have pubkey)
+    let alreadyNip05 = false
+
 
     // flow
     // 1. user enters pubkey and clicks pay
@@ -128,7 +121,7 @@ export default function RelayPayment(
                             <div className="lg:text-lg">
                                 This relay requires payment of{" "}
                                 {props.relay.payment_amount} sats to post. ⚡
-                                {alreadyPaid && <div className="text-sm text-green-600">You've already paid for this relay.</div>}
+                                {alreadyPaid && <div className="text-sm text-green-600">You've already paid for this relay, <a className="link-secondary" href={`${rootDomain}` + "/nip05"}>got nip05?</a></div>}
                             </div>
                             {showPubkeyInput && (
 
