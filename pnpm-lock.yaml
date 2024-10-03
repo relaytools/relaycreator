@@ -83,6 +83,9 @@ importers:
       react-icons:
         specifier: ^5.2.1
         version: 5.2.1(react@18.3.1)
+      solid:
+        specifier: link:@heroicons/react/20/solid
+        version: link:@heroicons/react/20/solid
       tailwindcss:
         specifier: ^3.4.6
         version: 3.4.6
