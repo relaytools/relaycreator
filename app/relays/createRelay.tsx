@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import NoSSRWrapper from "../components/noSSRWrapper";
 import { nip19 } from "nostr-tools";
+import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 
 export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();
@@ -51,14 +52,9 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
 
     function setAndValidatePubkey(pubkey: string) {
         setPubkey(pubkey)
-        // use javascript regex to detect if length is 64 characters
-        // check for hex chars
-        const validHex = /^[0-9a-fA-F]{64}$/.test(pubkey)
-        const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey)
-        if (validHex) {
-            setPubkeyError("✅")
-            setPubkeyErrorDescription("")
-        } else if (validNpub) {
+        const validPubkey = convertOrValidatePubkey(pubkey);
+        setPubkeyError("")
+        if (validPubkey) {
             setPubkeyError("✅")
             setPubkeyErrorDescription("")
         } else {
@@ -87,7 +83,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     }
 
     function isValidForm() {
-        if (pubkey != "" && pubkeyError == "" && nameError == "" && name != "") {
+        if (pubkey != "" && pubkeyError == "✅" && nameError == "" && name != "") {
             return true
         } else {
             return false

@@ -21,45 +21,45 @@ export async function alby(lnurl: string) {
     }
 }
 
-export default function ShowClientOrder(
+export default function ShowNip05Order(
     props: React.PropsWithChildren<{
-        clientOrder: any;
+        nip05Order: any;
     }>) {
 
     const [status, setStatus] = useState(false)
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
 
-    const getClientOrderStatus = async (clientOrderId: string) => {
-        const result = await fetch(rootDomain + `/api/clientorders/${clientOrderId}`)
+    const getNip05OrderStatus = async (clientOrderId: string) => {
+        const result = await fetch(rootDomain + `/api/nip05orders/${props.nip05Order.id}`)
         const j = await result.json()
-        setStatus(j.clientOrder.paid)
+        setStatus(j.nip05Order.paid)
     }
 
     useEffect(() => {
         const interval = setInterval(() => {
-            getClientOrderStatus(props.clientOrder.id);
+            getNip05OrderStatus(props.nip05Order.id);
         }, 2000);
         return () => clearInterval(interval);
     }, []);
 
-    alby(props.clientOrder.lnurl)
+    alby(props.nip05Order.lnurl)
 
     return (
         <div className="">
             <div className="flex mt-4 mb-4">
-                <Bolt11Invoice payment_request={props.clientOrder.lnurl} />
+                <Bolt11Invoice payment_request={props.nip05Order.lnurl} />
             </div>
             <div>
                 <button
-                    onClick={(e) => copyToClipboard(e, props.clientOrder.lnurl)}
+                    onClick={(e) => copyToClipboard(e, props.nip05Order.lnurl)}
                     type="submit"
                     className="flex justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300 mb-4"
                 >
                     Copy ⚡ invoice to clipboard
                 </button>
             </div>
-            {status && <div>success<ZapAnimation redirect_to=""></ZapAnimation></div>}
+            {status && <div>success<ZapAnimation redirect_to="/?successpayment=true"></ZapAnimation></div>}
             {!status && <div>waiting</div>}
         </div>
     )

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { nip19 } from "nostr-tools";
+import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 
 export type User = {
     pubkey: string;
@@ -36,16 +37,8 @@ export default function Moderators(
 
     function setAndValidatePubkey(pubkey: string) {
         setPubkey(pubkey);
-        // use javascript regex to detect if length is 64 characters
-        // check for hex chars
-        const validHex = /^[0-9a-fA-F]{64}$/.test(pubkey);
-        // check for npub
-        const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey);
-
-        if (validHex) {
-            setPubkeyError("✅");
-            setPubkeyErrorDescription("");
-        } else if (validNpub) {
+        const validPubkey = convertOrValidatePubkey(pubkey);
+        if (validPubkey) {
             setPubkeyError("✅");
             setPubkeyErrorDescription("");
         } else {
@@ -78,34 +71,38 @@ export default function Moderators(
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
-        const validNpub = /^npub1[0-9a-zA-Z]{58}$/.test(pubkey);
-        let submitHex: any;
-        if (validNpub) {
-            const decoded = nip19.decode(pubkey);
-            submitHex = decoded.data;
-        } else {
-            submitHex = pubkey;
+        const validPubkey = convertOrValidatePubkey(pubkey);
+        if (!validPubkey) {
+            setPubkeyError("❌");
+            setPubkeyErrorDescription("key must be valid hex or npub");
+            return;
         }
         // call to API to add new keyword
         const response = await fetch(`/api/relay/${props.relay_id}/moderator`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pubkey: submitHex }),
+            body: JSON.stringify({ pubkey: validPubkey }),
         });
 
         if (response.ok) {
             const j = await response.json();
             setNewPubkey(false);
             const newMods = moderators;
-            newMods.push({ id: j.id, user: { pubkey: submitHex } });
+            newMods.push({ id: j.id, user: { pubkey: validPubkey } });
             setModerators(newMods);
             setPubkey("");
+        } else {
+            const j = await response.json();
+            setPubkeyError("❌");
+            setPubkeyErrorDescription(j.error);
         }
     };
 
     const handleCancel = async () => {
         setNewPubkey(false);
         setPubkey("");
+        setPubkeyError("");
+        setPubkeyErrorDescription("");
     };
     
     const actionsModToggle = (id: string) => {
