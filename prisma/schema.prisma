@@ -69,7 +69,7 @@ model Nip05 {
 // used by nip05
 model RelayUrl {
     id  String  @id @default(cuid())
-    nip05   Nip05  @relation(fields: nip05Id, references: [id])
+    nip05   Nip05  @relation(fields: nip05Id, references: [id], onDelete: Cascade)
     nip05Id String
     url String
 
@@ -87,7 +87,7 @@ model Nip05Order {
   expires_at   DateTime?
   paid_at      DateTime?
   amount       Int       @default(21000)
-  nip05        Nip05  @relation(fields: [nip05Id], references: [id])
+  nip05        Nip05  @relation(fields: [nip05Id], references: [id], onDelete: Cascade)
   nip05Id      String
 }
 
