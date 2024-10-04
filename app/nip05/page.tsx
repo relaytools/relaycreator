@@ -78,6 +78,18 @@ export default async function Nip05Page() {
         (relay) => `${relay.name}.${relay.domain}`
     );
 
+    const otherNip05 = await prisma.nip05.findMany({
+        where: {
+            domain: {
+                in: relayDomainNames,
+            },
+        },
+        include: {
+            relayUrls: true,
+            nip05Orders: true,
+        },
+    });
+
     // is a member of
     let userRelays = [];
     if (user.admin) {
@@ -101,7 +113,26 @@ export default async function Nip05Page() {
         });
     }
 
+    const myNip05 = await prisma.nip05.findMany({
+        where: {
+            pubkey: user.pubkey, 
+        },
+        include: {
+            relayUrls: true,
+        },
+    });
+
+    
+    const filteredOther = otherNip05.filter(n => (n.pubkey != user.pubkey))
+
     relayDomainNames = Array.from(new Set(relayDomainNames));
 
-    return <Nip05Orders user={user} domains={relayDomainNames}></Nip05Orders>;
+    return (
+        <Nip05Orders
+            user={user}
+            myNip05={myNip05}
+            otherNip05={filteredOther}
+            domains={relayDomainNames}
+        ></Nip05Orders>
+    );
 }

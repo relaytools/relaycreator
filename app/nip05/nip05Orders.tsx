@@ -14,9 +14,13 @@ import {
     ListboxOptions,
 } from "@headlessui/react";
 
+import { Prisma } from "@prisma/client";
+
 export default function Nip05Orders(
     props: React.PropsWithChildren<{
         user: UserWithNip05s;
+        myNip05: any[];
+        otherNip05: any[];
         domains: string[];
     }>
 ) {
@@ -111,6 +115,15 @@ export default function Nip05Orders(
         }
     };
 
+    const handleDelete = async (id: string) => {
+        const response = await fetch(`${rootDomain}/api/nip05/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+    };
+
     return (
         <div className="p-4">
             <div className="mt-4">
@@ -124,7 +137,7 @@ export default function Nip05Orders(
                             type="text"
                             value={nip05Name}
                             onChange={(e) => setNip05Name(e.target.value)}
-                            className="input input-bordered w-full"
+                            className="input input-primary input-bordered w-full"
                             placeholder="Enter Nip05 name"
                             required
                         />
@@ -142,8 +155,7 @@ export default function Nip05Orders(
                                 <span className="block truncate">
                                     {nip05Domain || "Select a Nip05 Domain"}
                                 </span>
-                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                </span>
+                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"></span>
                             </ListboxButton>
 
                             <ListboxOptions
@@ -160,8 +172,7 @@ export default function Nip05Orders(
                                             {domain}
                                         </span>
 
-                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
-                                        </span>
+                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden"></span>
                                     </ListboxOption>
                                 ))}
                             </ListboxOptions>
@@ -183,149 +194,231 @@ export default function Nip05Orders(
                 )}
                 {showInvoice && <ShowNip05Order nip05Order={nip05Order} />}
                 <h2 className="text-lg font-bold mt-8">Your Nip05s</h2>
-                <div className="flex flex-col mb-4 bg-gradient-to-r from-accent to-base-100 p-4">
-                    {props.user.nip05Orders.map(
-                        (nip05Order: any, index: number) => (
-                            <div
-                                className="flex flex-col border mb-4"
-                                key={index + "-nip05orders123"}
-                            >
-                                <div className="w-1/2 text-lg font-condensed">
-                                    {nip05Order.nip05.name}@
-                                    {nip05Order.nip05.domain}
-                                </div>
-                                <div className="flex">
-                                    {nip05Order.paid && (
-                                        <div className="w-1/2">
-                                            Active Since
-                                        </div>
-                                    )}
-                                    {!nip05Order.paid && (
-                                        <div className="w-1/2">
-                                            Waiting Activation
-                                        </div>
-                                    )}
-                                    <div className="w-1/2">
-                                        {nip05Order.paid && nip05Order.paid_at
-                                            ? new Date(
-                                                  nip05Order.paid_at
-                                              ).toLocaleString()
-                                            : ""}
-                                    </div>
-                                </div>
-                                {!nip05Order.paid && (
-                                    <div>
-                                        <div className="w-1/2">Expires At</div>
-                                        <div className="w-1/2">
-                                            {nip05Order.expires_at
-                                                ? new Date(
-                                                      nip05Order.expires_at
-                                                  ).toLocaleString()
-                                                : ""}
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="flex border-t">
-                                    <div className="w-1/2">Relay Urls</div>
-                                    <div className="w-full">
-                                        {editingOrderId ===
-                                        nip05Order.nip05.id ? (
-                                            <div>
-                                                {editingRelayUrls.map(
-                                                    (url, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            className="flex items-center mb-2"
-                                                        >
-                                                            <span className="flex-grow">
-                                                                {url}
-                                                            </span>
-                                                            <button
-                                                                onClick={() =>
-                                                                    handleRemoveRelayUrl(
-                                                                        url
-                                                                    )
-                                                                }
-                                                                className="btn btn-xs btn-error ml-2"
-                                                            >
-                                                                Remove
-                                                            </button>
-                                                        </div>
-                                                    )
-                                                )}
-                                                <div className="flex items-center mt-2">
-                                                    <input
-                                                        type="text"
-                                                        value={newRelayUrl}
-                                                        onChange={(e) =>
-                                                            setNewRelayUrl(
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        placeholder="New relay URL"
-                                                        className="input input-bordered flex-grow"
-                                                    />
-                                                    <button
-                                                        onClick={
-                                                            handleAddRelayUrl
-                                                        }
-                                                        className="btn btn-xs btn-success ml-2"
-                                                    >
-                                                        Add
-                                                    </button>
-                                                </div>
-                                                <div className="mt-4">
-                                                    <button
-                                                        onClick={handleSaveEdit}
-                                                        className="btn btn-primary mr-2"
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            setEditingOrderId(
-                                                                null
-                                                            )
-                                                        }
-                                                        className="btn"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            nip05Order.nip05.relayUrls.map(
-                                                (o: any) => (
+                <div className="flex flex-col mb-4  p-4">
+                    {props.myNip05.map((nip05: any, index: number) => (
+                        <div
+                            className="flex flex-col bg-gradient-to-r from-accent to-base-100 border rounded-lg round mb-4"
+                            key={index + "-nip05orders123"}
+                        >
+                            <div className="w-1/2 text-lg font-condensed">
+                                {nip05.name}@{nip05.domain}
+                            </div>
+                            <div className="flex border-t">
+                                <div className="w-1/2">Relay Urls</div>
+                                <div className="w-full">
+                                    {editingOrderId === nip05.id ? (
+                                        <div>
+                                            {editingRelayUrls.map(
+                                                (url, idx) => (
                                                     <div
-                                                        key={o.url}
-                                                        className="flex-grow overflow-hidden"
+                                                        key={idx}
+                                                        className="flex items-center mb-2"
                                                     >
-                                                        {o.url}
+                                                        <span className="flex-grow">
+                                                            {url}
+                                                        </span>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleRemoveRelayUrl(
+                                                                    url
+                                                                )
+                                                            }
+                                                            className="btn btn-xs btn-error ml-2"
+                                                        >
+                                                            Remove
+                                                        </button>
                                                     </div>
                                                 )
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-                                {nip05Order.paid &&
-                                    editingOrderId !== nip05Order.id && (
-                                        <button
-                                            className="btn btn-secondary mt-2"
-                                            onClick={() =>
-                                                handleEdit(
-                                                    nip05Order.nip05.id,
-                                                    nip05Order.nip05.relayUrls.map(
-                                                        (o: any) => o.url
-                                                    )
-                                                )
-                                            }
-                                        >
-                                            Edit
-                                        </button>
+                                            )}
+                                            <div className="flex items-center mt-2">
+                                                <input
+                                                    type="text"
+                                                    value={newRelayUrl}
+                                                    onChange={(e) =>
+                                                        setNewRelayUrl(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="New relay URL"
+                                                    className="input input-bordered flex-grow"
+                                                />
+                                                <button
+                                                    onClick={handleAddRelayUrl}
+                                                    className="btn btn-xs btn-success ml-2"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                            <div className="mt-4">
+                                                <button
+                                                    onClick={handleSaveEdit}
+                                                    className="btn btn-primary mr-2"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        setEditingOrderId(null)
+                                                    }
+                                                    className="btn"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        nip05.relayUrls.map((o: any) => (
+                                            <div
+                                                key={o.url}
+                                                className="flex-grow overflow-hidden"
+                                            >
+                                                {o.url}
+                                            </div>
+                                        ))
                                     )}
+                                </div>
                             </div>
-                        )
-                    )}
+                            <div className="flex">
+                                {true && editingOrderId !== nip05.id && (
+                                    <button
+                                        className="btn btn-secondary mt-2 w-24 flex-grow"
+                                        onClick={() =>
+                                            handleEdit(
+                                                nip05.id,
+                                                nip05.relayUrls.map(
+                                                    (o: any) => o.url
+                                                )
+                                            )
+                                        }
+                                    >
+                                        Edit
+                                    </button>
+                                )}
+                                <div className="flex justify-end w-full">
+                                    <button
+                                        className="btn btn-primary mt-2 max-w-24"
+                                        onClick={() => handleDelete(nip05.id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <h2 className="text-lg font-bold mt-8">Admin/Mod Nip05s</h2>
+                <div className="flex flex-col mb-4  p-4">
+                    {props.otherNip05.map((nip05: any, index: number) => (
+                        <div
+                            className="flex flex-col bg-gradient-to-r from-accent to-base-100 border rounded-lg round mb-4"
+                            key={index + "-nip05orders123"}
+                        >
+                            <div className="w-1/2 text-lg font-condensed">
+                                {nip05.name}@{nip05.domain}
+                            </div>
+                            <div className="w-1/2 text-sm">{nip05.pubkey}</div>
+                            <div className="flex border-t">
+                                <div className="w-1/2">Relay Urls</div>
+                                <div className="w-full">
+                                    {editingOrderId === nip05.id ? (
+                                        <div>
+                                            {editingRelayUrls.map(
+                                                (url, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex items-center mb-2"
+                                                    >
+                                                        <span className="flex-grow">
+                                                            {url}
+                                                        </span>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleRemoveRelayUrl(
+                                                                    url
+                                                                )
+                                                            }
+                                                            className="btn btn-xs btn-error ml-2"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </div>
+                                                )
+                                            )}
+                                            <div className="flex items-center mt-2">
+                                                <input
+                                                    type="text"
+                                                    value={newRelayUrl}
+                                                    onChange={(e) =>
+                                                        setNewRelayUrl(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="New relay URL"
+                                                    className="input input-bordered flex-grow"
+                                                />
+                                                <button
+                                                    onClick={handleAddRelayUrl}
+                                                    className="btn btn-xs btn-success ml-2"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                            <div className="mt-4">
+                                                <button
+                                                    onClick={handleSaveEdit}
+                                                    className="btn btn-primary mr-2"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        setEditingOrderId(null)
+                                                    }
+                                                    className="btn"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        nip05.relayUrls.map((o: any) => (
+                                            <div
+                                                key={o.url}
+                                                className="flex-grow overflow-hidden"
+                                            >
+                                                {o.url}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex">
+                                {true && editingOrderId !== nip05.id && (
+                                    <button
+                                        className="btn btn-secondary mt-2 w-24"
+                                        onClick={() =>
+                                            handleEdit(
+                                                nip05.id,
+                                                nip05.relayUrls.map(
+                                                    (o: any) => o.url
+                                                )
+                                            )
+                                        }
+                                    >
+                                        Edit
+                                    </button>
+                                )}
+                                <div className="flex justify-end w-full">
+                                    <button
+                                        className="btn btn-primary mt-2 max-w-24"
+                                        onClick={() => handleDelete(nip05.id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
