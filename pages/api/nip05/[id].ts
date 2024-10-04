@@ -7,7 +7,6 @@ export default async function handle(req: any, res: any) {
 
         const domain = req.query.id;
         const name = req.query.name;
-        console.log(name, domain);
 
         let result = {
             names: {} as { [key: string]: string },
@@ -19,8 +18,8 @@ export default async function handle(req: any, res: any) {
             const nip05 = await prisma.nip05.findFirst({
                 where: { domain: domain, name: name },
                 include: {
-                    relayUrls: true
-                }
+                    relayUrls: true,
+                },
             });
             if (nip05 == null) {
                 res.status(404).json({ error: "not found" });
@@ -28,9 +27,10 @@ export default async function handle(req: any, res: any) {
             }
             result.names[nip05.name] = nip05.pubkey;
 
-            result.relays[nip05.name] = nip05.relayUrls.map(relay => relay.url);
-            
-            console.log(result);
+            result.relays[nip05.name] = nip05.relayUrls.map(
+                (relay) => relay.url
+            );
+
         } else {
             // fetch all
             const nip05s = await prisma.nip05.findMany({
@@ -39,7 +39,9 @@ export default async function handle(req: any, res: any) {
             });
             nip05s.forEach((nip05) => {
                 result.names[nip05.name] = nip05.pubkey;
-                result.relays[nip05.name] = nip05.relayUrls.map(relay => relay.url);
+                result.relays[nip05.name] = nip05.relayUrls.map(
+                    (relay) => relay.url
+                );
             });
         }
 
@@ -89,6 +91,17 @@ export default async function handle(req: any, res: any) {
                 res.status(500).json({ error: "Failed to update RelayURLS" });
             }
         }
+    } else if (req.method == "DELETE") {
+        const nip05 = await checkSessionForNip05(req, res);
+        if (nip05 == null) {
+            res.status(404).json({ error: "not found" });
+            return;
+        }
+
+        // delete nip05, all nip05 orders and relayUrls
+        await prisma.nip05.delete({ where: { id: nip05.id } });
+        res.status(200).json("{}");
+        return;
     } else {
         req.status(500).json({ error: "method not supported" });
     }

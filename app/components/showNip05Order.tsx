@@ -59,7 +59,7 @@ export default function ShowNip05Order(
                     Copy ⚡ invoice to clipboard
                 </button>
             </div>
-            {status && <div>success<ZapAnimation redirect_to="/?successpayment=true"></ZapAnimation></div>}
+            {status && <div>success<ZapAnimation redirect_to="/nip05"></ZapAnimation></div>}
             {!status && <div>waiting</div>}
         </div>
     )
