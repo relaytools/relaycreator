@@ -27,7 +27,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
 
     const [name, setName] = useState(useName)
     const [nameError, setNameError] = useState("")
-    const [pubkeyError, setPubkeyError] = useState("")
+    const [pubkeyError, setPubkeyError] = useState("✅")
     const [nameErrorDescription, setNameErrorDescription] = useState("")
     const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("")
 
@@ -54,6 +54,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
         setPubkey(pubkey)
         const validPubkey = convertOrValidatePubkey(pubkey);
         setPubkeyError("")
+        console.log(validPubkey)
         if (validPubkey) {
             setPubkeyError("✅")
             setPubkeyErrorDescription("")
@@ -141,11 +142,8 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                             value={pubkey}
                             onChange={event => setAndValidatePubkey(event.target.value)}
                         />
-                        <div className="text-center">
-                            {pubkeyError}
-                        </div>
                     </div>
-                    <div className="text-sm text-neutral">{pubkeyErrorDescription}</div>
+                    <div className="text-sm text-error">{pubkeyErrorDescription}</div>
                 </div>
                 <div className="flex flex-col">
                     <div className="mt-2 flex-col-3 rounded-md shadow-sm text-center">
