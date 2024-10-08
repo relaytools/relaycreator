@@ -27,6 +27,7 @@ export default function Balances(
     props: React.PropsWithChildren<{
         RelayBalances: any;
         IsAdmin: boolean;
+        RelayPaymentAmount: any;
     }>
 ) {
     const router = useRouter();
@@ -69,9 +70,25 @@ export default function Balances(
         return x;
     }
 
+    function showBalance(balance: any) {
+        let useBalance = 0
+        if(balance < 0) {
+            useBalance = Math.abs(amountPrecision(balance))
+        } else {
+            useBalance = 0
+        }
+        return useBalance.toString()
+    }
+
     return (
         <div>
-            <h1>Balances</h1>
+            <article className="prose">
+                <h4>Welcome to the billing system!</h4>
+                <p>If a balance is due, it will show as a negative balance.  It is appreciated that you keep your balance above zero.</p>
+                <p>If there is a failure to pay the balance after 30 days, the relay will be paused temporarily and you can unpause by topping up.</p>
+                <p>The balances are calculated hourly, based on a 30 day averge.</p>
+            </article>
+            <h1 className="text-lg mt-2">Balances</h1>
             <div className="mt-4">
                 {sortedRelays.map((b: any) => (
                     <div
@@ -97,7 +114,13 @@ export default function Balances(
                             <div className="w-1/2">{b.clientPayments} sats</div>
                         </div>
                         <div className="flex">
-                            <div className="w-1/2">Remaining Balance</div>
+                            {b.balance < 0 &&
+                                <div className="w-1/2">Balance<br></br><div className="text-warning">please top up</div></div>
+                            }
+
+                            {b.balance > 0 &&
+                                <div className="w-1/2">Remaining Balance</div>
+                            }
                             <div className="w-1/2">
                                 {amountPrecision(b.balance)} sats
                             </div>
@@ -118,12 +141,14 @@ export default function Balances(
                                 show orders
                             </button>
                         </div>
-                        <div className="flex mt-4">
+                        <div className="text-sm text-info mt-2">You can create an invoice for any amount</div>
+                        <div className="text-sm text-info mt-2">Current price: {props.RelayPaymentAmount} sats/mo</div>
+                        <div className="flex mt-2">
                             <input
                                 type="text"
                                 name="satsamount"
                                 className="input input-bordered input-primary w-full max-w-xs"
-                                placeholder={Math.abs(amountPrecision(b.balance)).toString()}
+                                placeholder={showBalance(b.balance)}
                                 onChange={event => {useAmount = event.target.value}}
                             />
                             <label className="label">sats</label>
