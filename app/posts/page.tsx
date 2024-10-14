@@ -114,6 +114,11 @@ export default function PostsPage(
     }
 
     let signerFailed = false;
+    let useRelayWSS = "wss://" + props.relay.name + "." + props.relay.domain
+    // if relay is external, use full domain name here
+    if(props.relay.is_external) {
+        useRelayWSS = "wss://" + props.relay.domain
+    }
 
     async function eventListener(relay: NDKRelay) {
         const kindToInteger = parseInt(showKind);
@@ -933,6 +938,11 @@ export default function PostsPage(
                             >
                                 copy url to clipboard
                             </button>
+                        </div>
+                        <div className="justify-center mt-2">
+                        <a href={"https://flotilla.coracle.social/spaces/" + nip19.nrelayEncode(useRelayWSS)} className="btn uppercase btn-secondary">
+                            open in flotilla<span className="sr-only">, {props.relay.id}</span>
+                        </a>
                         </div>
                         <div className="flex flex-wrap items-center">
                             <div className="text-primary font-condensed text-lg font-bold">
