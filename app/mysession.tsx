@@ -113,9 +113,16 @@ export default function ShowSession() {
             <div className="flex-1 font-condensed">
                 <a
                     href={rootDomain + "/"}
-                    className="normal-case lg:text-2xl text-lg"
+                    className="normal-case lg:text-lg text-lg flex items-center justify-center"
                 >
-                    RELAY.TOOLS
+                    <Image
+                                        src="/rtlogo2.png"
+                                        alt="menu"
+                                        width={100}
+                                        height={100}
+                                    />
+
+                RELAY.TOOLS
                 </a>
             </div>
 
@@ -157,7 +164,7 @@ export default function ShowSession() {
                                 tabIndex={0}
                                 className="btn uppercase cursor-pointer mask mask-squircle"
                             >
-                                <div className="w-10 rounded-full bg-primary">
+                                <div className="w-10 rounded-full bg-white">
                                     <Image
                                         src="/settings2-svgrepo-com.svg"
                                         alt="menu"
@@ -206,7 +213,7 @@ export default function ShowSession() {
                             tabIndex={0}
                             className="btn uppercase cursor-pointer mask mask-squircle"
                         >
-                            <div className="w-10 rounded-full bg-primary">
+                            <div className="w-10 rounded-full bg-white">
                                 <Image
                                     src="/settings2-svgrepo-com.svg"
                                     alt="logged in"
