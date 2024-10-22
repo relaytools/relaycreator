@@ -166,7 +166,6 @@ export default function ListEntryPubkeys(
                         if (validKey != null) {
                             stringPubkeysFromList.push(validKey);
                         }
-                        stringPubkeysFromList.push(pk[1]);
                     });
                 }
             } else if (n.kind == 10000 && listName == "mute") {
