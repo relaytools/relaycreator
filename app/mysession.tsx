@@ -110,10 +110,10 @@ export default function ShowSession() {
                     </form>
                 </dialog>
             )}
-            <div className="flex-1 font-condensed">
+            <div className="flex-1">
                 <a
                     href={rootDomain + "/"}
-                    className="normal-case lg:text-2xl font-bold text-2xl flex items-center justify-center"
+                    className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center"
                 >
                     <Image
                                         src="/rtlogo2.png"
