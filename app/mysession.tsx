@@ -164,7 +164,7 @@ export default function ShowSession() {
                                 tabIndex={0}
                                 className="btn uppercase cursor-pointer mask mask-squircle"
                             >
-                                <div className="w-10 rounded-full bg-white">
+                                <div className="w-10 rounded bg-white">
                                     <Image
                                         src="/settings2-svgrepo-com.svg"
                                         alt="menu"
