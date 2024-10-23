@@ -113,7 +113,7 @@ export default function ShowSession() {
             <div className="flex-1 font-condensed">
                 <a
                     href={rootDomain + "/"}
-                    className="normal-case lg:text-lg text-lg flex items-center justify-center"
+                    className="normal-case lg:text-2xl font-bold text-2xl flex items-center justify-center"
                 >
                     <Image
                                         src="/rtlogo2.png"
@@ -213,7 +213,7 @@ export default function ShowSession() {
                             tabIndex={0}
                             className="btn uppercase cursor-pointer mask mask-squircle"
                         >
-                            <div className="w-10 rounded-full bg-white">
+                            <div className="w-10 rounded bg-white">
                                 <Image
                                     src="/settings2-svgrepo-com.svg"
                                     alt="logged in"
