@@ -939,11 +939,6 @@ export default function PostsPage(
                                 copy url to clipboard
                             </button>
                         </div>
-                        <div className="justify-center mt-2">
-                        <a href={"https://flotilla.coracle.social/spaces/" + nip19.nrelayEncode(useRelayWSS)} className="btn uppercase btn-secondary">
-                            open in flotilla<span className="sr-only">, {props.relay.id}</span>
-                        </a>
-                        </div>
                         <div className="flex flex-wrap items-center">
                             <div className="text-primary font-condensed text-lg font-bold">
                                 anonymous posting {anonPost ? "ON" : "OFF"}
