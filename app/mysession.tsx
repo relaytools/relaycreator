@@ -2,9 +2,13 @@
 import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function ShowSession() {
+export default function ShowSession(
+    props: React.PropsWithChildren<{
+        theme: string;
+    }>
+) {
     const doNip07Login = async () => {
         // call to api to get a LoginToken
 
@@ -50,6 +54,42 @@ export default function ShowSession() {
 
     const { data: session, status } = useSession();
     const [showLoginHelp, setShowLoginHelp] = useState(false);
+    const [curTheme, setCurTheme] = useState(props.theme);
+
+    useEffect(() => {
+        // Get the current theme from the data-theme attribute
+        const savedTheme = document.documentElement.getAttribute("data-theme");
+        if (savedTheme) {
+            setCurTheme(savedTheme);
+        }
+
+        // Set up a MutationObserver to watch for changes to the data-theme attribute
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName === "data-theme"
+                ) {
+                    const newTheme =
+                        document.documentElement.getAttribute("data-theme");
+                    if (newTheme) {
+                        setCurTheme(newTheme);
+                    }
+                }
+            });
+        });
+
+        // Observe changes to the data-theme attribute on the <html> element
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
+
+        // Clean up the observer when the component unmounts
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
 
     // using absolute urls so that we can serve subdomain landing pages
     const rootDomain =
@@ -110,16 +150,38 @@ export default function ShowSession() {
                     </form>
                 </dialog>
             )}
-            <div className="flex-1 font-condensed">
-                <a
-                    href={rootDomain + "/"}
-                    className="normal-case lg:text-2xl text-lg"
-                >
-                    RELAY.TOOLS
-                </a>
-            </div>
+            {curTheme == "dark" && (
+                <div className="flex-1">
+                    <a
+                        href={rootDomain + "/"}
+                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center"
+                    >
+                        <Image
+                            src="/rtlogo-dark1.png"
+                            alt="menu"
+                            width={300}
+                            height={50}
+                        />
+                    </a>
+                </div>
+            )}
+            {curTheme != "dark" && (
+                <div className="flex-1">
+                    <a
+                        href={rootDomain + "/"}
+                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center"
+                    >
+                        <Image
+                            src="/rtlogo-light1.png"
+                            alt="menu"
+                            width={300}
+                            height={50}
+                        />
+                    </a>
+                </div>
+            )}
 
-            <div className="flex-none font-condensed">
+            <div className="flex-none items-center justify-center">
                 {!session ? (
                     <div className="flex">
                         <a
@@ -157,18 +219,18 @@ export default function ShowSession() {
                                 tabIndex={0}
                                 className="btn uppercase cursor-pointer mask mask-squircle"
                             >
-                                <div className="w-10 rounded-full bg-primary">
+                                <div className="rounded bg-white">
                                     <Image
                                         src="/settings2-svgrepo-com.svg"
                                         alt="menu"
-                                        width={100}
-                                        height={100}
+                                        width={30}
+                                        height={30}
                                     />
                                 </div>
                             </label>
                             <ul
                                 tabIndex={0}
-                                className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]"
+                                className="menu menu-lg dropdown-content mt-3 p-2 shadow bg-base-200 font-bold rounded-box w-52 z-[1]"
                             >
                                 <li>
                                     <a href={rootDomain + "/"}>Faq</a>
@@ -176,7 +238,7 @@ export default function ShowSession() {
                                 <li>
                                     <a href={supportURL}>Support</a>
                                 </li>
-                                <li className="border-b border-base-200">
+                                <li className="border-b border-neutral">
                                     <a href={rootDomain + "/signup"}>
                                         Create Relay
                                     </a>
@@ -204,23 +266,48 @@ export default function ShowSession() {
                     <div className="dropdown dropdown-end">
                         <label
                             tabIndex={0}
-                            className="btn uppercase cursor-pointer mask mask-squircle"
+                            className="flex items-center justify-center mr-2"
                         >
-                            <div className="w-10 rounded-full bg-primary">
-                                <Image
-                                    src="/settings2-svgrepo-com.svg"
-                                    alt="logged in"
-                                    width={100}
-                                    height={100}
-                                />
-                            </div>
+                            {session?.user?.image && (
+                                <div className="avatar">
+                                    <div className="w-10 rounded-full">
+                                        <img src={session?.user?.image} />
+                                    </div>
+                                </div>
+                            )}
+                            {!session?.user?.image && (
+                                <div className="avatar placeholder">
+                                    {curTheme == "dark" && (
+                                        <div className="bg-primary text-white font-condensed rounded-full w-10">
+                                            <span className="text-lg">
+                                                {session.user?.name?.substring(
+                                                    0,
+                                                    4
+                                                )}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {curTheme != "dark" && (
+                                        <div className="bg-base-200 text-black font-condensed rounded-full w-15">
+                                            <span className="text-lg">
+                                                {session.user?.name?.substring(
+                                                    0,
+                                                    4
+                                                )}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </label>
                         <ul
                             tabIndex={0}
-                            className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]"
+                            className="menu menu-lg dropdown-content mt-3 p-2 shadow-lg bg-base-100 font-bold rounded-box w-52 z-[1]"
                         >
                             <li>
-                                <a href={rootDomain + "/?myrelays=true"}>My Relays</a>
+                                <a href={rootDomain + "/?myrelays=true"}>
+                                    My Relays
+                                </a>
                             </li>
                             <li>
                                 <a href={rootDomain + "/invoices"}>Invoices</a>
