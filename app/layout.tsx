@@ -7,13 +7,6 @@ import { cookies } from 'next/headers'
 import Themes from '../lib/themes'
 import { headers } from 'next/headers'
 import { Roboto, Roboto_Mono, Roboto_Condensed, Open_Sans } from 'next/font/google'
-import localFont from 'next/font/local'
-
-const jetBrains = localFont({
-    src: '../public/fonts/JetBrains-Mono-Thin.woff2', 
-    display: 'swap',
-    variable: '--font-jetbrains',
-})
 
 const roboto = Roboto({
     weight: '400',
@@ -27,13 +20,6 @@ const robotoCondensed = Roboto_Condensed({
     subsets: ['latin'],
     display: 'swap',
     variable: '--font-roboto-condensed',
-})
-
-const openSans = Open_Sans({
-    weight: '400',
-    subsets: ['latin'],
-    display: 'swap',
-    variable: '--font-open-sans',
 })
 
 const robotoMono = Roboto_Mono({
@@ -57,7 +43,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
   console.log("rewritten: ", rewritten)
 
   return (
-    <html data-theme={currentTheme} className={`${openSans.variable} ${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal`}>
+    <html data-theme={currentTheme} className={`${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal`}>
       <head></head>
       <body>
         <div className="bg-base-100 mx-auto lg:max-w-7xl max-w-screen font-roboto">
