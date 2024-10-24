@@ -65,6 +65,7 @@ async function getProfileOrTimeout(pubkey: string) {
                 resolve(event); // Return the event data
             },
             oneose() {
+                resolve("");
                 sub.close();
             }
         });
