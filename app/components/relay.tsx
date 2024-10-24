@@ -158,12 +158,6 @@ export default function Relay(
             {props.showExplorer &&
                 <div>
                     <div className="justify-center mt-2">
-                        <a href={"https://nostrrr.com/relay/" + nip19.nrelayEncode(useRelayWSS)} className="btn uppercase btn-secondary">
-                            open in relay explorer<span className="sr-only">, {props.relay.id}</span>
-                        </a>
-                    </div>
-
-                    <div className="justify-center mt-2">
                         <a href={useRelayHttps} className="btn uppercase btn-secondary">
                             open in relay explorer (alpha)<span className="sr-only">, {props.relay.id}</span>
                         </a>
