@@ -243,8 +243,16 @@ export default function ShowSession() {
                     <div className="dropdown dropdown-end mr-4">
                         <label
                             tabIndex={0}
-                            className="btn btn-secondary w-10 rounded-full"
+                            className=""
                         >
+                        {session?.user?.email && 
+                            <div className="chat-image avatar">
+                               <div className="w-10 rounded-full">
+                                    <img src={session?.user?.email} />
+                                </div> 
+                            </div>
+                        }
+                        {!session?.user?.email && 
                         <div className="avatar placeholder">
                             {curTheme == "dark" && 
                                 <div className="bg-primary text-white rounded-full w-10">
@@ -257,6 +265,7 @@ export default function ShowSession() {
                                 </div>
                             }
                         </div>
+                        }
                         </label>
                         <ul
                             tabIndex={0}

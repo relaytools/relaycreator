@@ -1,10 +1,16 @@
-import NextAuth, { NextAuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import {
-    verifyEvent,
-    Event,
-} from "nostr-tools"
-import prisma from '../../../lib/prisma'
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { verifyEvent, Event } from "nostr-tools";
+import prisma from "../../../lib/prisma";
+import NDK, {
+    NDKEvent,
+    NDKNip07Signer,
+    NDKRelay,
+    NDKRelayAuthPolicies,
+    NDKAuthPolicy,
+    NDKRelaySet,
+    NDKSubscription,
+} from "@nostr-dev-kit/ndk";
 
 function isWithinLast10Minutes(timestampString: string) {
     // Convert the timestamp string to a number
@@ -16,16 +22,16 @@ function isWithinLast10Minutes(timestampString: string) {
     // Calculate the time difference in seconds
     const diff = now - timestamp;
 
-    const isDiff = (diff < 600) && (diff > -600)
+    const isDiff = diff < 600 && diff > -600;
 
     // Return true if the time difference is less than 10 minutes (600 seconds)
-    return isDiff
+    return isDiff;
 }
 
 async function updateOrCreateUser(user_pubkey: string) {
     const user = await prisma.user.findFirst({
-        where: { pubkey: user_pubkey }
-    })
+        where: { pubkey: user_pubkey },
+    });
 
     if (user == null) {
         const user = await prisma.user.create({
@@ -33,7 +39,7 @@ async function updateOrCreateUser(user_pubkey: string) {
                 pubkey: user_pubkey,
                 // todo: add last_login timestamp?
             },
-        })
+        });
     }
 }
 
@@ -66,7 +72,7 @@ export const authOptions: NextAuthOptions = {
                 */
 
                 if (!credentials?.sig) {
-                    return null
+                    return null;
                 }
 
                 // we can do a time check here serverside, to verify the event was created in this 5 min window or so.
@@ -79,19 +85,19 @@ export const authOptions: NextAuthOptions = {
                 const isToken = await prisma.loginToken.findFirst({
                     where: {
                         token: credentials.content,
-                    }
-                })
+                    },
+                });
 
                 // token doesn't exist
                 if (isToken == null) {
-                    console.log("token doesnt exist")
-                    return null
+                    console.log("token doesnt exist");
+                    return null;
                 }
 
                 // token expired
                 if (!isTokenCreatedInTheLastHour(isToken)) {
-                    console.log("token expired")
-                    return null
+                    console.log("token expired");
+                    return null;
                 }
 
                 var verifyThis: Event = {
@@ -102,25 +108,47 @@ export const authOptions: NextAuthOptions = {
                     pubkey: credentials.pubkey,
                     id: credentials.id,
                     sig: credentials.sig,
-                }
+                };
 
-                let veryOk = verifyEvent(verifyThis)
+                let veryOk = verifyEvent(verifyThis);
                 //console.log(veryOk)
 
                 if (!veryOk) {
-                    return null
+                    return null;
                 }
 
                 // cleanup the token
-                await prisma.loginToken.delete({ where: { id: isToken.id } })
+                await prisma.loginToken.delete({ where: { id: isToken.id } });
 
                 // if user is verified, paratroop into prisma and create a user (or check one is created)
-                updateOrCreateUser(credentials.pubkey)
+                updateOrCreateUser(credentials.pubkey);
+
+                let foundProfile = null;
+
+                const ndk = new NDK({
+                    //   signer: nip07signer,
+                    autoConnectUserRelays: false,
+                    enableOutboxModel: false,
+                });
+
+                const ndkPool = ndk.pool;
+
+                ndk.addExplicitRelay("wss://profiles.nostr1.com");
+
+                //await ndk.connect()
+                const me = ndk.getUser({ pubkey: credentials.pubkey });
+                await me.fetchProfile()
+                    .then((p) => {
+                        foundProfile = p;
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
 
                 return {
                     id: credentials.pubkey,
                     name: credentials.pubkey,
-                    email: credentials.pubkey
+                    email: foundProfile?.image,
                 }
             },
         }),
@@ -133,14 +161,13 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async session({ session, token }: { session: any; token: any }) {
             //session.address = token.sub
-            session.user.name = token.name
-            session.user.id = token.id
-            session.user.image = ""
-            return session
+            session.user.name = token.name;
+            session.user.id = token.id;
+            session.user.email = token.email;
+            return session;
         },
     },
-}
-
+};
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
@@ -153,4 +180,4 @@ export default async function auth(req: any, res: any) {
 }
 */
 
-export default NextAuth(authOptions)
+export default NextAuth(authOptions);
