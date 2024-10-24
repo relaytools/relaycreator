@@ -64,8 +64,8 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
           <AuthContext>
 
             {rewritten == null && 
-            <div className="flex justify-between">
-                <ShowSession />
+            <div className="flex justify-between font-roboto">
+                <ShowSession theme={currentTheme}/>
                 <ThemeProvider />
             </div>
             }
