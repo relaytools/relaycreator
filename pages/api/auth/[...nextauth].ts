@@ -150,6 +150,7 @@ export const authOptions: NextAuthOptions = {
                 await getProfileOrTimeout(credentials.pubkey).then((result) => {
                     const eventResult = result as Event;
                     console.log('Result:', eventResult.content);
+                    console.log("parsing content of: " + eventResult.content)
                     let y = JSON.parse((result as Event).content)
                     r = y.picture || y.image || ""
                     // Handle the result (event data or default image URL)
