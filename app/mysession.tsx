@@ -158,7 +158,7 @@ export default function ShowSession() {
                 </a>
             </div>
 
-            <div className="flex-none font-condensed">
+            <div className="flex-none items-center justify-center">
                 {!session ? (
                     <div className="flex">
                         <a
@@ -240,27 +240,27 @@ export default function ShowSession() {
                         </div>
                     </div>
                 ) : (
-                    <div className="dropdown dropdown-end mr-4">
+                    <div className="dropdown dropdown-end">
                         <label
                             tabIndex={0}
-                            className=""
+                            className="flex items-center justify-center mr-2"
                         >
-                        {session?.user?.email && 
-                            <div className="chat-image avatar">
+                        {session?.user?.image && 
+                            <div className="avatar">
                                <div className="w-10 rounded-full">
-                                    <img src={session?.user?.email} />
+                                    <img src={session?.user?.image} />
                                 </div> 
                             </div>
                         }
-                        {!session?.user?.email && 
+                        {!session?.user?.image && 
                         <div className="avatar placeholder">
                             {curTheme == "dark" && 
-                                <div className="bg-primary text-white rounded-full w-10">
+                                <div className="bg-primary text-white font-condensed rounded-full w-10">
                                     <span className="text-lg">{session.user?.name?.substring(0,4)}</span>
                                 </div>
                             }
                             {curTheme != "dark" && 
-                                <div className="bg-white text-black rounded-full w-10">
+                                <div className="bg-base-200 text-black font-condensed rounded-full w-15">
                                     <span className="text-lg">{session.user?.name?.substring(0,4)}</span>
                                 </div>
                             }
