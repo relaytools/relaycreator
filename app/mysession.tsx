@@ -230,7 +230,7 @@ export default function ShowSession(
                             </label>
                             <ul
                                 tabIndex={0}
-                                className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]"
+                                className="menu menu-lg dropdown-content mt-3 p-2 shadow bg-base-200 font-bold rounded-box w-52 z-[1]"
                             >
                                 <li>
                                     <a href={rootDomain + "/"}>Faq</a>
@@ -238,7 +238,7 @@ export default function ShowSession(
                                 <li>
                                     <a href={supportURL}>Support</a>
                                 </li>
-                                <li className="border-b border-base-200">
+                                <li className="border-b border-neutral">
                                     <a href={rootDomain + "/signup"}>
                                         Create Relay
                                     </a>
@@ -302,7 +302,7 @@ export default function ShowSession(
                         </label>
                         <ul
                             tabIndex={0}
-                            className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-[1]"
+                            className="menu menu-lg dropdown-content mt-3 p-2 shadow-lg bg-base-100 font-bold rounded-box w-52 z-[1]"
                         >
                             <li>
                                 <a href={rootDomain + "/?myrelays=true"}>
