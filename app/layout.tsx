@@ -65,7 +65,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
 
             {rewritten == null && 
             <div className="flex justify-between">
-                <ShowSession />
+                <ShowSession theme={currentTheme}/>
                 <ThemeProvider />
             </div>
             }
