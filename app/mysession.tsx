@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ShowSession() {
     const doNip07Login = async () => {
@@ -50,6 +50,38 @@ export default function ShowSession() {
 
     const { data: session, status } = useSession();
     const [showLoginHelp, setShowLoginHelp] = useState(false);
+    const [curTheme, setCurTheme] = useState("dark");
+
+        useEffect(() => {
+        // Get the current theme from the data-theme attribute
+        const savedTheme = document.documentElement.getAttribute('data-theme');
+        if (savedTheme) {
+            setCurTheme(savedTheme);
+        }
+
+        // Set up a MutationObserver to watch for changes to the data-theme attribute
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    const newTheme = document.documentElement.getAttribute('data-theme');
+                    if (newTheme) {
+                        setCurTheme(newTheme);
+                    }
+                }
+            });
+        });
+
+        // Observe changes to the data-theme attribute on the <html> element
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme'],
+        });
+
+        // Clean up the observer when the component unmounts
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
 
     // using absolute urls so that we can serve subdomain landing pages
     const rootDomain =
@@ -208,19 +240,23 @@ export default function ShowSession() {
                         </div>
                     </div>
                 ) : (
-                    <div className="dropdown dropdown-end">
+                    <div className="dropdown dropdown-end mr-4">
                         <label
                             tabIndex={0}
-                            className="btn uppercase cursor-pointer mask mask-squircle"
+                            className="btn btn-secondary w-10 rounded-full"
                         >
-                            <div className="w-10 rounded bg-white">
-                                <Image
-                                    src="/settings2-svgrepo-com.svg"
-                                    alt="logged in"
-                                    width={100}
-                                    height={100}
-                                />
-                            </div>
+                        <div className="avatar placeholder">
+                            {curTheme == "dark" && 
+                                <div className="bg-primary text-white rounded-full w-10">
+                                    <span className="text-lg">{session.user?.name?.substring(0,4)}</span>
+                                </div>
+                            }
+                            {curTheme != "dark" && 
+                                <div className="bg-white text-black rounded-full w-10">
+                                    <span className="text-lg">{session.user?.name?.substring(0,4)}</span>
+                                </div>
+                            }
+                        </div>
                         </label>
                         <ul
                             tabIndex={0}
