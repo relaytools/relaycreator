@@ -148,20 +148,23 @@ export const authOptions: NextAuthOptions = {
                 updateOrCreateUser(credentials.pubkey);
 
                 let r = ""
-                // nostrtools
-                await getProfileOrTimeout(credentials.pubkey).then((result) => {
-                    const eventResult = result as Event;
-                    if(eventResult != null && eventResult.content != null && eventResult.content != "") {
-                        console.log("parsing profile content of: " + eventResult.content)
-                        let y = JSON.parse(eventResult.content)
-                        r = y.picture || y.image || ""
-                        // Handle the result (event data or default image URL)
-                    } else {
-                        console.log("no profile found for ", credentials.pubkey.substring(0,5))
-                    } 
-                    }).catch((error) => {
-                    console.error('Error:', error);
-                });
+                // skip loading profile for automation logins
+                if(process.env.DEPLOY_PUBKEY != credentials.pubkey) {
+                    // nostrtools
+                    await getProfileOrTimeout(credentials.pubkey).then((result) => {
+                        const eventResult = result as Event;
+                        if(eventResult != null && eventResult.content != null && eventResult.content != "") {
+                            console.log("parsing profile content of: " + eventResult.content)
+                            let y = JSON.parse(eventResult.content)
+                            r = y.picture || y.image || ""
+                            // Handle the result (event data or default image URL)
+                        } else {
+                            console.log("no profile found for ", credentials.pubkey.substring(0,5))
+                        } 
+                        }).catch((error) => {
+                        console.error('Error:', error);
+                    });
+                }
 
                 return {
                     id: credentials.pubkey,
