@@ -62,11 +62,13 @@ async function getProfileOrTimeout(pubkey: string) {
             onevent(event) {
                 clearTimeout(timeout);
                 sub.close();
+                relay.close();
                 resolve(event); // Return the event data
             },
             oneose() {
                 resolve("");
                 sub.close();
+                relay.close();
             }
         });
     });
@@ -149,12 +151,15 @@ export const authOptions: NextAuthOptions = {
                 // nostrtools
                 await getProfileOrTimeout(credentials.pubkey).then((result) => {
                     const eventResult = result as Event;
-                    console.log('Result:', eventResult.content);
-                    console.log("parsing content of: " + eventResult.content)
-                    let y = JSON.parse((result as Event).content)
-                    r = y.picture || y.image || ""
-                    // Handle the result (event data or default image URL)
-                }).catch((error) => {
+                    if(eventResult != null && eventResult.content != null && eventResult.content != "") {
+                        console.log("parsing profile content of: " + eventResult.content)
+                        let y = JSON.parse(eventResult.content)
+                        r = y.picture || y.image || ""
+                        // Handle the result (event data or default image URL)
+                    } else {
+                        console.log("no profile found for ", credentials.pubkey.substring(0,5))
+                    } 
+                    }).catch((error) => {
                     console.error('Error:', error);
                 });
 
