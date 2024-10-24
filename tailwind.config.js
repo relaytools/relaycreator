@@ -18,6 +18,7 @@ module.exports = {
         jetbrains: ["var(--font-jetbrains)"],
         sans: ["var(--font-open-sans)"],
         mono: ["var(--font-roboto-mono)"],
+        roboto: ["var(--font-roboto)"],
         condensed: ["var(--font-roboto-condensed)"],
       }
     },
