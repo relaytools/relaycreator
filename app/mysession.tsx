@@ -154,13 +154,14 @@ export default function ShowSession(
                 <div className="flex-1">
                     <a
                         href={rootDomain + "/"}
-                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center"
+                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center max-h-40"
                     >
                         <Image
-                            src="/rtlogo-dark1.png"
+                            src="/17.svg"
                             alt="menu"
-                            width={300}
-                            height={50}
+                            width={500}
+                            height={30}
+                            objectFit='cover'
                         />
                     </a>
                 </div>
@@ -169,13 +170,13 @@ export default function ShowSession(
                 <div className="flex-1">
                     <a
                         href={rootDomain + "/"}
-                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center"
+                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center max-h-40"
                     >
                         <Image
-                            src="/rtlogo-light1.png"
+                            src="/19.svg"
                             alt="menu"
-                            width={300}
-                            height={50}
+                            width={500}
+                            height={30}
                         />
                     </a>
                 </div>
