@@ -89,6 +89,7 @@ export default async function Relays({
     var result
     if(process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN && process.env.INFLUXDB_ORG && process.env.INFLUXDB_BUCKET) {
 
+        try {
         // Set up InfluxDB client
         const influxDB = getInfluxDBClient();
 
@@ -106,10 +107,12 @@ export default async function Relays({
             `
 
         result = await queryApi.collectRows(fluxQuery)
+        } catch (e) {
+            console.log("error occured during influxdb query")
+            console.log(e)
+        }
         
     }
-
-    console.log(result)
 
     return (
             <div className="flex flex-wrap">
