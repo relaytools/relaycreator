@@ -28,7 +28,7 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
     return (
         <>
             {status && props.signed_in && <div>success<ZapAnimation redirect_to={`/curator?relay_id=${props.relay_id}`}></ZapAnimation></div>}
-            {status && !props.signed_in && <div>success<ZapAnimation redirect_to={`https://${props.relay_name}.nostr1.com`}></ZapAnimation></div>}
+            {status && !props.signed_in && <div>success<ZapAnimation redirect_to={`/curator?relay_id=${props.relay_id}`}></ZapAnimation></div>}
             {!status && <div>waiting</div>}
         </>
     )
