@@ -1,17 +1,26 @@
 "use client"
 import LogoComponent from "../components/logoComponent"
 import TextString from "../components/textString"
+import TextStringFloatilla from "../components/textStringFloatilla"
 import { IoArrowForwardOutline, IoLogoGithub } from 'react-icons/io5';
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import NoSSRWrapper from "../components/noSSRWrapper";
 import { nip19 } from "nostr-tools";
 import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
+import Image from "next/image"
 
 export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();
     const p = useSearchParams();
+
+    const [referrer, setReferrer] = useState("")
+
+    useEffect(() => {
+        setReferrer(document.referrer)
+    }, [])
+    
     if (p == null) {
         return (
             <>
@@ -109,7 +118,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
         const newdata = await response.json()
 
         if (response.ok) {
-            router.push(`/invoices?relayname=${name}&pubkey=${submitHex}&order_id=${newdata.order_id}`);
+            router.push(`/invoices?relayname=${name}&pubkey=${submitHex}&order_id=${newdata.order_id}&referrer=${referrer}`);
         } else {
             setNameError("❌")
             setNameErrorDescription(newdata.error)
@@ -174,15 +183,22 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                     <span className="flex items-center font-medium tracking-wide text-red-600 text-xs mt-1 ml-1">
                         {nameErrorDescription}
                     </span>
-                    <div className="p-6 flex items-center justify-center">
+                    <div className="p-6 relative flex items-center justify-center">
+                        {referrer == "https://floatilla.coracle.social" && 
+                        <div className="absolute">
+                            <Image alt="floatilla" src="/float1.png" width="200" height="200" />
+                        </div>
+
+                        }
                         <NoSSRWrapper>
-                            <div className=" max-h-[200px]">
+                            <div className="relative z-10 max-h-[200px]">
                                 <LogoComponent />
                             </div>
                         </NoSSRWrapper>
                     </div>
-                    <div className="flex items-center justify-center">
-                        <TextString />
+                    <div className="flex items-center justify-center mt-24">
+                        {referrer != "https://floatilla.coracle.social" && <TextString />}
+                        {referrer == "https://floatilla.coracle.social" && <TextStringFloatilla />}
                     </div>
                     <div>
                         <div className="flex items-center justify-center text-center">relay.tools 2023 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>

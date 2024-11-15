@@ -15,9 +15,9 @@ export default async function Curator({
 
     if (!session || !(session as any).user.name) {
         return (
-            <>
-                <div></div>
-            </>
+            <article className="prose">
+                <h1>Your relay is being created.  Please Sign-in to manage your relay.</h1>
+            </article>
         )
     }
 

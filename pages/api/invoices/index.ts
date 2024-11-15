@@ -15,7 +15,7 @@ export default async function handle(req: any, res: any) {
         //return
     }
 
-    const { relayname, pubkey, topup, sats } = req.query as { relayname: string, pubkey: string, topup: string, sats: string };
+    const { relayname, pubkey, topup, sats, referrer } = req.query as { relayname: string, pubkey: string, topup: string, sats: string, referrer: string };
 
     if(topup != null && relayname != null && topup == "true") {
         console.log('topping up')
@@ -168,6 +168,7 @@ export default async function handle(req: any, res: any) {
             status: useStatus,
             port: p,
             ip: useIP,
+            referrer: referrer,
         }
     })
     const newbl = await prisma.blockList.create({
