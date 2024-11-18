@@ -187,7 +187,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                         {nameErrorDescription}
                     </span>
                     <div className="p-6 relative flex items-center justify-center">
-                        {referrer == "https://flotilla.social" && 
+                        {referrer == "https://flotilla.social/" && 
                         <div className="absolute">
                             <Image alt="floatilla" src="/float1.png" width="200" height="200" />
                         </div>
@@ -200,8 +200,8 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                         </NoSSRWrapper>
                     </div>
                     <div className="flex items-center justify-center mt-24">
-                        {referrer != "https://flotilla.social" && <TextString />}
-                        {referrer == "https://flotilla.social" && <TextStringFloatilla />}
+                        {referrer != "https://flotilla.social/" && <TextString />}
+                        {referrer == "https://flotilla.social/" && <TextStringFloatilla />}
                     </div>
                     <div>
                         <div className="flex items-center justify-center text-center">relay.tools 2023 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
