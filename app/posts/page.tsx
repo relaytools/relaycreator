@@ -114,10 +114,10 @@ export default function PostsPage(
     }
 
     let signerFailed = false;
-    let useRelayWSS = "wss://" + props.relay.name + "." + props.relay.domain
+    let useRelayWSS = "wss://" + props.relay.name + "." + props.relay.domain;
     // if relay is external, use full domain name here
-    if(props.relay.is_external) {
-        useRelayWSS = "wss://" + props.relay.domain
+    if (props.relay.is_external) {
+        useRelayWSS = "wss://" + props.relay.domain;
     }
 
     async function eventListener(relay: NDKRelay) {
@@ -637,7 +637,7 @@ export default function PostsPage(
                 </div>
             );
         } else {
-            return(<></>);
+            return <></>;
         }
     };
 
@@ -939,9 +939,23 @@ export default function PostsPage(
                                 copy url to clipboard
                             </button>
                         </div>
+                        {modActions && (
+                            <div className="mb-4">
+                                <a
+                                    href={
+                                        process.env.NEXT_PUBLIC_ROOT_DOMAIN +
+                                        "/curator?relay_id=" +
+                                        props.relay.id
+                                    }
+                                    className="btn uppercase btn-primary"
+                                >
+                                    open relay settings
+                                </a>
+                            </div>
+                        )}
                         <div className="flex flex-wrap items-center">
                             <div className="text-primary font-condensed text-lg font-bold">
-                                anonymous posting {anonPost ? "ON" : "OFF"}
+                                anonymous posting is {anonPost ? "ON" : "OFF"}
                             </div>
                             <label className="swap">
                                 {/* this hidden checkbox controls the state */}
@@ -1054,7 +1068,10 @@ export default function PostsPage(
                             value={postContent}
                             rows={1}
                         />
-                        <button disabled={postContent == ""} className="btn uppercase btn-primary justify-end">
+                        <button
+                            disabled={postContent == ""}
+                            className="btn uppercase btn-primary justify-end"
+                        >
                             Post
                         </button>
                         {!showKindPicker && (
@@ -1098,9 +1115,11 @@ export default function PostsPage(
                             key={"my_modal_5" + showPost.id}
                             className="modal modal-top modal-open sm:modal-middle h-auto"
                         >
-                            <form method="dialog" className="modal-box w-full"
-                                        ref={replyFormRef}
-                                        onSubmit={(e) => handleReply(e)}
+                            <form
+                                method="dialog"
+                                className="modal-box w-full"
+                                ref={replyFormRef}
+                                onSubmit={(e) => handleReply(e)}
                             >
                                 <div className="flex justify-end">
                                     <div
@@ -1188,25 +1207,25 @@ export default function PostsPage(
                                 )}
 
                                 <div className="flex flex-wrap items-center justify-center mb-4 mt-2">
-                                        <textarea
-                                            ref={textareaReplyRef}
-                                            key="replypost"
-                                            placeholder="send reply"
-                                            className="flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none overflow-hidden"
-                                            onChange={(e) =>
-                                                setReplyPost(e.target.value)
-                                            }
-                                            onKeyDown={handleKeyDownReply}
-                                            value={replyPost}
-                                            rows={1}
-                                        />
-                                        <button
-                                            className="btn uppercase btn-primary"
-                                            onClick={(e) => handleReply(e)}
-                                            disabled={replyPost == ""}
-                                        >
-                                            reply
-                                        </button>
+                                    <textarea
+                                        ref={textareaReplyRef}
+                                        key="replypost"
+                                        placeholder="send reply"
+                                        className="flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none overflow-hidden"
+                                        onChange={(e) =>
+                                            setReplyPost(e.target.value)
+                                        }
+                                        onKeyDown={handleKeyDownReply}
+                                        value={replyPost}
+                                        rows={1}
+                                    />
+                                    <button
+                                        className="btn uppercase btn-primary"
+                                        onClick={(e) => handleReply(e)}
+                                        disabled={replyPost == ""}
+                                    >
+                                        reply
+                                    </button>
                                 </div>
 
                                 {modActions && (
