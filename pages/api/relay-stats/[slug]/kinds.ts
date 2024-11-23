@@ -34,7 +34,7 @@ export default async function handle(req: any, res: any) {
       |> filter(fn: (r) => r["_measurement"] == "events1")
       |> filter(fn: (r) => r["_field"] == "allowed")
       |> group(columns: ["_measurement", "_field", "relay", "kind"])
-      |> filter(fn: (r) => r["relay"] == "clom6iwos002hjq15i3wh06gt")
+      |> filter(fn: (r) => r["relay"] == "${slug}")
       |> group(columns: ["kind"])
       |> sum() 
       |> yield(name: "sum")
