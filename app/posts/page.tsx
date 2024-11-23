@@ -69,7 +69,6 @@ export default function PostsPage(
     props: React.PropsWithChildren<{
         relay: RelayWithEverything;
         publicRelays: RelayWithEverything[];
-        stats: any;
     }>
 ) {
     const { data: session, status } = useSession();
@@ -85,12 +84,21 @@ export default function PostsPage(
     const [showKindPicker, setShowKindPicker] = useState(false);
     const [anonPost, setAnonPost] = useState(false);
     const [postContent, setPostContent] = useState("");
+    const [stats, setStats] = useState([]);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const textareaReplyRef = useRef<HTMLTextAreaElement>(null);
     const postFormRef = useRef<HTMLFormElement>(null);
     const replyFormRef = useRef<HTMLFormElement>(null);
 
     const relayLimit = 100;
+
+    useEffect(() => {
+        fetch(
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.id}/kinds`
+        )
+            .then((res) => res.json())
+            .then((data) => setStats(data.stats));
+    }, [props.relay.id]);
 
     async function grabNewKinds(newKind: string) {
         var kindOtherSub: NDKSubscription;
@@ -1092,17 +1100,19 @@ export default function PostsPage(
                             Event Kinds (seen) in the last 24 hours
                         </div>
                         <div className="flex flex-wrap rounded-sm border-primary border-2 w-full items-center justify-center">
-                            {props.stats != undefined &&
-                                props.stats.map((item: any) => (
-                                    <button
-                                        onClick={(e) => handleChangeKind(e)}
-                                        value={item.kind}
-                                        key={item.kind}
-                                        className="btn btn-secondary"
-                                    >
-                                        kind: {item.kind} ({item._value})
-                                    </button>
-                                ))}
+                            {stats.map((item: any) => (
+                                <button
+                                    key={item.kind}
+                                    onClick={(e) => handleChangeKind(e)}
+                                    value={item.kind}
+                                    className="btn btn-secondary"
+                                >
+                                    kind: {item.kind} ({item._value})
+                                </button>
+                            ))}
+                            {stats.length == 0 && (
+                                <span className="loading loading-spinner text-primary w-4 h-4" >loading</span>
+                            )}
                         </div>
                     </div>
                 )}
