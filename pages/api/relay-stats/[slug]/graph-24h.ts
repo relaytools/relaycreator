@@ -27,11 +27,11 @@ export default async function handle(req: any, res: any) {
       |> filter(fn: (r) => r["_measurement"] == "events1")
       |> filter(fn: (r) => r["_field"] == "allowed")
       |> group(columns: ["_measurement", "_field", "relay", "kind"])
-      |> filter(fn: (r) => r["relay"] == {slug})
-      |> group(columns: ["kind"])
-      |> sum() 
+      |> filter(fn: (r) => r["relay"] == ${slug})
+      |> aggregateWindow(every: 1h, fn: count)
       |> filter(fn: (r) => r["_value"] > 0)
-      |> yield(name: "sum")
+      |> yield(name: "count")
+      
     `;
         const result = await queryApi.collectRows(fluxQuery);
         return res.status(200).json({ stats: result });

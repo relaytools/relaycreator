@@ -17,22 +17,21 @@ export default async function handle(req: any, res: any) {
         return Response.json({ stats: null });
     }
 
+    console.log(slug)
     try {
         const influxDB = getInfluxDBClient();
         const queryApi = influxDB.getQueryApi(process.env.INFLUXDB_ORG);
 
         const fluxQuery = `
       from(bucket: "${process.env.INFLUXDB_BUCKET}")
-      |> range(start: -24h)
-      |> filter(fn: (r) => r["_measurement"] == "events1")
-      |> filter(fn: (r) => r["_field"] == "allowed")
-      |> group(columns: ["_measurement", "_field", "relay", "kind"])
-      |> filter(fn: (r) => r["relay"] == {slug})
-      |> group(columns: ["kind"])
-      |> sum() 
-      |> filter(fn: (r) => r["_value"] > 0)
-      |> yield(name: "sum")
+        |> range(start: -24h)
+        |> filter(fn: (r) => r["_measurement"] == "haproxy")
+        |> filter(fn: (r) => r["_field"] == "h1_open_streams")
+        |> filter(fn: (r) => r["proxy"] == "${slug}")
+        |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
+        |> yield(name: "mean")
     `;
+
         const result = await queryApi.collectRows(fluxQuery);
         return res.status(200).json({ stats: result });
     } catch (e) {
