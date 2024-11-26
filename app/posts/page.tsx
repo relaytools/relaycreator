@@ -17,15 +17,27 @@ import NDK, {
     NDKSubscription,
 } from "@nostr-dev-kit/ndk";
 
-import { useSearchParams } from "next/navigation";
 import { RelayWithEverything } from "../components/relayWithEverything";
 import RelayMenuBar from "../relays/relayMenuBar";
-import RelayDetail from "../components/relayDetail";
 import RelayPayment from "../components/relayPayment";
 import Terms from "../components/terms";
 import Image from "next/image";
 import ShowSmallSession from "../smallsession";
 import React from "react";
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+} from "recharts";
+//import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+//import { LineChart } from "../components/chartUtils"
 
 interface Event {
     pubkey: string;
@@ -81,16 +93,85 @@ export default function PostsPage(
     const [myPubkey, setMyPubkey] = useState("");
     const [modActions, setModActions] = useState(false);
     const [showKind, setShowKind] = useState("1");
-    const [showKindPicker, setShowKindPicker] = useState(false);
+    const [showStats, setShowStats] = useState(false);
     const [anonPost, setAnonPost] = useState(false);
     const [postContent, setPostContent] = useState("");
     const [stats, setStats] = useState([]);
+    const [graphStats, setGraphStats] = useState([]);
+    const [connStats, setConnStats] = useState([]);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const textareaReplyRef = useRef<HTMLTextAreaElement>(null);
     const postFormRef = useRef<HTMLFormElement>(null);
     const replyFormRef = useRef<HTMLFormElement>(null);
+    const [kindFilter, setKindFilter] = useState("");
 
     const relayLimit = 100;
+    const transformToMultiSeriesData = (influxData: any) => {
+        // Group data by kind
+        const groupedByKind = influxData.reduce((acc: any, point: any) => {
+            const series = acc[point.kind] || [];
+            series.push({
+                time: new Date(point._time).getTime(),
+                value: point._value,
+            });
+            acc[point.kind] = series;
+            return acc;
+        }, {});
+
+        // Convert to Recharts format
+        let returnMe = Object.entries(groupedByKind).map(([kind, data]) => ({
+            name: `Kind ${kind}`,
+            data: data,
+        }));
+
+        if (kindFilter != "") {
+            returnMe = returnMe.filter(
+                (item) => item.name == `Kind ${kindFilter}`
+            );
+        }
+
+        return returnMe;
+    };
+
+    const transformToKindsData = (influxData: any) => {
+        // Aggregate total events by kind
+        const kindTotals = influxData.reduce((acc: any, point: any) => {
+            acc[point.kind] = (acc[point.kind] || 0) + point._value;
+            return acc;
+        }, {});
+
+        // Convert to chart format
+        const returnMe = Object.entries(kindTotals)
+            .map(([kind, total]) => ({
+                kind: `Kind ${kind}`,
+                total: total,
+            }))
+            .sort((a, b) => (b.total as number) - (a.total as number)); // Sort by highest count}
+
+        return returnMe.filter(
+            (item) =>
+                kindFilter === "" ||
+                item.kind.toLowerCase() == kindFilter.toLowerCase()
+        );
+    };
+
+    const transformConnStats = (stats: any) => {
+        // Group by timestamp
+        const groupedByTime = stats.reduce((acc: any, stat: any) => {
+            const time = new Date(stat._time).getTime();
+            if (!acc[time]) {
+                acc[time] = { time, value: 0 };
+            }
+            acc[time].value += stat._value;
+            return acc;
+        }, {});
+
+        // Convert to array and sort by time
+        const transformed = Object.values(groupedByTime).sort(
+            (a: any, b: any) => a.time - b.time
+        );
+        return transformed;
+    };
 
     useEffect(() => {
         fetch(
@@ -98,6 +179,26 @@ export default function PostsPage(
         )
             .then((res) => res.json())
             .then((data) => setStats(data.stats));
+    }, [props.relay.id]);
+
+    useEffect(() => {
+        fetch(
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.id}/graph-24h`
+        )
+            .then((res) => res.json())
+            .then((data) => {
+                setGraphStats(data.stats);
+            });
+    }, [props.relay.id]);
+
+    useEffect(() => {
+        fetch(
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.name}/connections`
+        )
+            .then((res) => res.json())
+            .then((data) => {
+                setConnStats(data.stats);
+            });
     }, [props.relay.id]);
 
     async function grabNewKinds(newKind: string) {
@@ -809,7 +910,7 @@ export default function PostsPage(
 
     const handleChangeKind = async (e: any) => {
         e.preventDefault();
-        setShowKindPicker(false);
+        setShowStats(false);
         setShowKind(e.target.value);
         wipePosts();
         await grabNewKinds(e.target.value);
@@ -1060,11 +1161,11 @@ export default function PostsPage(
                     {displayRelayStatus()}
                 </div>
 
-                <div className="w-full p-2">
+                <div className="w-full p-2 flex flex-wrap">
                     <form
                         ref={postFormRef}
                         onSubmit={(e) => handleSubmitPost(e)}
-                        className="flex flex-wrap w-full items-center justify-center"
+                        className="flex flex-wrap flex-grow items-center justify-center"
                     >
                         <textarea
                             ref={textareaRef}
@@ -1082,38 +1183,150 @@ export default function PostsPage(
                         >
                             Post
                         </button>
-                        {!showKindPicker && (
-                            <button
-                                onClick={(e) => setShowKindPicker(true)}
-                                value={showKind}
-                                key={showKind}
-                                className="btn btn-secondary ml-2"
-                            >
-                                kind: {showKind}
-                            </button>
-                        )}
                     </form>
+                    <button
+                        onClick={(e) => setShowStats(!showStats)}
+                        key="showstats"
+                        className="btn btn-secondary ml-2"
+                    >
+                        STATS 
+                    </button>
                 </div>
-                {showKindPicker && (
-                    <div>
+                {showStats && (
+                    <div className="w-full">
                         <div className="font-condensed items-center justify-center">
-                            Event Kinds (seen) in the last 24 hours
+                            Connections 
                         </div>
-                        <div className="flex flex-wrap rounded-sm border-primary border-2 w-full items-center justify-center">
-                            {stats.map((item: any) => (
-                                <button
-                                    key={item.kind}
-                                    onClick={(e) => handleChangeKind(e)}
-                                    value={item.kind}
-                                    className="btn btn-secondary"
-                                >
-                                    kind: {item.kind} ({item._value})
-                                </button>
-                            ))}
-                            {stats.length == 0 && (
-                                <span className="loading loading-spinner text-primary w-4 h-4" >loading</span>
-                            )}
+
+                        <ResponsiveContainer width="100%" height={100}>
+                            <LineChart data={transformConnStats(connStats)}>
+                                <XAxis
+                                    dataKey="time"
+                                    type="number"
+                                    domain={["dataMin", "dataMax"]}
+                                    tickFormatter={(time) =>
+                                        new Date(time).toLocaleTimeString()
+                                    }
+                                />
+                                <YAxis />
+                                <Tooltip
+                                    labelFormatter={(time) =>
+                                        new Date(time).toLocaleString()
+                                    }
+                                    formatter={(value) => [
+                                        `${value} connections`,
+                                    ]}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="value"
+                                    stroke="#8884d8"
+                                    dot={false}
+                                    name="Active Connections"
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+
+                        <div className="font-condensed items-center justify-center mb-2">
+                            Events (grouped by Kind) in the last 24 hours
                         </div>
+                        <div className="flex">
+                        <input
+                            type="text"
+                            value={kindFilter}
+                            onChange={(e) => setKindFilter(e.target.value)}
+                            placeholder="Filter kind..."
+                            className="mb-4 p-2 border rounded input input-bordered input-primary"
+                        />
+                        <button className="btn btn-secondary" value={kindFilter} onClick={(e) => handleChangeKind(e)}>EXPLORE KIND</button>
+                        </div>
+                        {stats.length == 0 && (
+                            <span className="loading loading-spinner text-primary w-4 h-4">
+                                loading
+                            </span>
+                        )}
+                        {graphStats.length != 0 && (
+                            <ResponsiveContainer width="100%" height={200}>
+                                <LineChart>
+                                    <XAxis
+                                        dataKey="time"
+                                        type="number"
+                                        domain={["dataMin", "dataMax"]}
+                                        allowDuplicatedCategory={false}
+                                        tickFormatter={(unixTime) =>
+                                            new Date(
+                                                unixTime
+                                            ).toLocaleTimeString()
+                                        }
+                                    />
+                                    <YAxis />
+                                    <Tooltip
+                                        content={({
+                                            active,
+                                            payload,
+                                            label,
+                                        }) => {
+                                            if (
+                                                active &&
+                                                payload &&
+                                                payload.length
+                                            ) {
+                                                // Sort by value in descending order
+                                                const sortedPayload =
+                                                    payload.sort(
+                                                        (a: any, b: any) =>
+                                                            b.value - a.value
+                                                    );
+
+                                                return (
+                                                    <div className="custom-tooltip bg-background border p-2 rounded-md">
+                                                        <p>
+                                                            {new Date(
+                                                                label
+                                                            ).toLocaleString()}
+                                                        </p>
+                                                        {sortedPayload.map(
+                                                            (entry, index) => (
+                                                                <p
+                                                                    className="font-condensed"
+                                                                    key={index}
+                                                                    style={{
+                                                                        color: entry.color,
+                                                                    }}
+                                                                >
+                                                                    {entry.name}
+                                                                    :{" "}
+                                                                    {
+                                                                        entry.value
+                                                                    }{" "}
+                                                                    events
+                                                                </p>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                    {transformToMultiSeriesData(graphStats).map(
+                                        (series, index) => (
+                                            <Line
+                                                dot={false}
+                                                key={series.name}
+                                                data={series.data}
+                                                type="monotone"
+                                                dataKey="value"
+                                                name={series.name}
+                                                stroke={`#${Math.floor(
+                                                    Math.random() * 16777215
+                                                ).toString(16)}`}
+                                            />
+                                        )
+                                    )}
+                                </LineChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 )}
             </div>
