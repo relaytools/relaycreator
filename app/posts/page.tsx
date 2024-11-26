@@ -175,14 +175,6 @@ export default function PostsPage(
 
     useEffect(() => {
         fetch(
-            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.id}/kinds`
-        )
-            .then((res) => res.json())
-            .then((data) => setStats(data.stats));
-    }, [props.relay.id]);
-
-    useEffect(() => {
-        fetch(
             `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.id}/graph-24h`
         )
             .then((res) => res.json())
@@ -1240,7 +1232,7 @@ export default function PostsPage(
                         />
                         <button className="btn btn-secondary" value={kindFilter} onClick={(e) => handleChangeKind(e)}>EXPLORE KIND</button>
                         </div>
-                        {stats.length == 0 && (
+                        {graphStats.length == 0 && (
                             <span className="loading loading-spinner text-primary w-4 h-4">
                                 loading
                             </span>
