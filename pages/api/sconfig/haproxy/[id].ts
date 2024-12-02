@@ -117,7 +117,7 @@ export default async function handle(req: any, res: any) {
         backend preview 
             mode  		        http
             option 		        redispatch
-            balance 	        source
+            balance 	        roundrobin
             option forwardfor except 127.0.0.1 header x-real-ip
             server     websocket-001 127.0.0.1:${process.env.NEXT_PUBLIC_PREVIEW_PORT} maxconn 50000 weight 10 check 
         `
@@ -191,7 +191,7 @@ export default async function handle(req: any, res: any) {
 backend ${element.name}
 	mode  		        http
 	option 		        redispatch
-	balance 	        source
+	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip`
 
     if(element.auth_required) {
@@ -230,7 +230,7 @@ backend ${element.name}
 backend ${element.name}
 	mode  		        http
 	option 		        redispatch
-	balance 	        source
+	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip
 	server     ${element.name} ${element.ip}:${element.port} ${useSSLVerify} maxconn 50000 weight 10 check
 	`
@@ -332,7 +332,7 @@ frontend secured
 backend main
 	mode  		        http
 	option 		        redispatch
-	balance 	        source
+	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip
     ${app_servers_cfg}
 
