@@ -194,12 +194,17 @@ export default function PostsPage(
     }, [props.relay.id]);
 
     async function grabNewKinds(newKind: string) {
+        ndk.subManager.subscriptions.forEach((s) => {
+            s.stop();
+        });
+
         var kindOtherSub: NDKSubscription;
         const kindToInteger = parseInt(newKind);
         kindOtherSub = ndk.subscribe(
             { kinds: [kindToInteger], limit: relayLimit },
             { closeOnEose: false, groupable: false }
         );
+
         kindOtherSub.on("event", (event: NDKEvent) => {
             // do profile lookups on the fly
             /*
@@ -1181,13 +1186,13 @@ export default function PostsPage(
                         key="showstats"
                         className="btn btn-secondary ml-2"
                     >
-                        STATS 
+                        STATS
                     </button>
                 </div>
                 {showStats && (
                     <div className="w-full">
                         <div className="font-condensed items-center justify-center">
-                            Connections 
+                            Connections
                         </div>
 
                         <ResponsiveContainer width="100%" height={100}>
@@ -1223,14 +1228,20 @@ export default function PostsPage(
                             Events (grouped by Kind) in the last 24 hours
                         </div>
                         <div className="flex">
-                        <input
-                            type="text"
-                            value={kindFilter}
-                            onChange={(e) => setKindFilter(e.target.value)}
-                            placeholder="Filter kind..."
-                            className="mb-4 p-2 border rounded input input-bordered input-primary"
-                        />
-                        <button className="btn btn-secondary" value={kindFilter} onClick={(e) => handleChangeKind(e)}>EXPLORE KIND</button>
+                            <input
+                                type="text"
+                                value={kindFilter}
+                                onChange={(e) => setKindFilter(e.target.value)}
+                                placeholder="Enter kind #"
+                                className="mb-4 p-2 border rounded input input-bordered input-primary"
+                            />
+                            <button
+                                className="btn btn-secondary"
+                                value={kindFilter}
+                                onClick={(e) => handleChangeKind(e)}
+                            >
+                                EXPLORE KIND
+                            </button>
                         </div>
                         {graphStats.length == 0 && (
                             <span className="loading loading-spinner text-primary w-4 h-4">
@@ -1281,7 +1292,7 @@ export default function PostsPage(
                                                             (entry, index) => (
                                                                 <p
                                                                     className="font-condensed"
-                                                                    key={index}
+                                                                    key={"tooltipx" + index}
                                                                     style={{
                                                                         color: entry.color,
                                                                     }}
@@ -1305,7 +1316,7 @@ export default function PostsPage(
                                         (series, index) => (
                                             <Line
                                                 dot={false}
-                                                key={series.name}
+                                                key={"seriesnames" + series.name}
                                                 data={series.data}
                                                 type="monotone"
                                                 dataKey="value"
@@ -1367,11 +1378,60 @@ export default function PostsPage(
                                         </div>
                                     </div>
 
-                                    <div className="chat-bubble text-white selectable h-auto overflow-wrap break-normal whitespace-pre-line">
-                                        {showContentWithoutLinks4(
-                                            showPost.content
-                                        )}
-                                    </div>
+                                    {showPost.kind == 1 && (
+                                        <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
+                                            {showContentWithoutLinks4(
+                                                showPost.content
+                                            )}
+                                        </div>
+                                    )}
+                                    {showPost.kind != 1 && (
+                                        <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto whitespace-pre-line break-normal">
+                                            <div className="label label-text-sm">
+                                                content
+                                            </div>
+                                            <div className="border-2 border-gray-300 rounded-lg p-4 whitespace-pre-line break-normal">
+                                                {showPost.content &&
+                                                    showContentWithoutLinks4(
+                                                        showPost.content
+                                                    )}
+                                                {!showPost.content &&
+                                                    "no content"}
+                                            </div>
+
+                                            <div className="label label-text-sm">
+                                                tags
+                                            </div>
+                                            <div className="border-2 border-gray-300 rounded-lg p-4 flex-col-2">
+                                                {showPost.tags.map(
+                                                    (
+                                                        tag: any,
+                                                        index: number
+                                                    ) => (
+                                                        <div className="flex" key={showPost.id + "outertag" + index}>
+                                                            {tag.map(
+                                                                (
+                                                                    tval: any,
+                                                                    i: number
+                                                                ) => (
+                                                                    <div
+                                                                        className="border-2 border-primary p-2 overflow-x-auto"
+                                                                        key={
+                                                                            showPost.id + "innertag" + tval +
+                                                                            i
+                                                                        }
+                                                                    >
+                                                                        {tval}
+                                                                    </div>
+                                                                )
+                                                            )}
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="chat-footer opacity-50">
                                         {showLocalTime(showPost.created_at)}
                                     </div>
@@ -1531,7 +1591,10 @@ export default function PostsPage(
                                         content
                                     </div>
                                     <div className="border-2 border-gray-300 rounded-lg p-4 whitespace-pre-line break-normal">
-                                        {post.content && post.content}
+                                        {post.content &&
+                                            showContentWithoutLinks4(
+                                                post.content
+                                            )}
                                         {!post.content && "no content"}
                                     </div>
 
@@ -1541,7 +1604,7 @@ export default function PostsPage(
                                     <div className="border-2 border-gray-300 rounded-lg p-4 flex-col-2">
                                         {post.tags.map(
                                             (tag: any, index: number) => (
-                                                <div className="flex">
+                                                <div className="flex" key={"outertag" + index}>
                                                     {tag.map(
                                                         (
                                                             tval: any,
@@ -1549,7 +1612,7 @@ export default function PostsPage(
                                                         ) => (
                                                             <div
                                                                 className="border-2 border-primary p-2 overflow-x-auto"
-                                                                key={tval + i}
+                                                                key={"innertag" + tval + i}
                                                             >
                                                                 {tval}
                                                             </div>
