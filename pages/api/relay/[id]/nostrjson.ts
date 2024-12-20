@@ -26,7 +26,7 @@ export default async function handle(req: any, res: any) {
         "pubkey": relay.owner.pubkey,
         "software": "git+https://github.com/hoytech/strfry.git",
         "supported_nips": [1, 2, 4, 9, 11, 12, 16, 20, 22, 28, 33, 40],
-        "version": "strfry v312-d700b08",
+        "version": "strfry v315-3cff8c9",
         "posting_policy": "https://" + useUrl + "#policy",
     }
 
@@ -42,7 +42,7 @@ export default async function handle(req: any, res: any) {
 
     nostrjson["limitation"]["max_message_length"] = 262200
     nostrjson["limitation"]["max_subscriptions"] = 80
-    nostrjson["limitation"]["max_filters"] = 256 // unsure
+    nostrjson["limitation"]["max_filters"] = 1000 // works now!
     nostrjson["limitation"]["max_limit"] = 10000
     //nostrjson["limitation"]["max_subid_length"] = unknown
     nostrjson["limitation"]["max_event_tags"] = 10000
