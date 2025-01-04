@@ -194,10 +194,10 @@ events {
     rejectEventsOlderThanSeconds = 94608000
 
     # Ephemeral events older than this will be rejected
-    rejectEphemeralEventsOlderThanSeconds = 60
+    rejectEphemeralEventsOlderThanSeconds = 300
 
     # Ephemeral events will be deleted from the DB when older than this
-    ephemeralEventsLifetimeSeconds = 300
+    ephemeralEventsLifetimeSeconds = 600
 
     # Maximum number of tags allowed
     maxNumTags = 10000
