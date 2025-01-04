@@ -6,7 +6,7 @@ import Moderators from "./moderators";
 import { useState } from "react";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 
 export default function Wizard(
     props: React.PropsWithChildren<{
@@ -14,10 +14,12 @@ export default function Wizard(
     }>
 ) {
     // Nav and relay types
-    const [relayKindDescription, setRelayKindDescription] = useState(props.relay.relay_kind_description);
+    const [relayKindDescription, setRelayKindDescription] = useState(
+        props.relay.relay_kind_description
+    );
 
     let useInitialCheck = 1;
-    if(props.relay.relay_kind_description != "") {
+    if (props.relay.relay_kind_description != "") {
         useInitialCheck = 0;
     }
 
@@ -38,7 +40,7 @@ export default function Wizard(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ relay_kind_description: description }),
         });
-    }
+    };
 
     // Image and Summary
     const [profileDetail, setProfileDetails] = useState(props.relay.details);
@@ -266,22 +268,24 @@ export default function Wizard(
 
     // Advanced
     // Delete
-    const [deleteModal, setDeleteModal] = useState(false)
+    const [deleteModal, setDeleteModal] = useState(false);
     const router = useRouter();
     const handleDeleteRelay = async (event: any) => {
         event.preventDefault();
         // call to API to delete relay
-        setDeleteModal(false)
+        setDeleteModal(false);
         const response = await fetch(`/api/relay/${props.relay.id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
         });
-        router.push("/")
-    }
+        router.push("/");
+    };
 
     return (
         <div className="flex flex-col lg:items-center lg:justify-center">
-            <div className="badge badge-neutral mt-4 mb-4">status: {props.relay.status}</div>
+            <div className="badge badge-neutral mt-4 mb-4">
+                status: {props.relay.status}
+            </div>
             <div className="flex flex-grow w-full mb-4">
                 <Relay
                     modActions={true}
@@ -354,8 +358,12 @@ export default function Wizard(
                     />
 
                     <div className="collapse-title text-lg">
-                        {relayKindDescription == "" && <h2>Choose a Relay Type</h2>}
-                        {relayKindDescription != "" && <h2>{relayKindDescription}</h2>}
+                        {relayKindDescription == "" && (
+                            <h2>Choose a Relay Type</h2>
+                        )}
+                        {relayKindDescription != "" && (
+                            <h2>{relayKindDescription}</h2>
+                        )}
                     </div>
 
                     <div className="collapse-content">
@@ -376,7 +384,9 @@ export default function Wizard(
                                         <button
                                             className="btn btn-primary uppercase"
                                             onClick={(e) => {
-                                                setAndPostRelayKindDescription("Community Relay");
+                                                setAndPostRelayKindDescription(
+                                                    "Community Relay"
+                                                );
                                                 setChecked(3);
                                                 setAndPostAllow(false);
                                                 setAndPostAllowTagged(true);
@@ -567,24 +577,25 @@ export default function Wizard(
 
                     <div className="collapse-content">
                         <article className="prose">
-                            <p>
-                                Moderators can edit the access control lists.
-                            </p>
+                            <p>Moderators can edit the access control lists.</p>
                             <p>
                                 Moderators also have access to post by default.
                             </p>
                         </article>
-                        {
-                            props.relay != null && props.relay.moderators != null &&
-                            <Moderators moderators={props.relay.moderators} relay_id={props.relay.id}></Moderators>
-                        }
+                        {props.relay != null &&
+                            props.relay.moderators != null && (
+                                <Moderators
+                                    moderators={props.relay.moderators}
+                                    relay_id={props.relay.id}
+                                ></Moderators>
+                            )}
 
                         <div className="flex justify-center">
                             <div
                                 className="btn btn-primary"
                                 onClick={() => setChecked(5)}
                             >
-                                Next 
+                                Next
                             </div>
                         </div>
                     </div>
@@ -624,26 +635,31 @@ export default function Wizard(
                             </p>
                             {relayKindDescription == "Community Relay" && (
                                 <p>
-                                    Since you would like a {relayKindDescription} we
-                                    recommend you start with Blocking
+                                    Since you would like a{" "}
+                                    {relayKindDescription} we recommend you
+                                    start with Blocking
                                 </p>
                             )}
-                            {relayKindDescription == "Private Community Relay" && (
+                            {relayKindDescription ==
+                                "Private Community Relay" && (
                                 <p>
-                                    Since you would like a {relayKindDescription} we
-                                    recommend you start with Blocking
+                                    Since you would like a{" "}
+                                    {relayKindDescription} we recommend you
+                                    start with Blocking
                                 </p>
                             )}
                             {relayKindDescription == "Public Paid Relay" && (
                                 <p>
-                                    Since you would like a {relayKindDescription} we
-                                    recommend you start with Blocking
+                                    Since you would like a{" "}
+                                    {relayKindDescription} we recommend you
+                                    start with Blocking
                                 </p>
                             )}
                             {relayKindDescription == "Public Free Relay" && (
                                 <p>
-                                    Since you would like a {relayKindDescription} we
-                                    recommend you start with Allowing
+                                    Since you would like a{" "}
+                                    {relayKindDescription} we recommend you
+                                    start with Allowing
                                 </p>
                             )}
                         </article>
@@ -988,14 +1004,16 @@ export default function Wizard(
                                                     events by kind.
                                                 </p>
                                                 <p>
-                                                    If you add kinds here, the
-                                                    event must be sent by an
-                                                    allowed pubkey -AND- be of
-                                                    an allowed kind.
+                                                    If you add kinds here, this
+                                                    will override the pubkey
+                                                    Access Control and allow all
+                                                    pubkeys to post these
+                                                    kinds.
                                                 </p>
                                                 <p>
                                                     If you leave this empty, ALL
-                                                    kinds are allowed.
+                                                    kinds are allowed if matched
+                                                    by the other ACLs.
                                                 </p>
                                             </article>
                                             {props.relay != null &&
@@ -1251,24 +1269,47 @@ export default function Wizard(
                                     DONE
                                 </div>
                             </div>
-
-                
                         </div>
-<div className="divider">Advanced</div>
+                        <div className="divider">Advanced</div>
 
-                <button className="btn uppercase btn-neutral" onClick={() => setDeleteModal(true)}>Delete relay</button>
-                {
-                    deleteModal && <dialog id="delete_modal" className="modal modal-open">
-                        <form className="modal-box bg-gray-900">
-                            <h3 className="text-white">Delete Relay</h3>
-                            <p className="text-base text-sm text-white">Are you SURE you want to delete this relay?</p>
-                            <div className="modal-action flex justify-between">
-                                <button className="btn uppercase" onClick={(e) => handleDeleteRelay(e)}>Yes</button>
-                                <button className="btn uppercase" onClick={() => setDeleteModal(false)}>No</button>
-                            </div>
-                        </form>
-                    </dialog>
-                }
+                        <button
+                            className="btn uppercase btn-neutral"
+                            onClick={() => setDeleteModal(true)}
+                        >
+                            Delete relay
+                        </button>
+                        {deleteModal && (
+                            <dialog
+                                id="delete_modal"
+                                className="modal modal-open"
+                            >
+                                <form className="modal-box bg-gray-900">
+                                    <h3 className="text-white">Delete Relay</h3>
+                                    <p className="text-base text-sm text-white">
+                                        Are you SURE you want to delete this
+                                        relay?
+                                    </p>
+                                    <div className="modal-action flex justify-between">
+                                        <button
+                                            className="btn uppercase"
+                                            onClick={(e) =>
+                                                handleDeleteRelay(e)
+                                            }
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            className="btn uppercase"
+                                            onClick={() =>
+                                                setDeleteModal(false)
+                                            }
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+                                </form>
+                            </dialog>
+                        )}
                     </div>
                 </div>
             </div>
