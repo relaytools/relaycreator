@@ -1,6 +1,6 @@
 "use client";
 import { RelayWithEverything } from "./relayWithEverything";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ShowClientOrder from "./showClientOrder";
 import { useSession } from "next-auth/react";
@@ -14,6 +14,7 @@ export default function RelayPayment(
     }>
 ) {
     const [pubkey, setPubkey] = useState("");
+    const [isValidPubkey, setIsValidPubkey] = useState(false);
     const [pubkeyError, setPubkeyError] = useState("✅");
     const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("");
     const [showPubkeyInput, setShowPubkeyInput] = useState(true);
@@ -24,26 +25,27 @@ export default function RelayPayment(
 
     function setAndValidatePubkey(pubkey: string) {
         const validPubkey = convertOrValidatePubkey(pubkey);
+        setPubkey(pubkey);
 
         if (validPubkey) {
+            setIsValidPubkey(true);
             setPubkeyError("✅");
             setPubkeyErrorDescription("");
         } else {
+            setIsValidPubkey(false);
             setPubkeyError("❌");
             setPubkeyErrorDescription("key must be valid hex or npub");
         }
     }
 
     function isValidForm() {
-
-        if( props.pubkey != "" && pubkey == "") {
+        if (props.pubkey != "" && pubkey == "") {
             return true;
         } else if (pubkey == "") {
             return false;
         }
 
         return pubkeyError == "✅";
-
     }
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
@@ -52,11 +54,11 @@ export default function RelayPayment(
         event.preventDefault();
         setShowSpinner(true);
         // do a post request to the api to create a new order
-        var usePub: string
-        if(pubkey != "") {
-            usePub = pubkey
+        var usePub: string;
+        if (pubkey != "") {
+            usePub = pubkey;
         } else {
-            usePub = props.pubkey
+            usePub = props.pubkey;
         }
         const validPubkey = convertOrValidatePubkey(usePub);
         if (validPubkey) {
@@ -83,26 +85,33 @@ export default function RelayPayment(
         }
     };
 
-    let alreadyPaid = false
+    const isAlreadyPaid = useMemo(() => {
+        if (!props.relay.allow_list) return false;
+        if (!isValidPubkey) return false;
 
-    if(props.relay.allow_list && props.pubkey != null) {
-        props.relay.allow_list.list_pubkeys.map((p) => {
-            var usePub: any
-            if(p.pubkey.startsWith("npub")) {
-                const decodeRes = nip19.decode(p.pubkey)
-                usePub = decodeRes.data 
-            } else {
-                usePub = p.pubkey
-            }
+        var targetPubkey: any
+        if(pubkey != "") {
+            targetPubkey = pubkey;
+        } else if(props.pubkey != "") {
+            targetPubkey = props.pubkey
+        }
+        if (!targetPubkey) return false;
 
-            if (usePub == props.pubkey) {
-                alreadyPaid = true
-            }
-        })
-    }
+        return props.relay.allow_list.list_pubkeys.some((p) => {
+            const normalizedListPubkey = p.pubkey.startsWith("npub")
+                ? nip19.decode(p.pubkey).data
+                : p.pubkey;
+
+            const normalizedTargetPubkey = targetPubkey.startsWith("npub")
+                ? nip19.decode(targetPubkey).data
+                : targetPubkey;
+
+            return normalizedListPubkey === normalizedTargetPubkey;
+        });
+    }, [props.relay.allow_list, pubkey, props.pubkey]);
+
     // to display their nip05 here, we need to get passed in, nip05 name/domain.. (already have pubkey)
-    let alreadyNip05 = false
-
+    let alreadyNip05 = false;
 
     // flow
     // 1. user enters pubkey and clicks pay
@@ -121,10 +130,19 @@ export default function RelayPayment(
                             <div className="lg:text-lg">
                                 This relay requires payment of{" "}
                                 {props.relay.payment_amount} sats to post. ⚡
-                                {alreadyPaid && <div className="text-sm text-green-600">You've already paid for this relay, <a className="link-secondary" href={`${rootDomain}` + "/nip05"}>got nip05?</a></div>}
+                                {isAlreadyPaid && (
+                                    <div className="text-sm text-green-600">
+                                        You've already paid for this relay,{" "}
+                                        <a
+                                            className="link-secondary"
+                                            href={`${rootDomain}` + "/nip05"}
+                                        >
+                                            got nip05?
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                             {showPubkeyInput && (
-
                                 <div className="mt-2 flex rounded-md shadow-sm">
                                     <input
                                         type="text"
@@ -132,7 +150,9 @@ export default function RelayPayment(
                                         id="pubkey"
                                         className="input input-bordered input-primary w-full max-w-xs"
                                         // className="input block w-full min-w-0 flex-1 rounded-none rounded-l-md border-0 py-1.5 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 text-right"
-                                        placeholder={props.pubkey || "enter pubkey"}
+                                        placeholder={
+                                            props.pubkey || "enter pubkey"
+                                        }
                                         autoComplete="off"
                                         value={pubkey}
                                         onChange={(event) =>
