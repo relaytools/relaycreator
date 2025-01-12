@@ -36,8 +36,6 @@ import {
     BarChart,
     Bar,
 } from "recharts";
-//import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-//import { LineChart } from "../components/chartUtils"
 
 interface Event {
     pubkey: string;
@@ -96,7 +94,6 @@ export default function PostsPage(
     const [showStats, setShowStats] = useState(false);
     const [anonPost, setAnonPost] = useState(false);
     const [postContent, setPostContent] = useState("");
-    const [stats, setStats] = useState([]);
     const [graphStats, setGraphStats] = useState([]);
     const [connStats, setConnStats] = useState([]);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -104,6 +101,7 @@ export default function PostsPage(
     const postFormRef = useRef<HTMLFormElement>(null);
     const replyFormRef = useRef<HTMLFormElement>(null);
     const [kindFilter, setKindFilter] = useState("");
+    const [isAllowedStats, setIsAllowedStats] = useState(true);
 
     const relayLimit = 100;
     const transformToMultiSeriesData = (influxData: any) => {
@@ -174,14 +172,18 @@ export default function PostsPage(
     };
 
     useEffect(() => {
+        let extraQuery = ""
+        if(isAllowedStats == false) {
+            extraQuery = "?blocked=true"
+        }
         fetch(
-            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.id}/graph-24h`
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.id}/graph-24h${extraQuery}`
         )
             .then((res) => res.json())
             .then((data) => {
                 setGraphStats(data.stats);
             });
-    }, [props.relay.id]);
+    }, [props.relay.id, isAllowedStats]);
 
     useEffect(() => {
         fetch(
@@ -1223,18 +1225,7 @@ export default function PostsPage(
                                 />
                             </LineChart>
                         </ResponsiveContainer>
-
-                        <div className="font-condensed items-center justify-center mb-2">
-                            Events (grouped by Kind) in the last 24 hours
-                        </div>
                         <div className="flex">
-                            <input
-                                type="text"
-                                value={kindFilter}
-                                onChange={(e) => setKindFilter(e.target.value)}
-                                placeholder="Enter kind #"
-                                className="mb-4 p-2 border rounded input input-bordered input-primary"
-                            />
                             <button
                                 className="btn btn-secondary"
                                 value={kindFilter}
@@ -1242,7 +1233,33 @@ export default function PostsPage(
                             >
                                 EXPLORE KIND
                             </button>
+                            <input
+                                type="text"
+                                value={kindFilter}
+                                onChange={(e) => setKindFilter(e.target.value)}
+                                placeholder="Enter kind #"
+                                className="mb-4 p-2 border rounded input input-bordered input-primary"
+                            />
+                            
                         </div>
+
+                        <div className="font-condensed items-center justify-center mb-2">
+                            Events (grouped by Kind) in the last 24 hours
+                        </div>
+                        <div className="flex">
+                            <label className="label cursor-pointer">
+                                <span className="label-text mr-2">
+                                {isAllowedStats ? 'Filter: Allowed Events' : 'Filter: Blocked Events'}
+                                </span>
+                                <input
+                                type="checkbox"
+                                className="toggle toggle-primary"
+                                checked={isAllowedStats}
+                                onChange={(e) => setIsAllowedStats(e.target.checked)}
+                                />
+                            </label>
+                        </div>
+                        
                         {graphStats.length == 0 && (
                             <span className="loading loading-spinner text-primary w-4 h-4">
                                 loading
