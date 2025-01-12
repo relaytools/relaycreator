@@ -28,7 +28,7 @@ const fluxQuery = `
       |> range(start: -24h)
       |> filter(fn: (r) => r["_measurement"] == "events1")
       |> filter(fn: (r) => r["_field"] == "${addfield}")
-      |> filter(fn: (r) => r["relay"] == "clom6iwos002hjq15i3wh06gt")
+      |> filter(fn: (r) => r["relay"] == "${slug}")
       |> group(columns: ["_measurement", "_field", "kind"])
       |> aggregateWindow(every: 1h, fn: sum)
       |> filter(fn: (r) => r["_value"] > 0)
