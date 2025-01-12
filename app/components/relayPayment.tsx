@@ -14,7 +14,7 @@ export default function RelayPayment(
     }>
 ) {
     const [pubkey, setPubkey] = useState("");
-    const [isValidPubkey, setIsValidPubkey] = useState(false);
+    const [isValidPubkey, setIsValidPubkey] = useState(true);
     const [pubkeyError, setPubkeyError] = useState("✅");
     const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("");
     const [showPubkeyInput, setShowPubkeyInput] = useState(true);
@@ -132,7 +132,7 @@ export default function RelayPayment(
                                 {props.relay.payment_amount} sats to post. ⚡
                                 {isAlreadyPaid && (
                                     <div className="text-sm text-green-600">
-                                        You've already paid for this relay,{" "}
+                                        You're already a member of this relay,{" "}
                                         <a
                                             className="link-secondary"
                                             href={`${rootDomain}` + "/nip05"}
