@@ -241,7 +241,7 @@ backend ${element.name}
     let deleted_domains = ``
     fetchDeletedDomains.forEach((element, counter) => {
         deleted_domains = deleted_domains + `
-        http-request deny if { hdr(Host) -i ${element.name}.${element.domain} }
+        http-request return content-type text/html status 410 file /etc/haproxy/static/410.http if { hdr(Host) -i ${element.name}.${element.domain} }
         `
     })
 
