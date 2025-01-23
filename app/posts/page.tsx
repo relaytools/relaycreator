@@ -77,8 +77,7 @@ function copyToClipboard(e: any, bolt: string) {
 
 export default function PostsPage(
     props: React.PropsWithChildren<{
-        relay: RelayWithEverything;
-        publicRelays: RelayWithEverything[];
+        relayName: string;
     }>
 ) {
     const { data: session, status } = useSession();
@@ -171,29 +170,50 @@ export default function PostsPage(
         return transformed;
     };
 
+    interface RelayData {
+        relay: RelayWithEverything;
+        publicRelays: [];
+        // add other properties if needed
+    }
+
+    const [relayData, setRelayData] = useState<RelayData | null>(null);
+
     useEffect(() => {
-        let extraQuery = ""
-        if(isAllowedStats == false) {
-            extraQuery = "?blocked=true"
+        const fetchRelayData = async () => {
+            const response = await fetch(
+                `/api/relay/${props.relayName}/guiRelays`
+            );
+            const data = await response.json();
+            setRelayData(data);
+        };
+
+        fetchRelayData();
+    }, []);
+
+    useEffect(() => {
+        if (!relayData) return;
+        let extraQuery = "";
+        if (isAllowedStats === false) {
+            extraQuery = "?blocked=true";
         }
         fetch(
-            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.id}/graph-24h${extraQuery}`
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${relayData.relay.id}/graph-24h${extraQuery}`
         )
             .then((res) => res.json())
             .then((data) => {
                 setGraphStats(data.stats);
             });
-    }, [props.relay.id, isAllowedStats]);
-
+    }, [relayData, isAllowedStats]);
     useEffect(() => {
+        if (!relayData) return;
         fetch(
-            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${props.relay.name}/connections`
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${relayData.relay.name}/connections`
         )
             .then((res) => res.json())
             .then((data) => {
                 setConnStats(data.stats);
             });
-    }, [props.relay.id]);
+    }, [relayData]);
 
     async function grabNewKinds(newKind: string) {
         ndk.subManager.subscriptions.forEach((s) => {
@@ -222,11 +242,6 @@ export default function PostsPage(
     }
 
     let signerFailed = false;
-    let useRelayWSS = "wss://" + props.relay.name + "." + props.relay.domain;
-    // if relay is external, use full domain name here
-    if (props.relay.is_external) {
-        useRelayWSS = "wss://" + props.relay.domain;
-    }
 
     async function eventListener(relay: NDKRelay) {
         const kindToInteger = parseInt(showKind);
@@ -294,14 +309,14 @@ export default function PostsPage(
             addToStatus("relay is flapping: " + flapping.url);
         });
         ndkPool.on("relay:auth", (relay: NDKRelay, challenge: string) => {
-            addToStatus("auth: " + props.relay.name);
+            addToStatus("auth: " + relayData?.relay.name);
         });
 
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
-                addToStatus("authed: " + props.relay.name);
+                addToStatus("authed: " + relayData?.relay.name);
                 wipePosts();
                 eventListener(relay);
                 console.log("authing?");
@@ -315,7 +330,7 @@ export default function PostsPage(
                 if (kind1Sub != undefined) {
                     kind1Sub.stop();
                 }
-                addToStatus("disconnected: " + props.relay.name);
+                addToStatus("disconnected: " + relayData?.relay.name);
             }
         });
 
@@ -323,12 +338,12 @@ export default function PostsPage(
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
-                addToStatus("connected: " + props.relay.name);
+                addToStatus("connected: " + relayData?.relay.name);
                 wipePosts();
                 if (!auth) {
                     eventListener(relay);
                 } else if (signerFailed) {
-                    addToStatus("sign-in required: " + props.relay.name);
+                    addToStatus("sign-in required: " + relayData?.relay.name);
                 }
             }
         });
@@ -341,7 +356,7 @@ export default function PostsPage(
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
-                addToStatus("unauthorized: " + props.relay.name);
+                addToStatus("unauthorized: " + relayData?.relay.name);
             }
         });
 
@@ -399,26 +414,28 @@ export default function PostsPage(
     var nrelaydata: string;
     var useAuth: boolean;
 
-    if (props.relay == null || props.relay.name == null) {
+    if (relayData?.relay == null || relayData?.relay.name == null) {
         nrelaydata = "wss://nostr21.com";
         useAuth = false;
-    } else if (props.relay.is_external) {
-        nrelaydata = "wss://" + props.relay.domain;
-        useAuth = props.relay.auth_required;
+    } else if (relayData?.relay.is_external) {
+        nrelaydata = "wss://" + relayData?.relay.domain;
+        useAuth = relayData?.relay.auth_required;
     } else {
-        nrelaydata = "wss://" + props.relay.name + "." + props.relay.domain;
-        useAuth = props.relay.auth_required;
+        nrelaydata =
+            "wss://" + relayData.relay.name + "." + relayData.relay.domain;
+        useAuth = relayData.relay.auth_required;
     }
 
     const activeUser = ndk.activeUser;
     const activePubkey = activeUser?.pubkey;
+
     if (activePubkey != null && activePubkey != myPubkey) {
         console.log("setting my pubkey", activePubkey);
         setMyPubkey(activePubkey);
         const isModOrOwner =
-            props.relay.moderators.some(
+            relayData?.relay.moderators.some(
                 (mod) => mod.user.pubkey == activePubkey
-            ) || props.relay.owner.pubkey == activePubkey;
+            ) || relayData?.relay.owner.pubkey == activePubkey;
         if (isModOrOwner && modActions == false) {
             setModActions(true);
         }
@@ -426,8 +443,9 @@ export default function PostsPage(
     }
 
     useEffect(() => {
+        if (!relayData) return;
         grabStuff(nrelaydata, useAuth);
-    }, []);
+    }, [relayData]);
 
     function summarizePubkey(pubkey: string): string {
         if (pubkey == null) {
@@ -825,10 +843,10 @@ export default function PostsPage(
 
     const handleBlockPubkey = async (e: any) => {
         e.preventDefault();
-        if (showPost != undefined) {
+        if (showPost != undefined && relayData != null) {
             // call to API to add new keyword
             const response = await fetch(
-                `/api/relay/${props.relay.id}/blocklistpubkey`,
+                `/api/relay/${relayData.relay.id}/blocklistpubkey`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1011,6 +1029,7 @@ export default function PostsPage(
                         </div>
                     </label>
                 </div>
+                {relayData != null &&
                 <div className="drawer-side z-10">
                     <label
                         htmlFor="my-drawer-4"
@@ -1021,22 +1040,25 @@ export default function PostsPage(
                         <div className="mb-4">
                             <img
                                 src={
-                                    props.relay.banner_image ||
+                                    relayData.relay.banner_image ||
                                     "/green-check.png"
                                 }
                             ></img>
                         </div>
                         <div className="text text-lg p-4 font-condensed">
-                            {props.relay.details}
+                            {relayData.relay.details}
                         </div>
-                        {props.relay.allow_list != null &&
-                            !props.relay.default_message_policy && (
+                        {relayData.relay.allow_list != null &&
+                            !relayData.relay.default_message_policy && (
                                 <div
                                     key="allowedpubkeycount"
                                     className="font-condensed p-4"
                                 >
                                     Members:{" "}
-                                    {props.relay.allow_list.list_pubkeys.length}
+                                    {
+                                        relayData.relay.allow_list.list_pubkeys
+                                            .length
+                                    }
                                 </div>
                             )}
                         <div className="mb-4">
@@ -1053,7 +1075,7 @@ export default function PostsPage(
                                     href={
                                         process.env.NEXT_PUBLIC_ROOT_DOMAIN +
                                         "/curator?relay_id=" +
-                                        props.relay.id
+                                        relayData.relay.id
                                     }
                                     className="btn uppercase btn-primary"
                                 >
@@ -1096,16 +1118,17 @@ export default function PostsPage(
                             </label>
                         </div>
 
-                        {props.relay.payment_required && (
+                        {relayData.relay.payment_required && (
                             <RelayPayment
-                                relay={props.relay}
+                                relay={relayData.relay}
                                 pubkey={myPubkey}
                             />
                         )}
-                        {/*<RelayDetail relay={props.relay} />*/}
+                        {/*<RelayDetail relay={relayData.relay} />*/}
                         {<Terms />}
                     </div>
                 </div>
+                }
             </div>
         );
     };
@@ -1137,7 +1160,7 @@ export default function PostsPage(
                                     <div className="w-12 rounded-full">
                                         <img
                                             src={
-                                                props.relay.banner_image ||
+                                                relayData?.relay.banner_image ||
                                                 "/green-check.png"
                                             }
                                         />
@@ -1153,7 +1176,11 @@ export default function PostsPage(
                             ></label>
                             <div className="menu bg-base-200 text-base-content min-h-full w-80">
                                 {/* Sidebar content here */}
-                                <RelayMenuBar relays={props.publicRelays} />
+                                {relayData != null && (
+                                    <RelayMenuBar
+                                        relays={relayData.publicRelays}
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -1240,7 +1267,6 @@ export default function PostsPage(
                                 placeholder="Enter kind #"
                                 className="mb-4 p-2 border rounded input input-bordered input-primary"
                             />
-                            
                         </div>
 
                         <div className="font-condensed items-center justify-center mb-2">
@@ -1249,17 +1275,21 @@ export default function PostsPage(
                         <div className="flex">
                             <label className="label cursor-pointer">
                                 <span className="label-text mr-2">
-                                {isAllowedStats ? 'Filter: Allowed Events' : 'Filter: Blocked Events'}
+                                    {isAllowedStats
+                                        ? "Filter: Allowed Events"
+                                        : "Filter: Blocked Events"}
                                 </span>
                                 <input
-                                type="checkbox"
-                                className="toggle toggle-primary"
-                                checked={isAllowedStats}
-                                onChange={(e) => setIsAllowedStats(e.target.checked)}
+                                    type="checkbox"
+                                    className="toggle toggle-primary"
+                                    checked={isAllowedStats}
+                                    onChange={(e) =>
+                                        setIsAllowedStats(e.target.checked)
+                                    }
                                 />
                             </label>
                         </div>
-                        
+
                         {graphStats.length == 0 && (
                             <span className="loading loading-spinner text-primary w-4 h-4">
                                 loading
@@ -1309,7 +1339,10 @@ export default function PostsPage(
                                                             (entry, index) => (
                                                                 <p
                                                                     className="font-condensed"
-                                                                    key={"tooltipx" + index}
+                                                                    key={
+                                                                        "tooltipx" +
+                                                                        index
+                                                                    }
                                                                     style={{
                                                                         color: entry.color,
                                                                     }}
@@ -1333,7 +1366,9 @@ export default function PostsPage(
                                         (series, index) => (
                                             <Line
                                                 dot={false}
-                                                key={"seriesnames" + series.name}
+                                                key={
+                                                    "seriesnames" + series.name
+                                                }
                                                 data={series.data}
                                                 type="monotone"
                                                 dataKey="value"
@@ -1425,7 +1460,14 @@ export default function PostsPage(
                                                         tag: any,
                                                         index: number
                                                     ) => (
-                                                        <div className="flex" key={showPost.id + "outertag" + index}>
+                                                        <div
+                                                            className="flex"
+                                                            key={
+                                                                showPost.id +
+                                                                "outertag" +
+                                                                index
+                                                            }
+                                                        >
                                                             {tag.map(
                                                                 (
                                                                     tval: any,
@@ -1434,7 +1476,9 @@ export default function PostsPage(
                                                                     <div
                                                                         className="border-2 border-primary p-2 overflow-x-auto"
                                                                         key={
-                                                                            showPost.id + "innertag" + tval +
+                                                                            showPost.id +
+                                                                            "innertag" +
+                                                                            tval +
                                                                             i
                                                                         }
                                                                     >
@@ -1621,7 +1665,10 @@ export default function PostsPage(
                                     <div className="border-2 border-gray-300 rounded-lg p-4 flex-col-2">
                                         {post.tags.map(
                                             (tag: any, index: number) => (
-                                                <div className="flex" key={"outertag" + index}>
+                                                <div
+                                                    className="flex"
+                                                    key={"outertag" + index}
+                                                >
                                                     {tag.map(
                                                         (
                                                             tval: any,
@@ -1629,7 +1676,11 @@ export default function PostsPage(
                                                         ) => (
                                                             <div
                                                                 className="border-2 border-primary p-2 overflow-x-auto"
-                                                                key={"innertag" + tval + i}
+                                                                key={
+                                                                    "innertag" +
+                                                                    tval +
+                                                                    i
+                                                                }
                                                             >
                                                                 {tval}
                                                             </div>
