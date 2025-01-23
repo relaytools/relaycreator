@@ -15,6 +15,7 @@ export default async function Relays({
     const headersList = headers()
     const rewritten = headersList.get('middleware-rewritten')
 
+    /*
 // this will be user fav relays eventually
     const publicRelays = await prisma.relay.findMany({
         where: {
@@ -83,10 +84,11 @@ export default async function Relays({
             <div>relay not found</div>
         )
     }
+        */
     return (
         <div className="flex flex-wrap">
             <div className="">
-                <Posts relay={relay} publicRelays={publicRelays} />
+                <Posts relayName={slug} />
             </div>
         </div>
     )
