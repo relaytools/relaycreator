@@ -13,6 +13,7 @@ export default async function handle(req: any, res: any) {
         is_external: true,
         details:true,
         id: true,
+        banner_image: true,
     }
   })
 
