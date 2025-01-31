@@ -226,12 +226,10 @@ export default function ListEntryPubkeys(
         // remove from UI, the current selected list: items
         let newlist: ListEntryPubkey[] = [];
         pubkeys.forEach((entry) => {
-            if (
+            if (!(
                 entry.reason?.startsWith("list:") &&
-                entry.reason?.split(":")[1] != simplePub + listName
+                entry.reason?.split(":")[1] == simplePub + listName)
             ) {
-                newlist.push(entry);
-            } else if (!entry.reason?.startsWith("list:")) {
                 newlist.push(entry);
             }
         });
@@ -330,73 +328,67 @@ export default function ListEntryPubkeys(
                         </div>
                         {newpubkey && (
                             <div className="flex flex-col border-2 border-secondary rounded-lg p-2 mt-2">
-                                {newpubkey && (
-                                    <form
-                                        className="mt-4"
-                                        action="#"
-                                        method="POST"
+                                <form className="mt-4" action="#" method="POST">
+                                    <div className="font-condensed">
+                                        Enter a pubkey and description or select
+                                        a list
+                                    </div>
+                                    <input
+                                        type="text"
+                                        name="pubkey"
+                                        key={idkind + "newpubkey"}
+                                        className="input input-bordered input-primary w-full"
+                                        placeholder="add pubkey"
+                                        value={pubkey}
+                                        onChange={(event) =>
+                                            setPubkey(event.target.value)
+                                        }
+                                    />
+                                    <input
+                                        type="text"
+                                        name="reason"
+                                        key={idkind + "newreason"}
+                                        className="input input-bordered input-primary w-full mt-2"
+                                        placeholder="add reason / description"
+                                        value={reason}
+                                        onChange={(event) =>
+                                            setReason(event.target.value)
+                                        }
+                                    />
+                                    <button
+                                        onClick={handleSubmit}
+                                        className="btn uppercase btn-primary mt-2 mr-2"
                                     >
-                                        <div className="font-condensed">
-                                            Enter a pubkey and description or
-                                            select a list
-                                        </div>
-                                        <input
-                                            type="text"
-                                            name="pubkey"
-                                            id={idkind + "newpubkey"}
-                                            className="input input-bordered input-primary w-full"
-                                            placeholder="add pubkey"
-                                            value={pubkey}
-                                            onChange={(event) =>
-                                                setPubkey(event.target.value)
-                                            }
-                                        />
-                                        <input
-                                            type="text"
-                                            name="reason"
-                                            id={idkind + "newreason"}
-                                            className="input input-bordered input-primary w-full mt-2"
-                                            placeholder="add reason / description"
-                                            value={reason}
-                                            onChange={(event) =>
-                                                setReason(event.target.value)
-                                            }
-                                        />
-                                        <button
-                                            onClick={handleSubmit}
-                                            className="btn uppercase btn-primary mt-2 mr-2"
-                                        >
-                                            Add
-                                        </button>
-                                        <button
-                                            onClick={handleCancel}
-                                            className="btn uppercase btn-primary mt-2"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="button"
-                                            disabled
-                                            className="button btn-primary"
-                                        >
-                                            {pubkeyError}
-                                        </button>
-                                        <span className="flex items-center font-condensed tracking-wide text-red-500 text-xs mt-1 ml-1">
-                                            {pubkeyErrorDescription}
-                                        </span>
-                                    </form>
-                                )}
-                                {newpubkey &&
-                                    listr.map((l, i) => (
-                                        <button
-                                            id={l.toString()}
-                                            onClick={(e) => handleAddList(e)}
-                                            className="btn uppercase btn-secondary mt-2"
-                                        >
-                                            Add from list: {l} (
-                                            {getPubkeyCount(l.toString())})
-                                        </button>
-                                    ))}
+                                        Add
+                                    </button>
+                                    <button
+                                        onClick={handleCancel}
+                                        className="btn uppercase btn-primary mt-2"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled
+                                        className="button btn-primary"
+                                    >
+                                        {pubkeyError}
+                                    </button>
+                                    <span className="flex items-center font-condensed tracking-wide text-red-500 text-xs mt-1 ml-1">
+                                        {pubkeyErrorDescription}
+                                    </span>
+                                </form>
+                                {listr.map((l, i) => (
+                                    <button
+                                        key={l.toString() + i}
+                                        id={l.toString()}
+                                        onClick={(e) => handleAddList(e)}
+                                        className="btn uppercase btn-secondary mt-2"
+                                    >
+                                        Add from list: {l} (
+                                        {getPubkeyCount(l.toString())})
+                                    </button>
+                                ))}
                             </div>
                         )}
                         <div className="mt-4 w-full font-mono">
