@@ -74,6 +74,7 @@ export default async function handle(req: any, res: any) {
             data: {
                 AllowListId: clientOrder.relay.allow_list.id,
                 pubkey: clientOrder.pubkey,
+                reason: "paid"
             }
         })
     }
