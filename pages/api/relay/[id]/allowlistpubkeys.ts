@@ -22,7 +22,8 @@ export default async function handle(req: any, res: any) {
             allow_list = newa;
         }
 
-        if (allow_list == null) {
+        const allowId = allow_list!.id
+        if (allowId == null || allowId == null) {
             res.status(500).json({ error: "allow_list is null" });
             return;
         }
@@ -32,29 +33,56 @@ export default async function handle(req: any, res: any) {
             return;
         }
 
-        // if list of pubkeys has reason = "list:<something>" then sync the list.
-        // by deleting the pubkeys that are not in the list anymore
-        if (reason.startsWith("list:")) {
-            const curPubkeys = await prisma.listEntryPubkey.deleteMany({
+        // First fetch existing pubkeys for this list
+        const existingPubkeys = await prisma.listEntryPubkey.findMany({
+            where: {
+                reason: reason,
+                AllowListId: allowId,
+            },
+            select: {
+                pubkey: true
+            }
+        });
+
+        const existingSet = new Set(existingPubkeys.map(p => p.pubkey));
+        const newSet = new Set(pubkeys);
+
+        // Find pubkeys to delete (exist in DB but not in new list)
+        const toDelete = [...existingSet].filter(x => !newSet.has(x));
+
+        // Find pubkeys to add (exist in new list but not in DB) 
+        const toAdd = [...newSet].filter((x): x is string => typeof x === 'string' && !existingSet.has(x));
+
+        // Batch delete removed pubkeys
+        if (toDelete.length > 0) {
+            await prisma.listEntryPubkey.deleteMany({
                 where: {
+                    AllowListId: allowId,
                     reason: reason,
-                    AllowListId: allow_list.id,
-                },
+                    pubkey: { in: toDelete }
+                }
             });
         }
 
-        let newPubkeys = [];
-        for (const pk of pubkeys) {
-            const newp = await prisma.listEntryPubkey.create({
-                data: {
-                    AllowListId: allow_list.id,
+        // Batch create new pubkeys
+        if (toAdd.length > 0) {
+            await prisma.listEntryPubkey.createMany({
+                data: toAdd.map(pk => ({
+                    AllowListId: allowId,
                     pubkey: pk,
-                    reason: reason,
-                },
+                    reason: reason
+                }))
             });
-            newPubkeys.push(newp);
         }
-        res.status(200).json({ pubkeys: newPubkeys });
+
+        const updatedPubkeys = await prisma.listEntryPubkey.findMany({
+            where: {
+                AllowListId: allowId,
+                reason: reason
+            }
+        });
+
+        res.status(200).json({ pubkeys: updatedPubkeys });
         // DELETE ALL or LIST
     } else if (req.method == "DELETE") {
         if (allow_list == null || allow_list.id == null) {
