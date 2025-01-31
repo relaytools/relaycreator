@@ -16,6 +16,7 @@ export default function ListEntryPubkeys(
         pubkeys: ListEntryPubkey[];
         kind: string;
         relay_id: string;
+        relay_url: string;
     }>
 ) {
     const { data: session, status } = useSession();
@@ -27,6 +28,7 @@ export default function ListEntryPubkeys(
             "wss://relay.damus.io",
             "wss://relay.nostr.band",
             "wss://nostr21.com",
+            props.relay_url,
         ],
     });
 

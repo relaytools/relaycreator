@@ -33,6 +33,13 @@ export default function Wizard(
         }
     };
 
+    let relayUrl = ""
+    if(!props.relay.is_external) {
+        relayUrl = "wss://" + props.relay.name + "." + props.relay.domain
+    } else {
+        relayUrl = "wss://" + props.relay.domain
+    }
+
     const setAndPostRelayKindDescription = (description: string) => {
         setRelayKindDescription(description);
         const response = fetch(`/api/relay/${props.relay.id}/settings`, {
@@ -900,6 +907,9 @@ export default function Wizard(
                                                         relay_id={
                                                             props.relay.id
                                                         }
+                                                        relay_url={
+                                                            relayUrl
+                                                        }
                                                         kind="Allowed Pubkeys ✅"
                                                     ></ListEntryPubkeys>
                                                 )}
@@ -1083,6 +1093,7 @@ export default function Wizard(
                                                             .list_pubkeys
                                                     }
                                                     relay_id={props.relay.id}
+                                                    relay_url={relayUrl}
                                                     kind="Blocked Pubkeys"
                                                 ></ListEntryPubkeys>
                                             )}
