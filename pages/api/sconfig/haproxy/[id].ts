@@ -278,9 +278,9 @@ defaults
 	mode	http
 	option	httplog
 	option	dontlognull
-    timeout connect 5s
-    timeout client  25s
-    timeout server  25s
+    timeout connect 20s
+    timeout client  60s
+    timeout server  60s
 	timeout tunnel 300s
 	#timeout http-keep-alive 1s
 	#timeout http-request 15s
