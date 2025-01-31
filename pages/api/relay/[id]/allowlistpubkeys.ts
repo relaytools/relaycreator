@@ -5,8 +5,6 @@ import { getSession } from 'next-auth/react'
 // used for bulk addition of pubkeys
 export default async function handle(req: any, res: any) {
     // check owner and relay, to create blank AllowList
-    const session = await getSession({ req });
-
     const isMyRelay = await checkSessionForRelay(req, res, true)
     if (isMyRelay == null) {
         return
@@ -30,24 +28,20 @@ export default async function handle(req: any, res: any) {
             return
         }
 
-        const curPubkeys = await prisma.listEntryPubkey.findMany({
-            where: {
-                AllowListId: allow_list.id
-            }
-        })
+        if (reason == null) {
+            res.status(500).json({ "error": "reason is null" })
+            return
+        }
 
         // if list of pubkeys has reason = "list:<something>" then sync the list.
         // by deleting the pubkeys that are not in the list anymore
         if(reason.startsWith("list:")) {
-            for(const pk of curPubkeys) {
-                if(pk.reason == reason) {
-                    await prisma.listEntryPubkey.delete({
-                        where: {
-                            id: pk.id
-                        }
-                    })
+            const curPubkeys = await prisma.listEntryPubkey.deleteMany({
+                where: {
+                    reason: reason,
+                    AllowListId: allow_list.id
                 }
-            }
+            })
         }
 
         let newPubkeys = []
