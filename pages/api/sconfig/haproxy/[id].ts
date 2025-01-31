@@ -279,7 +279,7 @@ defaults
 	option	httplog
 	option	dontlognull
     timeout connect 20s
-    timeout client  60s
+    timeout client  20s
     timeout server  60s
 	timeout tunnel 300s
 	#timeout http-keep-alive 1s

@@ -34,6 +34,7 @@ export default function ListEntryPubkeys(
     const [reason, setReason] = useState("");
     const [newpubkey, setNewPubkey] = useState(false);
     const [pubkeys, setPubkeys] = useState(props.pubkeys);
+    const [filter, setFilter] = useState("");
     const [showHidePubkeys, setShowHidePubkeys] = useState(false);
     const [showActionsPubkey, setShowActionsPubkey] = useState("");
     const [pubkeyError, setPubkeyError] = useState("");
@@ -52,6 +53,26 @@ export default function ListEntryPubkeys(
         idkind = "blocklist";
     }
 
+    const handleDeleteList = async (event: any) => {
+        event.preventDefault();
+        const deleteThisList = event.currentTarget.id;
+        // call to API to delete keyword
+        const response = await fetch(
+            `/api/relay/${props.relay_id}/${idkind}pubkeys?list_id=${deleteThisList}`,
+            {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+            }
+        );
+        // delete the entry from the props
+        let newlist: ListEntryPubkey[] = [];
+        pubkeys.forEach((entry) => {
+            if (entry.reason != deleteThisList) {
+                newlist.push(entry);
+            }
+        });
+        setPubkeys(newlist);
+    };
     const handleDelete = async (event: any) => {
         event.preventDefault();
         const deleteThisId = event.currentTarget.id;
@@ -73,20 +94,46 @@ export default function ListEntryPubkeys(
         setPubkeys(newlist);
     };
 
+    const filteredPubkeys = () => {
+        // Group by timestamp
+        if (filter == "") {
+            return pubkeys;
+        }
+        const pubkeysFiltered = pubkeys.reduce((acc: any, pubkey: any) => {
+            if (pubkey?.reason != null && pubkey.reason.includes(filter)) {
+                acc.push(pubkey);
+            }
+            return acc;
+        }, []);
+        return pubkeysFiltered;
+    };
+
     const handleDeleteAll = async (event: any) => {
         event.preventDefault();
         const deleteThis = event.currentTarget.id;
         // call to API to delete keyword
+        let allOrFilter = filter;
+        if (filter == "") {
+            allOrFilter = "all";
+        }
         const response = await fetch(
-            `/api/relay/${props.relay_id}/${idkind}pubkeys?list_id=all`,
+            `/api/relay/${props.relay_id}/${idkind}pubkeys?list_id=${allOrFilter}`,
             {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
             }
         );
         // delete the entry(s) from the props
-        let newlist: ListEntryPubkey[] = [];
-        setPubkeys(newlist);
+        if (response.ok) {
+            let newlist: ListEntryPubkey[] = [];
+            pubkeys.forEach((entry) => {
+                if (!entry.reason?.includes(filter)) {
+                    newlist.push(entry);
+                }
+            });
+            setPubkeys(newlist);
+            setFilter("");
+        }
     };
 
     const handleSubmit = async (event: any) => {
@@ -226,9 +273,11 @@ export default function ListEntryPubkeys(
         // remove from UI, the current selected list: items
         let newlist: ListEntryPubkey[] = [];
         pubkeys.forEach((entry) => {
-            if (!(
-                entry.reason?.startsWith("list:") &&
-                entry.reason?.split(":")[1] == simplePub + listName)
+            if (
+                !(
+                    entry.reason?.startsWith("list:") &&
+                    entry.reason?.split(":")[1] == simplePub + listName
+                )
             ) {
                 newlist.push(entry);
             }
@@ -296,7 +345,7 @@ export default function ListEntryPubkeys(
                             )}
                         </div>
                         <div className="w-full flex-grow">
-                            {!showHidePubkeys && (
+                            {!showHidePubkeys && !newpubkey && (
                                 <button
                                     className="btn btn-secondary uppercase flex-grow w-full mt-4"
                                     onClick={() => setShowHidePubkeys(true)}
@@ -305,15 +354,34 @@ export default function ListEntryPubkeys(
                                     {props.kind}
                                 </button>
                             )}
-                            {showHidePubkeys && (
-                                <div>
+                            {showHidePubkeys && !newpubkey && (
+                                <div className="mt-4">
+                                    <input
+                                        type="text"
+                                        placeholder="filter: reason"
+                                        value={filter}
+                                        onChange={(e) =>
+                                            setFilter(e.target.value)
+                                        }
+                                        className="input input-primary input-bordered"
+                                    ></input>
                                     <button
                                         className="btn btn-secondary uppercase flex-grow w-full mt-4 mb-4"
                                         onClick={() =>
                                             setShowHidePubkeys(false)
                                         }
                                     >
-                                        hide {pubkeys.length.toString()}{" "}
+                                        hide
+                                        {filter == "" &&
+                                            " " +
+                                                pubkeys.length.toString() +
+                                                " "}
+                                        {filter != "" &&
+                                            " " +
+                                                filteredPubkeys().length.toString() +
+                                                " of (" +
+                                                pubkeys.length.toString() +
+                                                ") "}
                                         {props.kind}
                                     </button>
                                     <button
@@ -321,7 +389,18 @@ export default function ListEntryPubkeys(
                                         className="btn uppercase btn-warning flex-grow w-full mt-4"
                                         id="all"
                                     >
-                                        Delete All Pubkeys
+                                        Delete
+                                        {filter == "" &&
+                                            " " +
+                                                pubkeys.length.toString() +
+                                                " "}
+                                        {filter != "" &&
+                                            " " +
+                                                filteredPubkeys().length.toString() +
+                                                " of (" +
+                                                pubkeys.length.toString() +
+                                                ") "}
+                                        Pubkeys
                                     </button>
                                 </div>
                             )}
@@ -393,7 +472,7 @@ export default function ListEntryPubkeys(
                         )}
                         <div className="mt-4 w-full font-mono">
                             {showHidePubkeys &&
-                                pubkeys.map((entry) => (
+                                filteredPubkeys().map((entry: any) => (
                                     <div
                                         key={entry.id}
                                         className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-screen-2xl"
@@ -409,15 +488,20 @@ export default function ListEntryPubkeys(
                                         </div>
                                         {showActionsPubkey == entry.id && (
                                             <div className="flex">
-                                                <div className="">
-                                                    <button
-                                                        onClick={handleDelete}
-                                                        className="btn uppercase btn-secondary"
-                                                        id={entry.id}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    onClick={handleDelete}
+                                                    className="btn uppercase btn-secondary p-4"
+                                                    id={entry.id}
+                                                >
+                                                    Delete
+                                                </button>
+                                                <button
+                                                    onClick={handleDeleteList}
+                                                    className="btn uppercase btn-secondary ml-4"
+                                                    id={entry.reason || ""}
+                                                >
+                                                    Delete List ({entry.reason})
+                                                </button>
                                             </div>
                                         )}
                                     </div>
