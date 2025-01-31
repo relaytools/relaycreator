@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
-import Settings from "./settings"
 import Wizard from "./wizard"
 
 export default async function Curator({
