@@ -42,6 +42,7 @@ export default function ListEntryPubkeys(
     const [showActionsPubkey, setShowActionsPubkey] = useState("");
     const [pubkeyError, setPubkeyError] = useState("");
     const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("");
+    const [isLoadingLists, setIsLoadingLists] = useState(false);
 
     const toastOptions = {
         autoClose: 5000,
@@ -193,6 +194,7 @@ export default function ListEntryPubkeys(
     const setNewPubkeyHandler = async () => {
         setNewPubkey(true);
         if (session && session.user != null && session.user.name != null) {
+            setIsLoadingLists(true);
             ndk.connect();
 
             const filter: NDKFilter = {
@@ -205,6 +207,7 @@ export default function ListEntryPubkeys(
             const listNames = getListNames(events);
             setListr(listNames);
             setEvents(events);
+            setIsLoadingLists(false);
         }
     };
 
@@ -352,6 +355,43 @@ export default function ListEntryPubkeys(
         return pubkey.slice(0, 10) + "..." + pubkey.slice(-4);
     };
 
+    // Add new state for editing
+    const [editingReason, setEditingReason] = useState("");
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Add handleEdit function
+    const handleEdit = async (entry: ListEntryPubkey) => {
+        if (isEditing) {
+            // Save the edited reason
+            const response = await fetch(
+                `/api/relay/${props.relay_id}/${idkind}pubkey?entry_id=${entry.id}`,
+                {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        reason: editingReason,
+                    }),
+                }
+            );
+
+            if (response.ok) {
+                // Update local state
+                const updatedPubkeys = pubkeys.map((pk) =>
+                    pk.id === entry.id ? { ...pk, reason: editingReason } : pk
+                );
+                setPubkeys(updatedPubkeys);
+                setIsEditing(false);
+                toast.success("Reason updated", toastOptions);
+            } else {
+                toast.error("Failed to update reason", toastOptions);
+            }
+        } else {
+            // Enter edit mode
+            setEditingReason(entry.reason || "");
+            setIsEditing(true);
+        }
+    };
+
     return (
         <div className="flex flex-wrap">
             <div className="">
@@ -462,8 +502,7 @@ export default function ListEntryPubkeys(
                             <div className="flex flex-col border-2 border-secondary rounded-lg p-2 mt-2">
                                 <form className="mt-4" action="#" method="POST">
                                     <div className="font-condensed">
-                                        Enter a pubkey and description or select
-                                        a list
+                                        Enter a pubkey and description
                                     </div>
                                     <input
                                         type="text"
@@ -510,6 +549,11 @@ export default function ListEntryPubkeys(
                                         {pubkeyErrorDescription}
                                     </span>
                                 </form>
+                                <div className="font-condensed">
+                                    -OR- select a list to add 
+                                </div>
+                                {listr.length == 0 &&
+                                <span className="loading loading-spinner loading-md">Lists are loading</span>}
                                 {listr.map((l, i) => (
                                     <button
                                         key={l.toString() + i}
@@ -541,24 +585,74 @@ export default function ListEntryPubkeys(
                                         </div>
                                         {showActionsPubkey == entry.id && (
                                             <div className="flex">
-                                                <button
-                                                    onClick={handleDelete}
-                                                    className="btn uppercase btn-secondary p-4"
-                                                    id={entry.id}
-                                                >
-                                                    Delete
-                                                </button>
-                                                <button
-                                                    className="btn uppercase btn-secondary ml-4"
-                                                    id={entry.reason || ""}
-                                                    onClick={(e) =>
-                                                        toast.info(
-                                                            "sorry, this doesnt work yet"
-                                                        )
-                                                    }
-                                                >
-                                                    Edit
-                                                </button>
+                                                {!isEditing && (
+                                                    <button
+                                                        onClick={handleDelete}
+                                                        className="btn uppercase btn-secondary p-4"
+                                                        id={entry.id}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                )}
+                                                {isEditing ? (
+                                                    <div className="ml-4 items-center justify-center flex flex-wrap">
+                                                        <div className="font-condensed bold">
+                                                            new reason:
+                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                editingReason
+                                                            }
+                                                            onChange={(e) =>
+                                                                setEditingReason(
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                            onKeyDown={(e) => {
+                                                                if (
+                                                                    e.key ===
+                                                                    "Enter"
+                                                                ) {
+                                                                    handleEdit(
+                                                                        entry
+                                                                    );
+                                                                }
+                                                            }}
+                                                            className="input input-bordered input-primary"
+                                                        />
+                                                        <button
+                                                            className="btn uppercase btn-secondary ml-2"
+                                                            onClick={() =>
+                                                                handleEdit(
+                                                                    entry
+                                                                )
+                                                            }
+                                                        >
+                                                            Save
+                                                        </button>
+                                                        <button
+                                                            className="btn uppercase btn-secondary ml-2"
+                                                            onClick={() =>
+                                                                setIsEditing(
+                                                                    false
+                                                                )
+                                                            }
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        className="btn uppercase btn-secondary ml-4"
+                                                        onClick={() =>
+                                                            handleEdit(entry)
+                                                        }
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </div>
