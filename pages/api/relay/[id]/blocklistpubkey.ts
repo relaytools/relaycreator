@@ -48,15 +48,53 @@ export default async function handle(req: any, res: any) {
     } else if (req.method == "DELETE") {
         // delete AllowList
         const listId = req.query.list_id;
-        if (listId == null) {
-            res.status(500).json({ "error": "no list_id" })
-            return
+        const pubkey = req.query.pubkey;
+        const blockListId = isMyRelay.block_list?.id;
+        if (blockListId == null) {
+            res.status(404).json({ error: "list not found" });
+            return;
         }
-        await prisma.listEntryPubkey.delete({
-            where: {
-                id: listId,
+
+        if (listId) {
+            const existingEntry = await prisma.listEntryPubkey.findFirst({
+                where: {
+                    BlockListId: blockListId,
+                    id: listId
+                }
+            });
+
+            if (!existingEntry) {
+                res.status(404).json({ error: "entry not found" });
+                return;
             }
-        })
+
+            await prisma.listEntryPubkey.delete({
+                where: {
+                    BlockListId: blockListId,
+                    id: listId,
+                },
+            });
+        } else if (pubkey) {
+            const existingEntries = await prisma.listEntryPubkey.findMany({
+                where: {
+                    BlockListId: blockListId,
+                    pubkey: pubkey
+                }
+            });
+
+            if (existingEntries.length === 0) {
+                res.status(404).json({ error: "entries not found" });
+                return;
+            }
+
+            let pks = await prisma.listEntryPubkey.deleteMany({
+                where: {
+                    BlockListId: blockListId,
+                    pubkey: pubkey,
+                },
+            });
+        }
+
         res.status(200).json({});
     } else {
         res.status(500).json({ "error": "method not allowed" })
