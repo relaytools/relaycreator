@@ -4,6 +4,7 @@ import NDK from "@nostr-dev-kit/ndk";
 import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk";
 import { useSession } from "next-auth/react";
 import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
+import { ToastContainer, toast } from "react-toastify";
 
 type ListEntryPubkey = {
     pubkey: string;
@@ -42,6 +43,11 @@ export default function ListEntryPubkeys(
     const [pubkeyError, setPubkeyError] = useState("");
     const [pubkeyErrorDescription, setPubkeyErrorDescription] = useState("");
 
+    const toastOptions = {
+        autoClose: 5000,
+        closeOnClick: true,
+    };
+
     let ndkevents: Set<NDKEvent> = new Set();
     const blankevents: String[] = [];
 
@@ -55,26 +61,12 @@ export default function ListEntryPubkeys(
         idkind = "blocklist";
     }
 
-    const handleDeleteList = async (event: any) => {
+    const handleFilterByList = async (event: any) => {
         event.preventDefault();
-        const deleteThisList = event.currentTarget.id;
-        // call to API to delete keyword
-        const response = await fetch(
-            `/api/relay/${props.relay_id}/${idkind}pubkeys?list_id=${deleteThisList}`,
-            {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-            }
-        );
-        // delete the entry from the props
-        let newlist: ListEntryPubkey[] = [];
-        pubkeys.forEach((entry) => {
-            if (entry.reason != deleteThisList) {
-                newlist.push(entry);
-            }
-        });
-        setPubkeys(newlist);
+        const filterThis = event.currentTarget.id;
+        setFilter(filterThis);
     };
+
     const handleDelete = async (event: any) => {
         event.preventDefault();
         const deleteThisId = event.currentTarget.id;
@@ -87,13 +79,19 @@ export default function ListEntryPubkeys(
             }
         );
         // delete the entry from the props
-        let newlist: ListEntryPubkey[] = [];
-        pubkeys.forEach((entry) => {
-            if (entry.id != deleteThisId) {
-                newlist.push(entry);
-            }
-        });
-        setPubkeys(newlist);
+
+        if (response.ok) {
+            let newlist: ListEntryPubkey[] = [];
+            pubkeys.forEach((entry) => {
+                if (entry.id != deleteThisId) {
+                    newlist.push(entry);
+                }
+            });
+            setPubkeys(newlist);
+            toast.success("Deleted", toastOptions);
+        } else {
+            toast.error("Delete Failed", toastOptions);
+        }
     };
 
     const filteredPubkeys = () => {
@@ -108,6 +106,22 @@ export default function ListEntryPubkeys(
             return acc;
         }, []);
         return pubkeysFiltered;
+    };
+
+    const listsFromPubkeys = () => {
+        const uniqueLists = new Set(
+            pubkeys
+                .filter((pubkey) => pubkey?.reason?.startsWith("list:"))
+                .map((pubkey) => pubkey.reason)
+        );
+        return Array.from(uniqueLists);
+    };
+
+    // return the set of unmatched by listsFromPubkeys
+    const getUnmatchedPubkeys = () => {
+        return pubkeys.filter(
+            (pubkey) => !pubkey?.reason || !pubkey.reason.startsWith("list:")
+        );
     };
 
     const handleDeleteAll = async (event: any) => {
@@ -135,6 +149,9 @@ export default function ListEntryPubkeys(
             });
             setPubkeys(newlist);
             setFilter("");
+            toast.success("Deleted", toastOptions);
+        } else {
+            toast.error("Delete Failed", toastOptions);
         }
     };
 
@@ -163,6 +180,9 @@ export default function ListEntryPubkeys(
                 pubkeys.push({ pubkey: validPubkey, reason: reason, id: j.id });
                 setPubkey("");
                 setReason("");
+                toast.success("Added", toastOptions);
+            } else {
+                toast.error("Add Pubkey Failed", toastOptions);
             }
         } else {
             setPubkeyError("❌");
@@ -311,6 +331,10 @@ export default function ListEntryPubkeys(
 
             // update UI
             setPubkeys(newlist);
+            setFilter(thisReason);
+            toast.success("List Added", toastOptions);
+        } else {
+            toast.error("Failed to Add List", toastOptions);
         }
 
         setNewPubkey(false);
@@ -360,13 +384,40 @@ export default function ListEntryPubkeys(
                                 <div className="mt-4">
                                     <input
                                         type="text"
-                                        placeholder="filter: reason"
+                                        placeholder="search/filter by reason"
                                         value={filter}
                                         onChange={(e) =>
                                             setFilter(e.target.value)
                                         }
                                         className="input input-primary input-bordered"
                                     ></input>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setFilter("")}
+                                    >
+                                        clear
+                                    </button>
+                                    <div className="font-condensed">
+                                        These are the included nostr lists:
+                                    </div>
+                                    <div className="font-condensed">
+                                        Click to filter:
+                                    </div>
+                                    <div className="flex-grow">
+                                        {listsFromPubkeys().map(
+                                            (entry: any) => (
+                                                <button
+                                                    className="btn btn-primary mr-4 mt-2"
+                                                    key={entry + "listnames1"}
+                                                    onClick={() =>
+                                                        setFilter(entry)
+                                                    }
+                                                >
+                                                    {entry}
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
                                     <button
                                         className="btn btn-secondary uppercase flex-grow w-full mt-4 mb-4"
                                         onClick={() =>
@@ -472,7 +523,7 @@ export default function ListEntryPubkeys(
                                 ))}
                             </div>
                         )}
-                        <div className="mt-4 w-full font-mono">
+                        <div className="mt-4 w-full font-mono flex-wrap">
                             {showHidePubkeys &&
                                 filteredPubkeys().map((entry: any) => (
                                     <div
@@ -498,11 +549,15 @@ export default function ListEntryPubkeys(
                                                     Delete
                                                 </button>
                                                 <button
-                                                    onClick={handleDeleteList}
                                                     className="btn uppercase btn-secondary ml-4"
                                                     id={entry.reason || ""}
+                                                    onClick={(e) =>
+                                                        toast.info(
+                                                            "sorry, this doesnt work yet"
+                                                        )
+                                                    }
                                                 >
-                                                    Delete List ({entry.reason})
+                                                    Edit
                                                 </button>
                                             </div>
                                         )}
