@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth/next"
 import authOptions from "../../pages/api/auth/[...nextauth]"
 import prisma from '../../lib/prisma'
 import Wizard from "./wizard"
+import { ToastContainer } from 'react-toastify'
+
 
 export default async function Curator({
     params,
@@ -83,6 +85,9 @@ export default async function Curator({
     }
 
     return (
-        <Wizard relay={relay} />
+        <div>
+            <ToastContainer/>
+            <Wizard relay={relay} />
+        </div>
     )
 }
