@@ -7,6 +7,7 @@ import { useState } from "react";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function Wizard(
     props: React.PropsWithChildren<{
@@ -33,11 +34,11 @@ export default function Wizard(
         }
     };
 
-    let relayUrl = ""
-    if(!props.relay.is_external) {
-        relayUrl = "wss://" + props.relay.name + "." + props.relay.domain
+    let relayUrl = "";
+    if (!props.relay.is_external) {
+        relayUrl = "wss://" + props.relay.name + "." + props.relay.domain;
     } else {
-        relayUrl = "wss://" + props.relay.domain
+        relayUrl = "wss://" + props.relay.domain;
     }
 
     const setAndPostRelayKindDescription = (description: string) => {
@@ -47,6 +48,54 @@ export default function Wizard(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ relay_kind_description: description }),
         });
+    };
+
+    // streams
+    const [streams, setStreams] = useState(props.relay.streams);
+    const [streamUrl, setStreamUrl] = useState("");
+    const [streamDirection, setStreamDirection] = useState("both"); // can be "up", "down", "both"
+
+    const handleAddStream = async (newStream: {
+        url: string;
+        direction: string;
+    }) => {
+        const response = await fetch(`/api/relay/${props.relay.id}/streams`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                url: newStream.url,
+                direction: newStream.direction,
+            }),
+        });
+
+        if (response.ok) {
+            const responseData = await response.json();
+            const updatedStreams = [...streams, responseData];
+            setStreams(updatedStreams);
+            toast.success("Stream configuration saved");
+        } else {
+            const errorMessage = await response.json();
+            toast.error("Error saving stream: " + errorMessage.error);
+        }
+    };
+
+    // Add this handler for removing streams
+    const handleRemoveStream = async (streamToRemove: any) => {
+        const response = await fetch(`/api/relay/${props.relay.id}/streams`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: streamToRemove.id }),
+        });
+
+        if (response.ok) {
+            const updatedStreams = streams.filter(
+                (stream) => stream !== streamToRemove
+            );
+            setStreams(updatedStreams);
+            toast.success("Stream configuration updated");
+        } else {
+            toast.error("Failed to delete stream: ");
+        }
     };
 
     // Image and Summary
@@ -907,9 +956,7 @@ export default function Wizard(
                                                         relay_id={
                                                             props.relay.id
                                                         }
-                                                        relay_url={
-                                                            relayUrl
-                                                        }
+                                                        relay_url={relayUrl}
                                                         kind="Allowed Pubkeys ✅"
                                                     ></ListEntryPubkeys>
                                                 )}
@@ -1017,8 +1064,7 @@ export default function Wizard(
                                                     If you add kinds here, this
                                                     will override the pubkey
                                                     Access Control and allow all
-                                                    pubkeys to post these
-                                                    kinds.
+                                                    pubkeys to post these kinds.
                                                 </p>
                                                 <p>
                                                     If you leave this empty, ALL
@@ -1281,6 +1327,115 @@ export default function Wizard(
                                 </div>
                             </div>
                         </div>
+                        <div className="collapse join-item border-base-300 border">
+                            <input
+                                type="radio"
+                                name="my-accordion-4"
+                                onChange={() => setChecked(8)}
+                                checked={isChecked(8)}
+                            />
+                            <div className="collapse-title text-lg">
+                                <h2>Streams Configuration</h2>
+                            </div>
+                            <div className="collapse-content">
+                                <article className="prose">
+                                    <p>
+                                        Add stream URLs that this relay should
+                                        connect to.
+                                    </p>
+                                </article>
+
+                                <div className="form-control mt-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter stream URL"
+                                        className="input input-bordered w-full"
+                                        value={streamUrl}
+                                        onChange={(e) =>
+                                            setStreamUrl(e.target.value)
+                                        }
+                                    />
+
+                                    <div className="flex gap-2 mt-2">
+                                        <select
+                                            className="select select-bordered"
+                                            value={streamDirection}
+                                            onChange={(e) =>
+                                                setStreamDirection(
+                                                    e.target.value
+                                                )
+                                            }
+                                        >
+                                            <option value="down">down</option>
+                                            <option value="up">up</option>
+                                            <option value="both">
+                                                bi-directional
+                                            </option>
+                                        </select>
+
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={() => {
+                                                if (streamUrl) {
+                                                    handleAddStream({
+                                                        url: streamUrl,
+                                                        direction:
+                                                            streamDirection,
+                                                    });
+                                                    setStreamUrl("");
+                                                }
+                                            }}
+                                        >
+                                            Add Stream
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex flex-col gap-4">
+                                    {streams.map((stream) => (
+                                        <div
+                                            key={stream.id}
+                                            className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
+                                        >
+                                            <div className="flex-grow break-all font-bold">
+                                                <span className="font-bold mr-4">
+                                                    relay url
+                                                </span>
+                                                <span className="font-condensed">
+                                                    {stream.url}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className="font-bold">
+                                                    direction
+                                                </span>
+                                                <span className="font-condensed">
+                                                    {stream.direction}
+                                                </span>
+                                            </div>
+                                            <button
+                                                className="btn btn-sm btn-error"
+                                                onClick={() =>
+                                                    handleRemoveStream(stream)
+                                                }
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex justify-center">
+                                    <div
+                                        className="btn btn-primary uppercase mt-4"
+                                        onClick={() => setChecked(9)}
+                                    >
+                                        next
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="divider">Advanced</div>
 
                         <button
