@@ -44,6 +44,16 @@ export default async function Curator({
         },
         include: {
             owner: true,
+            streams: {
+                select: {
+                    id: true,
+                    url: true,
+                    direction: true,
+                    internal: true,
+                    sync: true,
+                    status: true,
+                },
+            },
             moderators: {
                 include: { user: true },
             },
