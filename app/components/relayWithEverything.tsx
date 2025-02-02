@@ -1,8 +1,18 @@
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client";
 
 export const relayWithEverything = Prisma.validator<Prisma.RelayArgs>()({
     include: {
         owner: true,
+        streams: {
+            select: {
+                id: true,
+                url: true,
+                direction: true,
+                internal: true,
+                sync: true,
+                status: true,
+            },
+        },
         moderators: {
             include: { user: true },
         },
@@ -20,16 +30,28 @@ export const relayWithEverything = Prisma.validator<Prisma.RelayArgs>()({
                 list_kinds: true,
             },
         },
-    }
-})
+    },
+});
 
-export type RelayWithEverything = Prisma.RelayGetPayload<typeof relayWithEverything>
+export type RelayWithEverything = Prisma.RelayGetPayload<
+    typeof relayWithEverything
+>;
 
 export const modWithRelays = Prisma.validator<Prisma.ModeratorArgs>()({
     include: {
         relay: {
             include: {
                 owner: true,
+                streams: {
+                    select: {
+                        id: true,
+                        url: true,
+                        direction: true,
+                        internal: true,
+                        sync: true,
+                        status: true,
+                    },
+                },
                 moderators: {
                     include: { user: true },
                 },
@@ -47,9 +69,11 @@ export const modWithRelays = Prisma.validator<Prisma.ModeratorArgs>()({
                         list_kinds: true,
                     },
                 },
-            }
-        }
-    }
-})
+            },
+        },
+    },
+});
 
-export type ModWithRelays = Prisma.ModeratorGetPayload<typeof modWithRelays>
+export type ModWithRelays = Prisma.ModeratorGetPayload<typeof modWithRelays>;
+
+
