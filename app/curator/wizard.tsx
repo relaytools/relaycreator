@@ -8,6 +8,7 @@ import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import RelaySmall from "../components/relaySmall";
 
 export default function Wizard(
     props: React.PropsWithChildren<{
@@ -337,935 +338,766 @@ export default function Wizard(
         router.push("/");
     };
 
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    // Add new state for ACL submenu
+    const [aclSection, setAclSection] = useState("auth"); // Possible values: "auth", "tags", "allowed-pubkeys", "allowed-keywords", "allowed-kinds", "blocked-pubkeys", "blocked-keywords", "blocked-kinds"
+
     return (
-        <div className="flex flex-col lg:items-center lg:justify-center">
-            <div className="badge badge-neutral mt-4 mb-4">
-                status: {props.relay.status}
-            </div>
-            <div className="flex flex-grow w-full mb-4">
-                <Relay
-                    modActions={true}
-                    relay={props.relay}
-                    showEdit={false}
-                    showSettings={false}
-                    showDetail={true}
-                    showExplorer={true}
-                    showCopy={false}
-                />
-            </div>
-            <div className="join join-vertical w-full">
-                <div className="collapse join-item border-base-300 border">
-                    <input
-                        type="radio"
-                        name="my-accordion-4"
-                        onChange={() => setChecked(1)}
-                        checked={isChecked(1)}
-                    />
+        <div className="flex flex-row min-h-screen relative">
+            {/* Mobile Menu Button */}
+            <button 
+                className="lg:hidden fixed top-4 left-4 z-20 btn btn-circle"
+                onClick={() => setMenuOpen(!menuOpen)}
+            >
+                {menuOpen ? '✕' : '☰'}
+            </button>
 
-                    <div className="collapse-title text-lg">
-                        <h2>Relay Setup Wizard</h2>
-                    </div>
-
-                    <div className="collapse-content">
-                        <article className="prose">
-                            <p>
-                                This wizard will walk you through the process of
-                                setting up your relay. You can always
-                                re-configure your relay after you complete the
-                                setup.
-                            </p>
-                            <p>
-                                There are many capabilities available for all
-                                types of relays and you can mix-and-match them
-                                to suit your needs.
-                            </p>
-                            <ul>
-                                <li>Lightning Payments</li>
-                                <li>Moderation</li>
+            {/* Side Menu - updated with ACL subitems */}
+            <div className={`${
+                menuOpen ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0 fixed lg:static w-64 h-full bg-base-200 p-4 transition-transform duration-300 ease-in-out z-10 flex flex-col`}>
+                <ul className="menu menu-vertical flex-grow">
+                    <li>
+                        <button 
+                            className={`${checked === 1 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(1);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            Relay Setup Wizard
+                        </button>
+                    </li>
+                    <li>
+                        <button 
+                            className={`${checked === 2 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(2);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            Choose Relay Type
+                        </button>
+                    </li>
+                    <li>
+                        <button 
+                            className={`${checked === 3 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(3);
+                                setMenuOpen(true);
+                            }}
+                        >
+                            Profile & Directory
+                        </button>
+                    </li>
+                    <li>
+                        <button 
+                            className={`${checked === 4 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(4);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            Moderators
+                        </button>
+                    </li>
+                    <li>
+                        <button 
+                            className={`${checked === 5 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(5);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            Access Control Mode
+                        </button>
+                    </li>
+                    <li>
+                        <button 
+                            className={`${checked === 6 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(6);
+                                setMenuOpen(true);
+                            }}
+                        >
+                            Access Control Lists
+                        </button>
+                        {checked === 6 && (
+                            <ul className="menu menu-vertical pl-4">
                                 <li>
-                                    Access Control by Pubkey, Event Kind, and
-                                    Keywords
+                                    <button 
+                                        className={aclSection === "auth" ? "active" : ""}
+                                        onClick={() => {
+                                            setAclSection("auth");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Authentication (NIP42)
+                                    </button>
                                 </li>
-                                <li>Access Control for read/write</li>
                                 <li>
-                                    Specialized support for DMs, private groups,
-                                    and lists.
+                                    <button 
+                                        className={aclSection === "tags" ? "active" : ""}
+                                        onClick={() => {
+                                            setAclSection("tags");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Allow Tags
+                                    </button>
+                                </li>
+                                {!allow && (
+                                    <>
+                                        <li>
+                                            <button 
+                                                className={aclSection === "allowed-pubkeys" ? "active" : ""}
+                                                onClick={() => {
+                                                    setAclSection("allowed-pubkeys");
+                                                    setMenuOpen(false);
+                                                }}
+                                            >
+                                                Allowed Pubkeys
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button 
+                                                className={aclSection === "allowed-keywords" ? "active" : ""}
+                                                onClick={() => {
+                                                    setAclSection("allowed-keywords");
+                                                    setMenuOpen(false);
+                                                }}
+                                            >
+                                                Allowed Keywords
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button 
+                                                className={aclSection === "allowed-kinds" ? "active" : ""}
+                                                onClick={() => {
+                                                    setAclSection("allowed-kinds");
+                                                    setMenuOpen(false);
+                                                }}
+                                            >
+                                                Allowed Kinds
+                                            </button>
+                                        </li>
+                                    </>
+                                )}
+                                <li>
+                                    <button 
+                                        className={aclSection === "blocked-pubkeys" ? "active" : ""}
+                                        onClick={() => {
+                                            setAclSection("blocked-pubkeys");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Blocked Pubkeys
+                                    </button>
+                                </li>
+                                <li>
+                                    <button 
+                                        className={aclSection === "blocked-keywords" ? "active" : ""}
+                                        onClick={() => {
+                                            setAclSection("blocked-keywords");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Blocked Keywords
+                                    </button>
+                                </li>
+                                <li>
+                                    <button 
+                                        className={aclSection === "blocked-kinds" ? "active" : ""}
+                                        onClick={() => {
+                                            setAclSection("blocked-kinds");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Blocked Kinds
+                                    </button>
                                 </li>
                             </ul>
-                        </article>
+                        )}
+                    </li>
+                    <li>
+                        <button 
+                            className={`${checked === 7 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(7);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            Lightning Payments
+                        </button>
+                    </li>
+                    <li>
+                        <button 
+                            className={`${checked === 8 ? 'active' : ''}`}
+                            onClick={() => {
+                                setChecked(8);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            Streams Configuration
+                        </button>
+                    </li>
+                    <div className="divider"></div>
+                    <li>
+                        <button 
+                            className="text-error"
+                            onClick={() => {
+                                setChecked(9);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            Delete Relay
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
-                        <div className="flex justify-center">
-                            <div
-                                className="btn btn-primary"
-                                onClick={() => setChecked(2)}
-                            >
-                                Let's Go!
-                            </div>
+            {/* Main Content - adjusted padding for mobile menu button */}
+            <div className="flex-1 p-6 lg:p-6 pt-16 lg:pt-6">
+                <div className="flex flex-col lg:items-center lg:justify-center">
+                    <div className="flex flex-grow w-full mb-4">
+
+                    {checked === 0 &&
+                        <Relay
+                            showEdit={false}
+                            showSettings={false}
+                            showDetail={true}
+                            showExplorer={true}
+                            showCopy={false}
+                            relay={props.relay}
+                        />
+                    }
+
+                    {checked != 0 && 
+                        <div>
+
+                        <RelaySmall relay={props.relay} />
+                        <div className="badge badge-neutral mt-4 mb-4">
+                            status: {props.relay.status}
                         </div>
-                    </div>
-                </div>
-
-                <div className="collapse  join-item border-base-300 border">
-                    <input
-                        type="radio"
-                        name="my-accordion-4"
-                        onChange={() => setChecked(2)}
-                        checked={isChecked(2)}
-                    />
-
-                    <div className="collapse-title text-lg">
-                        {relayKindDescription == "" && (
-                            <h2>Choose a Relay Type</h2>
-                        )}
-                        {relayKindDescription != "" && (
-                            <h2>{relayKindDescription}</h2>
-                        )}
+                        </div>
+                    }
                     </div>
 
-                    <div className="collapse-content">
-                        <div className="flex flex-wrap">
-                            <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
-                                <div className="card-body">
-                                    <h2 className="card-title">
-                                        Public Community Relay
-                                    </h2>
-                                    <p>
-                                        This relay can shared with multiple
-                                        people. You can use this relay for
-                                        backups of your notes. You can
-                                        optionally setup lightning payments and
-                                        invite friends.
-                                    </p>
-                                    <div className="card-actions justify-end">
-                                        <button
-                                            className="btn btn-primary uppercase"
-                                            onClick={(e) => {
-                                                setAndPostRelayKindDescription(
-                                                    "Community Relay"
-                                                );
-                                                setChecked(3);
-                                                setAndPostAllow(false);
-                                                setAndPostAllowTagged(true);
-                                            }}
-                                        >
-                                            select
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
-                                <div className="card-body">
-                                    <h2 className="card-title">
-                                        Private Community Relay
-                                    </h2>
-                                    <p>
-                                        This relay can shared with multiple
-                                        people. You can use this relay for
-                                        backups of your notes. Enhanced privacy
-                                        for Nostr DMs, and read access controls.
-                                    </p>
-                                    <div className="card-actions justify-end">
-                                        <button
-                                            className="btn btn-primary uppercase"
-                                            onClick={(e) => {
-                                                setAndPostRelayKindDescription(
-                                                    "Private Community Relay"
-                                                );
-                                                setChecked(3);
-                                                setAndPostAllow(false);
-                                                setAndPostAllowTagged(true);
-                                                setAndPostAuthRequired(true);
-                                            }}
-                                        >
-                                            select
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    {/* Content sections - only show the active one */}
+                    {checked === 1 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Relay Setup Wizard</h2>
+                            <article className="prose">
+                                <p>
+                                    This wizard will walk you through the process of
+                                    setting up your relay. You can always
+                                    re-configure your relay after you complete the
+                                    setup.
+                                </p>
+                                <p>
+                                    There are many capabilities available for all
+                                    types of relays and you can mix-and-match them
+                                    to suit your needs.
+                                </p>
+                                <ul>
+                                    <li>Lightning Payments</li>
+                                    <li>Moderation</li>
+                                    <li>
+                                        Access Control by Pubkey, Event Kind, and
+                                        Keywords
+                                    </li>
+                                    <li>Access Control for read/write</li>
+                                    <li>
+                                        Specialized support for DMs, private groups,
+                                        and lists.
+                                    </li>
+                                </ul>
+                            </article>
 
-                            <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
-                                <div className="card-body">
-                                    <h2 className="card-title">
-                                        Public Paid Relay
-                                    </h2>
-                                    <p>
-                                        This relay can be setup for the general
-                                        public with lightning payments to join.
-                                    </p>
-                                    <div className="card-actions justify-end">
-                                        <button
-                                            className="btn btn-primary uppercase"
-                                            onClick={(e) => {
-                                                setAndPostRelayKindDescription(
-                                                    "Public Paid Relay"
-                                                );
-                                                setChecked(3);
-                                                setAndPostAllow(false);
-                                                setAndPostAllowTagged(false);
-                                            }}
-                                        >
-                                            select
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="card bg-base-100 w-96 shadow-xl mb-4">
-                                <div className="card-body">
-                                    <h2 className="card-title">
-                                        Public Free Relay
-                                    </h2>
-                                    <p>
-                                        This relay allows free access. This is
-                                        not recommended unless you have a solid
-                                        moderation team.
-                                    </p>
-                                    <div className="card-actions justify-end">
-                                        <button
-                                            className="btn btn-primary uppercase"
-                                            onClick={(e) => {
-                                                setAndPostRelayKindDescription(
-                                                    "Public Free Relay"
-                                                );
-                                                setChecked(3);
-                                                setAndPostAllow(true);
-                                            }}
-                                        >
-                                            select
-                                        </button>
-                                    </div>
+                            <div className="flex justify-center">
+                                <div
+                                    className="btn btn-primary"
+                                    onClick={() => setChecked(2)}
+                                >
+                                    Let's Go!
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    )}
 
-                <div className="collapse  join-item border-base-300 border">
-                    <input
-                        type="radio"
-                        name="my-accordion-4"
-                        onChange={() => setChecked(3)}
-                        checked={isChecked(3)}
-                    />
-                    <div className="collapse-title text-lg">
-                        <h2>Relay Profile and Directory Listing</h2>
-                    </div>
-                    <div className="collapse-content">
-                        <article className="prose">
-                            <p>Setup your relay banner image and details.</p>
-                            <p>
-                                This will be the icon used for your relay and
-                                it's public facing image.
-                            </p>
-                            <p>
-                                Decide if you want the relay to be listed in the
-                                public directory.
-                            </p>
-                        </article>
-                        <div className="form-control mt-4">
+                    {checked === 2 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">
+                                {relayKindDescription == "" ? "Choose a Relay Type" : relayKindDescription}
+                            </h2>
+                            <div className="flex flex-wrap">
+                                <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
+                                    <div className="card-body">
+                                        <h2 className="card-title">
+                                            Public Community Relay
+                                        </h2>
+                                        <p>
+                                            This relay can shared with multiple
+                                            people. You can use this relay for
+                                            backups of your notes. You can
+                                            optionally setup lightning payments and
+                                            invite friends.
+                                        </p>
+                                        <div className="card-actions justify-end">
+                                            <button
+                                                className="btn btn-primary uppercase"
+                                                onClick={(e) => {
+                                                    setAndPostRelayKindDescription(
+                                                        "Community Relay"
+                                                    );
+                                                    setChecked(3);
+                                                    setAndPostAllow(false);
+                                                    setAndPostAllowTagged(true);
+                                                }}
+                                            >
+                                                select
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
+                                    <div className="card-body">
+                                        <h2 className="card-title">
+                                            Private Community Relay
+                                        </h2>
+                                        <p>
+                                            This relay can shared with multiple
+                                            people. You can use this relay for
+                                            backups of your notes. Enhanced privacy
+                                            for Nostr DMs, and read access controls.
+                                        </p>
+                                        <div className="card-actions justify-end">
+                                            <button
+                                                className="btn btn-primary uppercase"
+                                                onClick={(e) => {
+                                                    setAndPostRelayKindDescription(
+                                                        "Private Community Relay"
+                                                    );
+                                                    setChecked(3);
+                                                    setAndPostAllow(false);
+                                                    setAndPostAllowTagged(true);
+                                                    setAndPostAuthRequired(true);
+                                                }}
+                                            >
+                                                select
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
+                                    <div className="card-body">
+                                        <h2 className="card-title">
+                                            Public Paid Relay
+                                        </h2>
+                                        <p>
+                                            This relay can be setup for the general
+                                            public with lightning payments to join.
+                                        </p>
+                                        <div className="card-actions justify-end">
+                                            <button
+                                                className="btn btn-primary uppercase"
+                                                onClick={(e) => {
+                                                    setAndPostRelayKindDescription(
+                                                        "Public Paid Relay"
+                                                    );
+                                                    setChecked(3);
+                                                    setAndPostAllow(false);
+                                                    setAndPostAllowTagged(false);
+                                                }}
+                                            >
+                                                select
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card bg-base-100 w-96 shadow-xl mb-4">
+                                    <div className="card-body">
+                                        <h2 className="card-title">
+                                            Public Free Relay
+                                        </h2>
+                                        <p>
+                                            This relay allows free access. This is
+                                            not recommended unless you have a solid
+                                            moderation team.
+                                        </p>
+                                        <div className="card-actions justify-end">
+                                            <button
+                                                className="btn btn-primary uppercase"
+                                                onClick={(e) => {
+                                                    setAndPostRelayKindDescription(
+                                                        "Public Free Relay"
+                                                    );
+                                                    setChecked(3);
+                                                    setAndPostAllow(true);
+                                                }}
+                                            >
+                                                select
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {checked === 3 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Relay Profile and Directory Listing</h2>
+                            <article className="prose">
+                                <p>Setup your relay banner image and details.</p>
+                                <p>
+                                    This will be the icon used for your relay and
+                                    it's public facing image.
+                                </p>
+                                <p>
+                                    Decide if you want the relay to be listed in the
+                                    public directory.
+                                </p>
+                            </article>
+                            <div className="form-control mt-4">
+                                <div className="mt-4">
+                                    <label
+                                        className={isListed()}
+                                        onClick={(e) => handleListedChange(e)}
+                                    >
+                                        <div className="btn uppercase btn-accent swap-on">
+                                            Relay is listed in the public directory
+                                            ✅
+                                        </div>
+                                        <div className="btn uppercase btn-accent swap-off">
+                                            Relay is NOT listed in the public
+                                            directory 🙈
+                                        </div>
+                                    </label>
+                                </div>
+                                <label className="label">
+                                    <span className="label-text">
+                                        Relay Profile
+                                    </span>
+                                </label>
+                                <textarea
+                                    id={props.relay.id + "textareaedit"}
+                                    className="textarea textarea-bordered h-24"
+                                    placeholder="description"
+                                    value={profileDetail || ""}
+                                    onChange={(e) =>
+                                        setProfileDetails(e.target.value)
+                                    }
+                                ></textarea>
+                                <label className="label">
+                                    <span className="label-text">
+                                        Banner image url
+                                    </span>
+                                </label>
+                                <input
+                                    id={props.relay.id + "urlid"}
+                                    type="text"
+                                    placeholder="enter image url"
+                                    className="input input-bordered w-full"
+                                    onChange={(e) =>
+                                        setProfileBanner(e.target.value)
+                                    }
+                                    value={profileBanner || ""}
+                                />
+                                <div className="flex justify-center gap-2">
+                                    <button
+                                        className="btn uppercase btn-primary mt-2"
+                                        onClick={(e) => handleSubmitProfile(e)}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {checked === 4 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Moderators</h2>
+                            <article className="prose">
+                                <p>Moderators can edit the access control lists.</p>
+                                <p>
+                                    Moderators also have access to post by default.
+                                </p>
+                            </article>
+                            {props.relay != null &&
+                                props.relay.moderators != null && (
+                                    <Moderators
+                                        moderators={props.relay.moderators}
+                                        relay_id={props.relay.id}
+                                    ></Moderators>
+                                )}
+
+                            <div className="flex justify-center">
+                                <div
+                                    className="btn btn-primary"
+                                    onClick={() => setChecked(5)}
+                                >
+                                    Next
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {checked === 5 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Access Control Mode</h2>
+                            <article className="prose">
+                                <p>
+                                    There are two different ways you can setup
+                                    access control for your relay.
+                                </p>
+                                <ul>
+                                    <li>
+                                        Block events by default and specifically
+                                        allow pubkeys, keywords or kinds. This mode
+                                        is easier to manage.
+                                    </li>
+                                    <li>
+                                        Allow events by default and specifically
+                                        block pubkeys, keywords or kinds. This mode
+                                        requires more moderation.
+                                    </li>
+                                </ul>
+                                <p>
+                                    You may still allow or block pubkeys, keywords
+                                    and kinds regardless of the default mode.
+                                </p>
+                                {relayKindDescription == "Community Relay" && (
+                                    <p>
+                                        Since you would like a{" "}
+                                        {relayKindDescription} we recommend you
+                                        start with Blocking
+                                    </p>
+                                )}
+                                {relayKindDescription ==
+                                    "Private Community Relay" && (
+                                    <p>
+                                        Since you would like a{" "}
+                                        {relayKindDescription} we recommend you
+                                        start with Blocking
+                                    </p>
+                                )}
+                                {relayKindDescription == "Public Paid Relay" && (
+                                    <p>
+                                        Since you would like a{" "}
+                                        {relayKindDescription} we recommend you
+                                        start with Blocking
+                                    </p>
+                                )}
+                                {relayKindDescription == "Public Free Relay" && (
+                                    <p>
+                                        Since you would like a{" "}
+                                        {relayKindDescription} we recommend you
+                                        start with Allowing
+                                    </p>
+                                )}
+                            </article>
                             <div className="mt-4">
+                                <div className="text-sm font-condensed">
+                                    current setting is:
+                                </div>
                                 <label
-                                    className={isListed()}
-                                    onClick={(e) => handleListedChange(e)}
+                                    className={isAllow()}
+                                    onClick={(e) => handleAllowChange(e)}
                                 >
                                     <div className="btn uppercase btn-accent swap-on">
-                                        Relay is listed in the public directory
-                                        ✅
+                                        Allow by default and block what I don't want
+                                        🔨
                                     </div>
                                     <div className="btn uppercase btn-accent swap-off">
-                                        Relay is NOT listed in the public
-                                        directory 🙈
+                                        Block by default and then allow what I want
+                                        ✅
                                     </div>
                                 </label>
                             </div>
-                            <label className="label">
-                                <span className="label-text">
-                                    Relay Profile
-                                </span>
-                            </label>
-                            <textarea
-                                id={props.relay.id + "textareaedit"}
-                                className="textarea textarea-bordered h-24"
-                                placeholder="description"
-                                value={profileDetail || ""}
-                                onChange={(e) =>
-                                    setProfileDetails(e.target.value)
-                                }
-                            ></textarea>
-                            <label className="label">
-                                <span className="label-text">
-                                    Banner image url
-                                </span>
-                            </label>
-                            <input
-                                id={props.relay.id + "urlid"}
-                                type="text"
-                                placeholder="enter image url"
-                                className="input input-bordered w-full"
-                                onChange={(e) =>
-                                    setProfileBanner(e.target.value)
-                                }
-                                value={profileBanner || ""}
-                            />
-                            <div className="flex justify-center gap-2">
-                                <button
-                                    className="btn uppercase btn-primary mt-2"
-                                    onClick={(e) => handleSubmitProfile(e)}
+                            <div className="flex justify-center">
+                                <div
+                                    className="btn btn-primary uppercase mt-4"
+                                    onClick={() => setChecked(6)}
                                 >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="collapse join-item border-base-300 border">
-                    <input
-                        type="radio"
-                        name="my-accordion-4"
-                        onChange={() => setChecked(4)}
-                        checked={isChecked(4)}
-                    />
-
-                    <div className="collapse-title text-lg">
-                        <h2>Moderators</h2>
-                    </div>
-
-                    <div className="collapse-content">
-                        <article className="prose">
-                            <p>Moderators can edit the access control lists.</p>
-                            <p>
-                                Moderators also have access to post by default.
-                            </p>
-                        </article>
-                        {props.relay != null &&
-                            props.relay.moderators != null && (
-                                <Moderators
-                                    moderators={props.relay.moderators}
-                                    relay_id={props.relay.id}
-                                ></Moderators>
-                            )}
-
-                        <div className="flex justify-center">
-                            <div
-                                className="btn btn-primary"
-                                onClick={() => setChecked(5)}
-                            >
-                                Next
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="collapse join-item border-base-300 border">
-                    <input
-                        type="radio"
-                        name="my-accordion-4"
-                        onChange={() => setChecked(5)}
-                        checked={isChecked(5)}
-                    />
-                    <div className="collapse-title text-lg">
-                        <h2>Access Control Mode</h2>
-                    </div>
-                    <div className="collapse-content">
-                        <article className="prose">
-                            <p>
-                                There are two different ways you can setup
-                                access control for your relay.
-                            </p>
-                            <ul>
-                                <li>
-                                    Block events by default and specifically
-                                    allow pubkeys, keywords or kinds. This mode
-                                    is easier to manage.
-                                </li>
-                                <li>
-                                    Allow events by default and specifically
-                                    block pubkeys, keywords or kinds. This mode
-                                    requires more moderation.
-                                </li>
-                            </ul>
-                            <p>
-                                You may still allow or block pubkeys, keywords
-                                and kinds regardless of the default mode.
-                            </p>
-                            {relayKindDescription == "Community Relay" && (
-                                <p>
-                                    Since you would like a{" "}
-                                    {relayKindDescription} we recommend you
-                                    start with Blocking
-                                </p>
-                            )}
-                            {relayKindDescription ==
-                                "Private Community Relay" && (
-                                <p>
-                                    Since you would like a{" "}
-                                    {relayKindDescription} we recommend you
-                                    start with Blocking
-                                </p>
-                            )}
-                            {relayKindDescription == "Public Paid Relay" && (
-                                <p>
-                                    Since you would like a{" "}
-                                    {relayKindDescription} we recommend you
-                                    start with Blocking
-                                </p>
-                            )}
-                            {relayKindDescription == "Public Free Relay" && (
-                                <p>
-                                    Since you would like a{" "}
-                                    {relayKindDescription} we recommend you
-                                    start with Allowing
-                                </p>
-                            )}
-                        </article>
-                        <div className="mt-4">
-                            <div className="text-sm font-condensed">
-                                current setting is:
-                            </div>
-                            <label
-                                className={isAllow()}
-                                onClick={(e) => handleAllowChange(e)}
-                            >
-                                <div className="btn uppercase btn-accent swap-on">
-                                    Allow by default and block what I don't want
-                                    🔨
+                                    next
                                 </div>
-                                <div className="btn uppercase btn-accent swap-off">
-                                    Block by default and then allow what I want
-                                    ✅
-                                </div>
-                            </label>
-                        </div>
-                        <div className="flex justify-center">
-                            <div
-                                className="btn btn-primary uppercase mt-4"
-                                onClick={() => setChecked(6)}
-                            >
-                                next
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="collapse  join-item border-base-300 border">
-                    <input
-                        type="radio"
-                        name="my-accordion-4"
-                        onChange={() => setChecked(6)}
-                        checked={isChecked(6)}
-                    />
-
-                    {!allow && (
-                        <div className="collapse-title text-lg">
-                            <h2>Access Control Lists (ACLs)</h2>
                         </div>
                     )}
 
-                    {allow && (
-                        <div className="collapse-title text-lg">
-                            <h2>Access Control Lists (ACLs)</h2>
+                    {checked === 6 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Access Control Lists (ACLs)</h2>
+                            
+                            {aclSection === "auth" && (
+                                <div>
+                                    <article className="prose">
+                                        <p>This setting controls whether your relay requires authentication to connect.</p>
+                                        <p>Also known as NIP-42 AUTH</p>
+                                        <p>
+                                            Most clients support this,
+                                            however blastr and nostr search
+                                            engines do not (yet). So if you
+                                            enjoy having the greater nostr
+                                            network discover and blast your
+                                            relay you may want to have this
+                                            off. But if you are providing
+                                            private messaging support to
+                                            your members you will want it
+                                            on.
+                                        </p>
+                                        <p>
+                                            In the future, all relays will
+                                            likely use this. You can turn it
+                                            on and off depending on your
+                                            needs.
+                                        </p>
+                                    </article>
+                                    <div className="mt-4">
+                                        <label className={isAuthRequired()} onClick={(e) => handleAuthChange(e)}>
+                                            <div className="btn uppercase btn-accent swap-on">
+                                                Relay requires AUTH (NIP42)
+                                                ✅
+                                            </div>
+                                            <div className="btn uppercase btn-accent swap-off">
+                                                Relay does not require AUTH
+                                                (NIP42) 🙈
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {aclSection === "tags" && !allow && (
+                                <div>
+                                    <article className="prose">
+                                        <p>This setting will allow users on the wider nostr network to send events to this relay that are tagged to your pubkeys.</p>
+                                        <p>
+                                            This is useful if you want
+                                            people to be able to DM you
+                                            that are not a member of the
+                                            relay or if you want to
+                                            backup conversations with
+                                            non-member users.
+                                        </p>
+                                        <p>
+                                            Since this is a commonly
+                                            requested feature we
+                                            recommend you start with
+                                            this turned on. However if
+                                            you get a lot of unwanted
+                                            comments or stalkers and get
+                                            tired of blocking them you
+                                            can turn it off at any time.
+                                        </p>
+                                    </article>
+                                    <div className="mt-4">
+                                        <label className={isTagged()} onClick={(e) => handleTaggedChange(e)}>
+                                            <div className="btn uppercase btn-accent swap-on">
+                                                Allow Events Tagged to
+                                                Pubkeys ✅
+                                            </div>
+                                            <div className="btn uppercase btn-accent swap-off">
+                                                Do NOT Allow Events
+                                                Tagged to Pubkeys 🙈
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Continue with similar pattern for other ACL sections */}
+                            {aclSection === "allowed-pubkeys" && !allow && (
+                                <div>
+                                    <p>These are pubkeys that will be allowed to post.</p>
+                                    {props.relay?.allow_list?.list_pubkeys && (
+                                        <ListEntryPubkeys
+                                            pubkeys={props.relay.allow_list.list_pubkeys}
+                                            relay_id={props.relay.id}
+                                            relay_url={relayUrl}
+                                            kind="Allowed Pubkeys ✅"
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Add similar sections for other ACL components */}
+                            {aclSection === "allowed-keywords" && !allow && (
+                                <div>
+                                    <p>These are keywords that will be allowed to post.</p>
+                                    {props.relay?.allow_list?.list_keywords && (
+                                        <ListEntryKeywords
+                                            keywords={props.relay.allow_list.list_keywords}
+                                            relay_id={props.relay.id}
+                                            kind="Allowed Keywords ✅"
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {aclSection === "allowed-kinds" && !allow && (
+                                <div>
+                                    <p>These are kinds that will be allowed to post.</p>
+                                    {props.relay?.allow_list?.list_kinds && (
+                                        <ListEntryKinds
+                                            kinds={props.relay.allow_list.list_kinds}
+                                            relay_id={props.relay.id}
+                                            allowdeny="Allowed Kinds ✅"
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {aclSection === "blocked-pubkeys" && !allow && (
+                                <div>
+                                    <p>These are pubkeys that will be blocked from posting.</p>
+                                    {props.relay?.block_list?.list_pubkeys && (
+                                        <ListEntryPubkeys
+                                            pubkeys={props.relay.block_list.list_pubkeys}
+                                            relay_id={props.relay.id}
+                                            relay_url={relayUrl}
+                                            kind="Blocked Pubkeys 🙈"
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {aclSection === "blocked-keywords" && !allow && (
+                                <div>
+                                    <p>These are keywords that will be blocked from posting.</p>
+                                    {props.relay?.block_list?.list_keywords && (
+                                        <ListEntryKeywords
+                                            keywords={props.relay.block_list.list_keywords}
+                                            relay_id={props.relay.id}
+                                            kind="Blocked Keywords 🙈"
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {aclSection === "blocked-kinds" && !allow && (
+                                <div>
+                                    <p>These are kinds that will be blocked from posting.</p>
+                                    {props.relay?.block_list?.list_kinds && (
+                                        <ListEntryKinds
+                                            kinds={props.relay.block_list.list_kinds}
+                                            relay_id={props.relay.id}
+                                            allowdeny="Blocked Kinds 🙈"
+                                        />
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    <div className="collapse-content">
-                        <article className="prose mb-4">
-                            {!allow && (
-                                <div>
-                                    <p>
-                                        You can allow or block by pubkeys,
-                                        keywords and event kinds.
-                                    </p>
-                                    <p>
-                                        You can also set settings for
-                                        authentication, and tagging.
-                                    </p>
-                                    <p>
-                                        Owners and moderators are already
-                                        allowed by default.
-                                    </p>
-                                </div>
-                            )}
-                            {allow && (
-                                <div>
-                                    <p>
-                                        Your access control mode will allow all
-                                        events by default unless you set these
-                                        settings. This means you will want to
-                                        have a moderation team and setup these
-                                        block lists or you may be over-run by
-                                        spam or unwanted content. The block
-                                        lists below will help you maintain your
-                                        relay.
-                                    </p>
-                                    <p>
-                                        You can block by pubkeys, keywords and
-                                        event kinds.
-                                    </p>
-                                </div>
-                            )}
-                        </article>
-
-                        {isChecked(6) && (
-                            <div>
-                                <div className="collapse collapse-plus join-item border-base-300 border">
-                                    <input
-                                        type="radio"
-                                        name="my-accordion-allow-lists"
-                                        defaultChecked
-                                    />
-                                    <div className="collapse-title text-lg font-condensed">
-                                        <h2>
-                                            READ authentication (NIP42 AUTH)
-                                        </h2>
-                                    </div>
-                                    <div className="collapse-content">
-                                        <article className="prose">
-                                            <p>
-                                                This setting controls whether
-                                                your relay requires
-                                                authentication to connect.
-                                            </p>
-                                            <p>Also known as NIP-42 AUTH</p>
-                                            <p>
-                                                Most clients support this,
-                                                however blastr and nostr search
-                                                engines do not (yet). So if you
-                                                enjoy having the greater nostr
-                                                network discover and blast your
-                                                relay you may want to have this
-                                                off. But if you are providing
-                                                private messaging support to
-                                                your members you will want it
-                                                on.
-                                            </p>
-                                            <p>
-                                                In the future, all relays will
-                                                likely use this. You can turn it
-                                                on and off depending on your
-                                                needs.
-                                            </p>
-                                        </article>
-                                        <div className="mt-4">
-                                            <label
-                                                className={isAuthRequired()}
-                                                onClick={(e) =>
-                                                    handleAuthChange(e)
-                                                }
-                                            >
-                                                <div className="btn uppercase btn-accent swap-on">
-                                                    Relay requires AUTH (NIP42)
-                                                    ✅
-                                                </div>
-                                                <div className="btn uppercase btn-accent swap-off">
-                                                    Relay does not require AUTH
-                                                    (NIP42) 🙈
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {!allow && (
-                                    <div className="collapse collapse-plus join-item border-base-300 border">
-                                        <input
-                                            type="radio"
-                                            name="my-accordion-allow-lists"
-                                        />
-                                        <div className="collapse-title text-lg font-condensed">
-                                            <h2>Allow Tags</h2>
-                                        </div>
-                                        <div className="collapse-content">
-                                            <article className="prose">
-                                                <p>
-                                                    This setting will allow
-                                                    users on the wider nostr
-                                                    network to send events to
-                                                    this relay that are tagged
-                                                    to your pubkeys.
-                                                </p>
-                                                <p>
-                                                    This is useful if you want
-                                                    people to be able to DM you
-                                                    that are not a member of the
-                                                    relay or if you want to
-                                                    backup conversations with
-                                                    non-member users.
-                                                </p>
-                                                <p>
-                                                    Since this is a commonly
-                                                    requested feature we
-                                                    recommend you start with
-                                                    this turned on. However if
-                                                    you get a lot of unwanted
-                                                    comments or stalkers and get
-                                                    tired of blocking them you
-                                                    can turn it off at any time.
-                                                </p>
-                                            </article>
-                                            <div className="mt-4">
-                                                <label
-                                                    className={isTagged()}
-                                                    onClick={(e) =>
-                                                        handleTaggedChange(e)
-                                                    }
-                                                >
-                                                    <div className="btn uppercase btn-accent swap-on">
-                                                        Allow Events Tagged to
-                                                        Pubkeys ✅
-                                                    </div>
-                                                    <div className="btn uppercase btn-accent swap-off">
-                                                        Do NOT Allow Events
-                                                        Tagged to Pubkeys 🙈
-                                                    </div>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {!allow && (
-                                    <div className="collapse collapse-plus join-item border-base-300 border">
-                                        <input
-                                            type="radio"
-                                            name="my-accordion-allow-lists"
-                                        />
-                                        <div className="collapse-title text-lg font-condensed">
-                                            <h2>Allowed Pubkeys</h2>
-                                        </div>
-                                        <div className="collapse-content">
-                                            <p>
-                                                These are pubkeys that will be
-                                                allowed to post.
-                                            </p>
-                                            <p>
-                                                You can add them from a listr
-                                                list or one at a time.
-                                            </p>
-                                            {props.relay != null &&
-                                                props.relay.allow_list !=
-                                                    null &&
-                                                props.relay.allow_list
-                                                    .list_pubkeys != null && (
-                                                    <ListEntryPubkeys
-                                                        pubkeys={
-                                                            props.relay
-                                                                .allow_list
-                                                                .list_pubkeys
-                                                        }
-                                                        relay_id={
-                                                            props.relay.id
-                                                        }
-                                                        relay_url={relayUrl}
-                                                        kind="Allowed Pubkeys ✅"
-                                                    ></ListEntryPubkeys>
-                                                )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {!allow && (
-                                    <div className="collapse collapse-plus join-item border-base-300 border">
-                                        <input
-                                            type="radio"
-                                            name="my-accordion-allow-lists"
-                                        />
-                                        <div className="collapse-title text-lg font-condensed">
-                                            <h2>Allowed Keywords</h2>
-                                        </div>
-                                        <div className="collapse-content">
-                                            <article className="prose">
-                                                <p>
-                                                    Here you may block by
-                                                    keywords. These can be
-                                                    anything and will perform a
-                                                    case-insensitive substring
-                                                    match on content for all
-                                                    kinds.
-                                                </p>
-                                                <p>
-                                                    When choosing to allow by
-                                                    keywords, there are two
-                                                    modes:
-                                                </p>
-                                                <ul>
-                                                    <li>
-                                                        Allow the event if the
-                                                        pubkey -OR- the keyword
-                                                        is present.
-                                                    </li>
-                                                    <li>
-                                                        Allow the event only if
-                                                        the pubkey is allowed
-                                                        -AND- the keyword is
-                                                        present.
-                                                    </li>
-                                                </ul>
-                                            </article>
-                                            <div className="mt-4">
-                                                <div className="text-sm font-condensed">
-                                                    current setting is:
-                                                </div>
-                                                <label
-                                                    className={isAllowKeywordPubkey()}
-                                                    onClick={(e) =>
-                                                        handleAllowKeywordPubkey(
-                                                            e
-                                                        )
-                                                    }
-                                                >
-                                                    <div className="btn uppercase btn-accent swap-on">
-                                                        Allow Pubkeys -AND
-                                                        REQUIRE- Keywords
-                                                    </div>
-                                                    <div className="btn uppercase btn-accent swap-off">
-                                                        Allow Pubkeys -OR-
-                                                        Keywords
-                                                    </div>
-                                                </label>
-                                            </div>
-                                            {props.relay != null &&
-                                                props.relay.allow_list !=
-                                                    null &&
-                                                props.relay.allow_list
-                                                    .list_keywords != null && (
-                                                    <ListEntryKeywords
-                                                        keywords={
-                                                            props.relay
-                                                                .allow_list
-                                                                .list_keywords
-                                                        }
-                                                        relay_id={
-                                                            props.relay.id
-                                                        }
-                                                        kind="Allowed Keywords ✅"
-                                                    ></ListEntryKeywords>
-                                                )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {!allow && (
-                                    <div className="collapse collapse-plus join-item border-base-300 border">
-                                        <input
-                                            type="radio"
-                                            name="my-accordion-allow-lists"
-                                        />
-                                        <div className="collapse-title text-lg font-condensed">
-                                            <h2>Allowed Kinds</h2>
-                                        </div>
-                                        <div className="collapse-content">
-                                            <article className="prose">
-                                                <p>
-                                                    You may choose to allow
-                                                    events by kind.
-                                                </p>
-                                                <p>
-                                                    If you add kinds here, this
-                                                    will override the pubkey
-                                                    Access Control and allow all
-                                                    pubkeys to post these kinds.
-                                                </p>
-                                                <p>
-                                                    If you leave this empty, ALL
-                                                    kinds are allowed if matched
-                                                    by the other ACLs.
-                                                </p>
-                                            </article>
-                                            {props.relay != null &&
-                                                props.relay.allow_list !=
-                                                    null &&
-                                                props.relay.allow_list
-                                                    .list_kinds != null && (
-                                                    <ListEntryKinds
-                                                        kinds={
-                                                            props.relay
-                                                                .allow_list
-                                                                .list_kinds
-                                                        }
-                                                        relay_id={
-                                                            props.relay.id
-                                                        }
-                                                        allowdeny="Allowed Kinds ✅"
-                                                    ></ListEntryKinds>
-                                                )}
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="collapse collapse-plus join-item border-base-300 border">
-                                    <input
-                                        type="radio"
-                                        name="my-accordion-allow-lists"
-                                    />
-                                    <div className="collapse-title text-lg font-condensed">
-                                        <h2>Blocked Pubkeys</h2>
-                                    </div>
-                                    <div className="collapse-content">
-                                        <article className="prose">
-                                            <p>
-                                                These are pubkeys that will be
-                                                blocked from posting.
-                                            </p>
-                                            <p>
-                                                You can add them from a listr
-                                                list or one at a time.
-                                            </p>
-                                            {!allow && (
-                                                <div>
-                                                    <p>
-                                                        You are already blocking
-                                                        by default.
-                                                    </p>
-                                                    <p>
-                                                        However if you have
-                                                        allowed kinds or
-                                                        keywords in the above
-                                                        allow lists, you may
-                                                        also choose to
-                                                        specifically block
-                                                        pubkeys here and it will
-                                                        override and block them.
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </article>
-                                        {props.relay != null &&
-                                            props.relay.block_list != null &&
-                                            props.relay.block_list
-                                                .list_pubkeys != null && (
-                                                <ListEntryPubkeys
-                                                    pubkeys={
-                                                        props.relay.block_list
-                                                            .list_pubkeys
-                                                    }
-                                                    relay_id={props.relay.id}
-                                                    relay_url={relayUrl}
-                                                    kind="Blocked Pubkeys"
-                                                ></ListEntryPubkeys>
-                                            )}
-                                    </div>
-                                </div>
-                                <div className="collapse collapse-plus join-item border-base-300 border">
-                                    <input
-                                        type="radio"
-                                        name="my-accordion-allow-lists"
-                                    />
-                                    <div className="collapse-title text-lg font-condensed">
-                                        <h2>Blocked Keywords</h2>
-                                    </div>
-                                    <div className="collapse-content">
-                                        <article className="prose">
-                                            <p>
-                                                Here you may block by keywords.
-                                                These can be anything and will
-                                                perform a case-insensitive
-                                                substring match on content for
-                                                all kinds.
-                                            </p>
-                                            {!allow && (
-                                                <div>
-                                                    <p>
-                                                        You are already blocking
-                                                        by default.
-                                                    </p>
-                                                    <p>
-                                                        However if you have
-                                                        allowed pubkeys or kinds
-                                                        in the above allow
-                                                        lists, you may also
-                                                        choose to specifically
-                                                        block keywords here and
-                                                        it will override and
-                                                        block them.
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </article>
-                                        {props.relay != null &&
-                                            props.relay.block_list != null &&
-                                            props.relay.block_list
-                                                .list_keywords != null && (
-                                                <ListEntryKeywords
-                                                    keywords={
-                                                        props.relay.block_list
-                                                            .list_keywords
-                                                    }
-                                                    relay_id={props.relay.id}
-                                                    kind="Blocked Keywords"
-                                                ></ListEntryKeywords>
-                                            )}
-                                    </div>
-                                </div>
-                                <div className="collapse collapse-plus join-item border-base-300 border">
-                                    <input
-                                        type="radio"
-                                        name="my-accordion-allow-lists"
-                                    />
-                                    <div className="collapse-title text-lg font-condensed">
-                                        <h2>Blocked Kinds</h2>
-                                    </div>
-                                    <div className="collapse-content">
-                                        <article className="prose">
-                                            <p>
-                                                You may choose to block events
-                                                by kind.
-                                            </p>
-                                            {!allow && (
-                                                <div>
-                                                    <p>
-                                                        You are already blocking
-                                                        by default.
-                                                    </p>
-                                                    <p>
-                                                        However if you have
-                                                        allowed pubkeys or
-                                                        keywords in the above
-                                                        allow lists, you may
-                                                        also choose to
-                                                        specifically block kinds
-                                                        here and it will
-                                                        override and block them.
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </article>
-                                        {props.relay != null &&
-                                            props.relay.block_list != null &&
-                                            props.relay.block_list.list_kinds !=
-                                                null && (
-                                                <ListEntryKinds
-                                                    kinds={
-                                                        props.relay.block_list
-                                                            .list_kinds
-                                                    }
-                                                    relay_id={props.relay.id}
-                                                    allowdeny="Blocked Kinds"
-                                                ></ListEntryKinds>
-                                            )}
-                                    </div>
-                                </div>
-                                <div className="flex justify-center">
-                                    <div
-                                        className="btn btn-primary uppercase mt-4"
-                                        onClick={() => setChecked(7)}
-                                    >
-                                        next
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <div className="collapse join-item border-base-300 border">
-                        <input
-                            type="radio"
-                            name="my-accordion-4"
-                            onChange={() => setChecked(7)}
-                            checked={isChecked(7)}
-                        />
-                        <div className="collapse-title text-lg">
-                            <h2>Lightning Payments</h2>
-                        </div>
-                        <div className="collapse-content">
+                    {checked === 7 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Lightning Payments</h2>
                             <article className="prose">
                                 <p>
                                     Lightning payments can be enabled and will
@@ -1327,156 +1159,138 @@ export default function Wizard(
                                 </div>
                             </div>
                         </div>
-                        <div className="collapse join-item border-base-300 border">
-                            <input
-                                type="radio"
-                                name="my-accordion-4"
-                                onChange={() => setChecked(8)}
-                                checked={isChecked(8)}
-                            />
-                            <div className="collapse-title text-lg">
-                                <h2>Streams Configuration</h2>
-                            </div>
-                            <div className="collapse-content">
-                                <article className="prose">
-                                    <p>
-                                        Add stream URLs that this relay should
-                                        connect to.
-                                    </p>
-                                </article>
+                    )}
 
-                                <div className="form-control mt-4">
-                                    <input
-                                        type="text"
-                                        placeholder="Enter stream URL"
-                                        className="input input-bordered w-full"
-                                        value={streamUrl}
+                    {checked === 8 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Streams Configuration</h2>
+                            <article className="prose">
+                                <p>
+                                    Add stream URLs that this relay should
+                                    connect to.
+                                </p>
+                            </article>
+
+                            <div className="form-control mt-4">
+                                <input
+                                    type="text"
+                                    placeholder="Enter stream URL"
+                                    className="input input-bordered w-full"
+                                    value={streamUrl}
+                                    onChange={(e) =>
+                                        setStreamUrl(e.target.value)
+                                    }
+                                />
+
+                                <div className="flex gap-2 mt-2">
+                                    <select
+                                        className="select select-bordered"
+                                        value={streamDirection}
                                         onChange={(e) =>
-                                            setStreamUrl(e.target.value)
+                                            setStreamDirection(
+                                                e.target.value
+                                            )
                                         }
-                                    />
+                                    >
+                                        <option value="down">down</option>
+                                        <option value="up">up</option>
+                                        <option value="both">
+                                            bi-directional
+                                        </option>
+                                    </select>
 
-                                    <div className="flex gap-2 mt-2">
-                                        <select
-                                            className="select select-bordered"
-                                            value={streamDirection}
-                                            onChange={(e) =>
-                                                setStreamDirection(
-                                                    e.target.value
-                                                )
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                            if (streamUrl) {
+                                                handleAddStream({
+                                                    url: streamUrl,
+                                                    direction:
+                                                        streamDirection,
+                                                });
+                                                setStreamUrl("");
+                                            }
+                                        }}
+                                    >
+                                        Add Stream
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 flex flex-col gap-4">
+                                {streams.map((stream) => (
+                                    <div
+                                        key={stream.id}
+                                        className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
+                                    >
+                                        <div className="flex-grow break-all font-bold">
+                                            <span className="font-bold mr-4">
+                                                relay url
+                                            </span>
+                                            <span className="font-condensed">
+                                                {stream.url}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className="font-bold">
+                                                direction
+                                            </span>
+                                            <span className="font-condensed">
+                                                {stream.direction}
+                                            </span>
+                                        </div>
+                                        <button
+                                            className="btn btn-sm btn-error"
+                                            onClick={() =>
+                                                handleRemoveStream(stream)
                                             }
                                         >
-                                            <option value="down">down</option>
-                                            <option value="up">up</option>
-                                            <option value="both">
-                                                bi-directional
-                                            </option>
-                                        </select>
-
-                                        <button
-                                            className="btn btn-primary"
-                                            onClick={() => {
-                                                if (streamUrl) {
-                                                    handleAddStream({
-                                                        url: streamUrl,
-                                                        direction:
-                                                            streamDirection,
-                                                    });
-                                                    setStreamUrl("");
-                                                }
-                                            }}
-                                        >
-                                            Add Stream
+                                            Remove
                                         </button>
                                     </div>
-                                </div>
+                                ))}
+                            </div>
 
-                                <div className="mt-4 flex flex-col gap-4">
-                                    {streams.map((stream) => (
-                                        <div
-                                            key={stream.id}
-                                            className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
-                                        >
-                                            <div className="flex-grow break-all font-bold">
-                                                <span className="font-bold mr-4">
-                                                    relay url
-                                                </span>
-                                                <span className="font-condensed">
-                                                    {stream.url}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                <span className="font-bold">
-                                                    direction
-                                                </span>
-                                                <span className="font-condensed">
-                                                    {stream.direction}
-                                                </span>
-                                            </div>
-                                            <button
-                                                className="btn btn-sm btn-error"
-                                                onClick={() =>
-                                                    handleRemoveStream(stream)
-                                                }
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="flex justify-center">
-                                    <div
-                                        className="btn btn-primary uppercase mt-4"
-                                        onClick={() => setChecked(9)}
-                                    >
-                                        next
-                                    </div>
+                            <div className="flex justify-center">
+                                <div
+                                    className="btn btn-primary uppercase mt-4"
+                                    onClick={() => setChecked(9)}
+                                >
+                                    next
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        <div className="divider">Advanced</div>
-
-                        <button
-                            className="btn uppercase btn-neutral"
-                            onClick={() => setDeleteModal(true)}
-                        >
-                            Delete relay
-                        </button>
-                        {deleteModal && (
-                            <dialog
-                                id="delete_modal"
-                                className="modal modal-open"
-                            >
-                                <form className="modal-box bg-gray-900">
-                                    <h3 className="text-white">Delete Relay</h3>
-                                    <p className="text-base text-sm text-white">
-                                        Are you SURE you want to delete this
-                                        relay?
-                                    </p>
-                                    <div className="modal-action flex justify-between">
-                                        <button
-                                            className="btn uppercase"
-                                            onClick={(e) =>
-                                                handleDeleteRelay(e)
-                                            }
-                                        >
-                                            Yes
-                                        </button>
-                                        <button
-                                            className="btn uppercase"
-                                            onClick={() =>
-                                                setDeleteModal(false)
-                                            }
-                                        >
-                                            No
-                                        </button>
+                    {checked === 9 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">Delete Relay</h2>
+                            <div className="alert alert-error">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                    <h3 className="font-bold">Warning!</h3>
+                                    <div className="text-sm">
+                                        This action cannot be undone. This will permanently delete the relay
+                                        and all associated data.
                                     </div>
-                                </form>
-                            </dialog>
-                        )}
-                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <button 
+                                    className="btn btn-error"
+                                    onClick={() => {
+                                        if (confirm("Are you sure you want to delete this relay?")) {
+                                            // Add your delete logic here
+                                        }
+                                    }}
+                                >
+                                    Delete Relay
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
