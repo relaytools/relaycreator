@@ -52,11 +52,32 @@ export default async function handle(req: any, res: any) {
             res.status(500).json({ "error": "no list_id" })
             return
         }
+
+        const allowListId = isMyRelay.allow_list?.id;
+        if (allowListId == null) {
+            res.status(404).json({ error: "list not found" });
+            return;
+        }
+
+        const existingEntry = await prisma.listEntryKind.findFirst({
+            where: {
+                AllowListId: allowListId,
+                id: listId
+            }
+        });
+
+        if (!existingEntry) {
+            res.status(404).json({ error: "entry not found" });
+            return;
+        }
+
         await prisma.listEntryKind.delete({
             where: {
+                AllowListId: allowListId,
                 id: listId,
-            }
-        })
+            },
+        });
+
         res.status(200).json({})
     } else {
         res.status(500).json({ "error": "method not allowed" })
