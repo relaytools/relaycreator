@@ -41,19 +41,26 @@ export default async function handle(req: any, res: any) {
             res.status(200).json(newp)
         }
     } else if (req.method == "PUT") {
-        // update AllowList
+        // update
     } else if (req.method == "DELETE") {
-        // delete AllowList
+        const blockListId = isMyRelay.block_list?.id
+        if(blockListId == null) {
+            res.status(404).json({error: "list not found"})
+        }
+
         const listId = req.query.list_id;
         if (listId == null) {
             res.status(500).json({ "error": "no list_id" })
             return
         }
+
         await prisma.listEntryKind.delete({
             where: {
+                BlockListId: blockListId,
                 id: listId,
             }
         })
+
         res.status(200).json({});
     } else {
         res.status(500).json({ "error": "method not allowed" })
