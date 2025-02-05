@@ -58,7 +58,7 @@ export default function RelayMenuBar(
             </div>
 
             <div className="mt-4 flex-col">
-                {results.map((relay) => (
+                {results && results.map((relay) => (
                     <RelaySmall key={"pub" + relay.id} relay={relay} />
                 ))}
             </div>
