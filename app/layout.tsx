@@ -51,7 +51,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
         <div className="bg-base-100 mx-auto lg:max-w-7xl max-w-screen font-roboto">
           <AuthContext>
 
-            {rewritten == null &&
+            {rewritten == null && !path?.includes('/posts') &&
             <div className="flex justify-between font-roboto">
                 <ShowSession theme={currentTheme}/>
                 <ThemeProvider />
