@@ -1018,6 +1018,7 @@ export default function PostsPage(
         ) {
             statusColor = "text-sm font-condensed ml-auto badge badge-warning";
         }
+
         return (
             <div className="drawer drawer-end justify-end">
                 <input
@@ -1193,16 +1194,11 @@ export default function PostsPage(
                                 className="drawer-overlay"
                             ></label>
                             <div className="menu bg-base-200 text-base-content min-h-full w-80">
-                                {/* Sidebar content here */}
+                                <div>MENU</div>
                                 {relayData != null && (
                                     <RelayMenuBar
                                         relays={relayData.publicRelays}
                                     />
-                                )}
-                                {relayData == null && (
-                                    <div className="font-bold text-3xl">
-                                        herro 
-                                    </div>
                                 )}
                             </div>
                         </div>
