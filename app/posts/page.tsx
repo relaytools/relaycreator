@@ -37,6 +37,8 @@ import {
     Bar,
 } from "recharts";
 
+import { useSearchParams } from 'next/navigation';
+
 interface Event {
     pubkey: string;
     content: any;
@@ -183,8 +185,13 @@ export default function PostsPage(
             const response = await fetch(
                 `/api/relay/${props.relayName}/guiRelays`
             );
-            const data = await response.json();
-            setRelayData(data);
+            if(response.ok) {
+                const data = await response.json();
+                setRelayData(data);
+            } else {
+                setRelayData(null);
+            }
+            setHasAttemptedFetch(true);
         };
 
         fetchRelayData();
@@ -197,17 +204,18 @@ export default function PostsPage(
             extraQuery = "?blocked=true";
         }
         fetch(
-            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${relayData.relay.id}/graph-24h${extraQuery}`
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${relayData?.relay?.id}/graph-24h${extraQuery}`
         )
             .then((res) => res.json())
             .then((data) => {
                 setGraphStats(data.stats);
             });
     }, [relayData, isAllowedStats]);
+
     useEffect(() => {
         if (!relayData) return;
         fetch(
-            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${relayData.relay.name}/connections`
+            `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/relay-stats/${relayData?.relay?.name}/connections`
         )
             .then((res) => res.json())
             .then((data) => {
@@ -309,14 +317,14 @@ export default function PostsPage(
             addToStatus("relay is flapping: " + flapping.url);
         });
         ndkPool.on("relay:auth", (relay: NDKRelay, challenge: string) => {
-            addToStatus("auth: " + relayData?.relay.name);
+            addToStatus("auth: " + nrelaydata);
         });
 
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
-                addToStatus("authed: " + relayData?.relay.name);
+                addToStatus("authed: " + nrelaydata);
                 wipePosts();
                 eventListener(relay);
                 console.log("authing?");
@@ -330,7 +338,7 @@ export default function PostsPage(
                 if (kind1Sub != undefined) {
                     kind1Sub.stop();
                 }
-                addToStatus("disconnected: " + relayData?.relay.name);
+                addToStatus("disconnected: " + nrelaydata);
             }
         });
 
@@ -338,25 +346,25 @@ export default function PostsPage(
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
-                addToStatus("connected: " + relayData?.relay.name);
+                addToStatus("connected: " + nrelaydata);
                 wipePosts();
                 if (!auth) {
                     eventListener(relay);
                 } else if (signerFailed) {
-                    addToStatus("sign-in required: " + relayData?.relay.name);
+                    addToStatus("sign-in required: " + nrelaydata);
                 }
             }
         });
 
         ndkPool.on("relay:connecting", (relay: NDKRelay) => {
-            //addToStatus("connecting: " + relay.url);
+            //addToStatus("connecting: " + nrelaydata);
         });
 
         ndkPool.on("relay:authfail", (relay: NDKRelay) => {
             let normalized_url = nrelaydata + "/";
             normalized_url = normalized_url.toLowerCase();
             if (relay.url == normalized_url) {
-                addToStatus("unauthorized: " + relayData?.relay.name);
+                addToStatus("unauthorized: " + nrelaydata);
             }
         });
 
@@ -414,17 +422,8 @@ export default function PostsPage(
     var nrelaydata: string;
     var useAuth: boolean;
 
-    if (relayData?.relay == null || relayData?.relay.name == null) {
-        nrelaydata = "wss://nostr21.com";
-        useAuth = false;
-    } else if (relayData?.relay.is_external) {
-        nrelaydata = "wss://" + relayData?.relay.domain;
-        useAuth = relayData?.relay.auth_required;
-    } else {
-        nrelaydata =
-            "wss://" + relayData.relay.name + "." + relayData.relay.domain;
-        useAuth = relayData.relay.auth_required;
-    }
+    const relayParams = useSearchParams();
+    const relayUrl = relayParams?.get('relay');
 
     const activeUser = ndk.activeUser;
     const activePubkey = activeUser?.pubkey;
@@ -433,19 +432,38 @@ export default function PostsPage(
         console.log("setting my pubkey", activePubkey);
         setMyPubkey(activePubkey);
         const isModOrOwner =
-            relayData?.relay.moderators.some(
+            relayData?.relay?.moderators?.some(
                 (mod) => mod.user.pubkey == activePubkey
-            ) || relayData?.relay.owner.pubkey == activePubkey;
+            ) || relayData?.relay?.owner?.pubkey == activePubkey;
         if (isModOrOwner && modActions == false) {
             setModActions(true);
         }
         console.log("setting mod status", isModOrOwner);
     }
 
+    const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
     useEffect(() => {
-        if (!relayData) return;
+        if (!hasAttemptedFetch) return;
+        if (relayData?.relay == null || relayData?.relay.name == null) {
+            // check relay params
+            if (relayUrl != null) {
+                nrelaydata = relayUrl;
+                useAuth = false;
+            } else {
+                nrelaydata = "wss://nostr21.com";
+                useAuth = false;
+            }
+        } else if (relayData?.relay.is_external) {
+            nrelaydata = "wss://" + relayData?.relay.domain;
+            useAuth = relayData?.relay.auth_required;
+        } else {
+            nrelaydata =
+                "wss://" + relayData.relay.name + "." + relayData.relay.domain;
+            useAuth = relayData.relay.auth_required;
+        }
+        console.log("GRABBIN STUFFS" + nrelaydata + " " + relayData);
         grabStuff(nrelaydata, useAuth);
-    }, [relayData]);
+    }, [hasAttemptedFetch]);
 
     function summarizePubkey(pubkey: string): string {
         if (pubkey == null) {
@@ -1040,24 +1058,24 @@ export default function PostsPage(
                         <div className="mb-4">
                             <img
                                 src={
-                                    relayData.relay.banner_image ||
+                                    relayData?.relay?.banner_image ||
                                     "/green-check.png"
                                 }
                             ></img>
                         </div>
                         <div className="text text-lg p-4 font-condensed">
-                            {relayData.relay.details}
+                            {relayData?.relay?.details}
                         </div>
-                        {relayData.relay.allow_list != null &&
-                            !relayData.relay.default_message_policy && (
+                        {relayData?.relay?.allow_list != null &&
+                            !relayData?.relay?.default_message_policy && (
                                 <div
                                     key="allowedpubkeycount"
                                     className="font-condensed p-4"
                                 >
                                     Members:{" "}
                                     {
-                                        relayData.relay.allow_list.list_pubkeys
-                                            .length
+                                        relayData?.relay?.allow_list?.list_pubkeys
+                                            ?.length
                                     }
                                 </div>
                             )}
@@ -1075,7 +1093,7 @@ export default function PostsPage(
                                     href={
                                         process.env.NEXT_PUBLIC_ROOT_DOMAIN +
                                         "/curator?relay_id=" +
-                                        relayData.relay.id
+                                        relayData?.relay?.id
                                     }
                                     className="btn uppercase btn-primary"
                                 >
@@ -1118,9 +1136,9 @@ export default function PostsPage(
                             </label>
                         </div>
 
-                        {relayData.relay.payment_required && (
+                        {relayData?.relay?.payment_required && (
                             <RelayPayment
-                                relay={relayData.relay}
+                                relay={relayData?.relay}
                                 pubkey={myPubkey}
                             />
                         )}
@@ -1160,7 +1178,7 @@ export default function PostsPage(
                                     <div className="w-12 rounded-full">
                                         <img
                                             src={
-                                                relayData?.relay.banner_image ||
+                                                relayData?.relay?.banner_image ||
                                                 "/green-check.png"
                                             }
                                         />
@@ -1180,6 +1198,11 @@ export default function PostsPage(
                                     <RelayMenuBar
                                         relays={relayData.publicRelays}
                                     />
+                                )}
+                                {relayData == null && (
+                                    <div className="font-bold text-3xl">
+                                        herro 
+                                    </div>
                                 )}
                             </div>
                         </div>
