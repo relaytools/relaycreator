@@ -353,31 +353,33 @@ export default function Wizard(
                 {menuOpen ? '✕' : '☰'}
             </button>
 
-            {/* Side Menu - updated with ACL subitems */}
+            {/* Side Menu - updated with check marks */}
             <div className={`${
                 menuOpen ? 'translate-x-0' : '-translate-x-full'
             } lg:translate-x-0 fixed lg:static w-64 h-full bg-base-200 p-4 transition-transform duration-300 ease-in-out z-10 flex flex-col`}>
                 <ul className="menu menu-vertical flex-grow">
                     <li>
                         <button 
-                            className={`${checked === 1 ? 'active' : ''}`}
+                            className={`${checked === 1 ? 'active' : ''} flex justify-between items-center`}
                             onClick={() => {
                                 setChecked(1);
                                 setMenuOpen(false);
                             }}
                         >
-                            Relay Setup Wizard
+                            <span>Relay Setup Wizard</span>
+                            {props.relay.relay_kind_description && <span className="text-success">✓</span>}
                         </button>
                     </li>
                     <li>
                         <button 
-                            className={`${checked === 2 ? 'active' : ''}`}
+                            className={`${checked === 2 ? 'active' : ''} flex justify-between items-center`}
                             onClick={() => {
                                 setChecked(2);
                                 setMenuOpen(false);
                             }}
                         >
-                            Choose Relay Type
+                            <span>Choose Relay Type</span>
+                            {props.relay.relay_kind_description && <span className="text-success">✓</span>}
                         </button>
                     </li>
                     <li>

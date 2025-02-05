@@ -45,7 +45,15 @@ export async function middleware(req: NextRequest) {
          || host?.includes("10.0")
          || host?.includes("192.168")
          || host?.includes("127.0")
-         || host?.includes("localhost")) return
+         || host?.includes("localhost")) {
+            const pathHeaders = new Headers(req.headers)
+            pathHeaders.set('next-url', url.pathname)
+            return NextResponse.next({
+                request: {
+                    headers: pathHeaders,
+                },
+            });
+        }
 
         const subdomain = getValidSubdomain(host);
 
