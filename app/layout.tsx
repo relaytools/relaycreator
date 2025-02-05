@@ -7,6 +7,8 @@ import { cookies } from 'next/headers'
 import Themes from '../lib/themes'
 import { headers } from 'next/headers'
 import { Roboto, Roboto_Mono, Roboto_Condensed, Open_Sans } from 'next/font/google'
+import { useSelectedLayoutSegments } from 'next/navigation'
+
 
 const roboto = Roboto({
     weight: '400',
@@ -39,8 +41,8 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
 
   const headersList = headers()
   const rewritten = headersList.get('middleware-rewritten')
-
-  console.log("rewritten: ", rewritten)
+  const path = headersList.get('next-url')
+  console.log("path: ", path)
 
   return (
     <html data-theme={currentTheme} className={`${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal`}>
@@ -49,7 +51,7 @@ export default function RootLayout({ children, }: React.PropsWithChildren) {
         <div className="bg-base-100 mx-auto lg:max-w-7xl max-w-screen font-roboto">
           <AuthContext>
 
-            {rewritten == null && 
+            {rewritten == null &&
             <div className="flex justify-between font-roboto">
                 <ShowSession theme={currentTheme}/>
                 <ThemeProvider />
