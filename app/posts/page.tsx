@@ -183,6 +183,7 @@ export default function PostsPage(
     const [relayData, setRelayData] = useState<RelayData | null>(null);
     const [useAuth, setUseAuth] = useState(false);
     const [nrelaydata, setnrelaydata] = useState("");
+    const [relayIcon, setRelayIcon] = useState("/green-check.png");
 
     useEffect(() => {
         const fetchRelayData = async () => {
@@ -203,6 +204,8 @@ export default function PostsPage(
                     }
                     normalize_url = normalize_url.toLowerCase();
                     setnrelaydata(normalize_url);
+                    setRelayIcon(data.relay.banner_image);
+                    console.log("relay icon", data.relay.banner_image);
                 }
             } else if (relayUrl != null) {
                 const httpUrl = relayUrl.replace("wss://", "https://").replace("ws://", "http://");
@@ -225,6 +228,8 @@ export default function PostsPage(
                     } else {
                         setnrelaydata(normalize_url);
                     }
+                    setRelayIcon(data.icon);
+                    console.log("relay icon", data.icon);
                 } else {
                     console.log("nip11 fetch failed for " + httpUrl);
                 }
@@ -1112,7 +1117,7 @@ export default function PostsPage(
                         <div className="mb-4">
                             <img
                                 src={
-                                    relayData?.relay?.banner_image ||
+                                    relayData?.relay?.banner_image || relayIcon ||
                                     "/green-check.png"
                                 }
                             ></img>
@@ -1233,8 +1238,7 @@ export default function PostsPage(
                                     <div className="w-12 rounded-full">
                                         <img
                                             src={
-                                                relayData?.relay?.banner_image ||
-                                                "/green-check.png"
+                                              relayIcon
                                             }
                                         />
                                     </div>
