@@ -15,6 +15,7 @@ import NDK, {
     NDKAuthPolicy,
     NDKRelaySet,
     NDKSubscription,
+    NDKPublishError,
 } from "@nostr-dev-kit/ndk";
 
 import { RelayWithEverything } from "../components/relayWithEverything";
@@ -38,6 +39,7 @@ import {
 } from "recharts";
 
 import { useSearchParams } from 'next/navigation';
+import { ToastContainer, toast } from "react-toastify";
 
 interface Event {
     pubkey: string;
@@ -179,18 +181,52 @@ export default function PostsPage(
     }
 
     const [relayData, setRelayData] = useState<RelayData | null>(null);
+    const [useAuth, setUseAuth] = useState(false);
+    const [nrelaydata, setnrelaydata] = useState("");
 
     useEffect(() => {
         const fetchRelayData = async () => {
-            const response = await fetch(
-                `/api/relay/${props.relayName}/guiRelays`
-            );
-            if(response.ok) {
-                const data = await response.json();
-                setRelayData(data);
-            } else {
+            if (props.relayName != null) {
+                const rtResponse = await fetch(
+                    `/api/relay/${props.relayName}/guiRelays`
+                );
+                if(rtResponse.ok) {
+                    const data = await rtResponse.json();
+                    setRelayData(data);
+                    setUseAuth(data.relay.auth_required);
+                    console.log("auth information:" + data.relay.auth_required)
+                    let normalize_url = "wss://" + data.relay.name + "." + data.relay.domain + "/";
+                    normalize_url = normalize_url.toLowerCase();
+                    setnrelaydata(normalize_url);
+                }
+            } else if (relayUrl != null) {
+                const httpUrl = relayUrl.replace("wss://", "https://").replace("ws://", "http://");
+                const nip11Response = await fetch(
+                    httpUrl, // + "/nostrjson",
+                {
+                    headers: {
+                        'Accept': 'application/nostr+json'
+                    }
+                })
+
+                if (nip11Response.ok) {
+                    const data = await nip11Response.json();
+                    console.log("USING AUTH DETECTED FROM NIP11", data.limitation?.auth_required);
+                    setUseAuth(data.limitation?.auth_required || false);
+                    let normalize_url = relayUrl;
+                    normalize_url = normalize_url.toLowerCase();
+                    if(!normalize_url.endsWith("/")) {
+                        setnrelaydata(normalize_url + "/");
+                    } else {
+                        setnrelaydata(normalize_url);
+                    }
+                } else {
+                    console.log("nip11 fetch failed for " + httpUrl);
+                }
+                
                 setRelayData(null);
             }
+
             setHasAttemptedFetch(true);
         };
 
@@ -299,9 +335,9 @@ export default function PostsPage(
         });
     }
 
-    async function grabStuff(nrelaydata: string, auth: boolean = false) {
+    async function grabStuff() {
         var kind1Sub: NDKSubscription;
-
+        
         const nip07signer = new NDKNip07Signer();
         try {
             const activeUser = await nip07signer.blockUntilReady();
@@ -321,20 +357,17 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
-            let normalized_url = nrelaydata + "/";
-            normalized_url = normalized_url.toLowerCase();
-            if (relay.url == normalized_url) {
+            console.log("authed event listener");
+            if (relay.url == nrelaydata) {
                 addToStatus("authed: " + nrelaydata);
                 wipePosts();
                 eventListener(relay);
-                console.log("authing?");
+                console.log("authed");
             }
         });
 
         ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
-            let normalized_url = nrelaydata + "/";
-            normalized_url = normalized_url.toLowerCase();
-            if (relay.url == normalized_url) {
+            if (relay.url == nrelaydata) {
                 if (kind1Sub != undefined) {
                     kind1Sub.stop();
                 }
@@ -343,12 +376,11 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:connect", (relay: NDKRelay) => {
-            let normalized_url = nrelaydata + "/";
-            normalized_url = normalized_url.toLowerCase();
-            if (relay.url == normalized_url) {
+            if (relay.url == nrelaydata) {
                 addToStatus("connected: " + nrelaydata);
                 wipePosts();
-                if (!auth) {
+                if (!useAuth) {
+                    console.log("no auth detected, requesting events");
                     eventListener(relay);
                 } else if (signerFailed) {
                     addToStatus("sign-in required: " + nrelaydata);
@@ -361,9 +393,7 @@ export default function PostsPage(
         });
 
         ndkPool.on("relay:authfail", (relay: NDKRelay) => {
-            let normalized_url = nrelaydata + "/";
-            normalized_url = normalized_url.toLowerCase();
-            if (relay.url == normalized_url) {
+            if (relay.url == nrelaydata) {
                 addToStatus("unauthorized: " + nrelaydata);
             }
         });
@@ -375,6 +405,11 @@ export default function PostsPage(
             NDKRelayAuthPolicies.signIn({ ndk }),
             true
         );
+
+        ndk.on("event:publish-failed", (event: NDKEvent, error: NDKPublishError, relays: any) => {
+            console.log("event publish failed", event, error);
+            console.log("event publish failed to send to all relays:", relays);
+        });
     }
 
     async function addToStatus(message: string) {
@@ -419,8 +454,6 @@ export default function PostsPage(
         setProfiles((prevProfiles) => [newProfile, ...prevProfiles]);
     };
 
-    var nrelaydata: string;
-    var useAuth: boolean;
 
     const relayParams = useSearchParams();
     const relayUrl = relayParams?.get('relay');
@@ -442,27 +475,11 @@ export default function PostsPage(
     }
 
     const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+
     useEffect(() => {
         if (!hasAttemptedFetch) return;
-        if (relayData?.relay == null || relayData?.relay.name == null) {
-            // check relay params
-            if (relayUrl != null) {
-                nrelaydata = relayUrl;
-                useAuth = false;
-            } else {
-                nrelaydata = "wss://nostr21.com";
-                useAuth = false;
-            }
-        } else if (relayData?.relay.is_external) {
-            nrelaydata = "wss://" + relayData?.relay.domain;
-            useAuth = relayData?.relay.auth_required;
-        } else {
-            nrelaydata =
-                "wss://" + relayData.relay.name + "." + relayData.relay.domain;
-            useAuth = relayData.relay.auth_required;
-        }
-        console.log("GRABBIN STUFFS" + nrelaydata + " " + relayData);
-        grabStuff(nrelaydata, useAuth);
+        // build the url for nrelaydata
+        grabStuff();
     }, [hasAttemptedFetch]);
 
     function summarizePubkey(pubkey: string): string {
@@ -821,26 +838,45 @@ export default function PostsPage(
                         tags: [
                             ["p", showPost.pubkey],
                             ["e", showPost.id],
+                            ["-"],
                         ],
                         created_at: Math.floor(Date.now() / 1000),
                     },
                     newSK
                 );
+                toast.info("Publishing reply...");
                 const newEvent = new NDKEvent(ndk, event);
-                await newEvent.publish();
+                const publishedTo = await newEvent.publish();
+                console.log("event was published to: ", publishedTo);
+                if(publishedTo.size == 0) {
+                    toast.error("Failed to publish reply");
+                } else {
+                    toast.success("Reply published to " + publishedTo.size + " relays");
+                    setShowPost(undefined);
+                    setReplyPost("");
+                }
             } else {
+                toast.info("Publishing reply...");
                 const newEvent = new NDKEvent(ndk);
                 newEvent.content = replyPost;
                 newEvent.kind = 1;
                 newEvent.tags = [
                     ["p", showPost.pubkey],
                     ["e", showPost.id],
+                    ["-"],
                 ];
-                await newEvent.publish();
+                const publishedTo = await newEvent.publish();
+                // const publishedTo = await newEvent.publish(newSet, 10000, howMany);
+                console.log("event was published to: ", publishedTo);
+                if(publishedTo.size == 0) {
+                    toast.error("Failed to publish reply");
+
+                } else {
+                    toast.success("Reply published to " + publishedTo.size + " relays");
+                    setShowPost(undefined);
+                    setReplyPost("");
+                }
             }
-            //clear the form
-            setShowPost(undefined);
-            setReplyPost("");
         }
     };
 
@@ -850,7 +886,7 @@ export default function PostsPage(
         if (showPost != undefined) {
             const dEvent = new NDKEvent(ndk);
             dEvent.kind = 7;
-            dEvent.tags = [["e", showPost.id]];
+            dEvent.tags = [["e", showPost.id],["-"]];
             dEvent.content = "❌";
             await dEvent.publish();
             removePost(showPost);
@@ -888,7 +924,7 @@ export default function PostsPage(
             // deleting phase
             const dEvent = new NDKEvent(ndk);
             dEvent.kind = 7;
-            dEvent.tags = [["p", showPost.pubkey]];
+            dEvent.tags = [["p", showPost.pubkey],["-"]];
             dEvent.content = "🔨";
             await dEvent.publish();
 
@@ -923,24 +959,38 @@ export default function PostsPage(
                 {
                     kind: 1,
                     created_at: Math.floor(Date.now() / 1000),
-                    tags: [],
+                    tags: [["-"]],
                     content: post,
                 },
                 newSK
             );
-
+            toast.info("Publishing note...");
             const newEvent = new NDKEvent(ndk, event);
-            await newEvent.publish();
+            const publishedTo = await newEvent.publish();
+            console.log("event was published to: ", publishedTo);
+            if(publishedTo.size == 0) {
+                toast.error("Failed to publish");
+            } else {
+                toast.success("Note published to " + publishedTo.size + " relays");
+                form.elements[0].value = "";
+                setPostContent("");
+            }
         } else {
             const newEvent = new NDKEvent(ndk);
             newEvent.kind = 1;
             newEvent.content = post;
-            await newEvent.publish();
+            newEvent.tags = [["-"]];
+            toast.info("Publishing note...");
+            const publishedTo = await newEvent.publish();
+            console.log("event was published to: ", publishedTo);
+            if(publishedTo.size == 0) {
+                toast.error("Failed to publish");
+            } else {
+                toast.success("Note published to " + publishedTo.size + " relays");
+                form.elements[0].value = "";
+                setPostContent("");
+            }
         }
-
-        //clear the form
-        form.elements[0].value = "";
-        setPostContent("");
     };
 
     const handleChangeKind = async (e: any) => {
@@ -1154,6 +1204,7 @@ export default function PostsPage(
 
     return (
         <div className="">
+            <ToastContainer />
             <div className="flex flex-wrap w-full fixed top-0 left-0 z-50 bg-base-100">
                 <div className="flex w-full items-center mb-4">
                     <div className="drawer w-32">
