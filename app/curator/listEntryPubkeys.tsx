@@ -220,6 +220,7 @@ export default function ListEntryPubkeys(
                 dtags.push("follows");
             } else if (l.kind == 30000) {
                 const names = l.getMatchingTags("d");
+                console.log(names[0][1], l.id)
                 dtags.push(names[0][1]);
             }
         });
