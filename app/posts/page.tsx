@@ -195,7 +195,12 @@ export default function PostsPage(
                     setRelayData(data);
                     setUseAuth(data.relay.auth_required);
                     console.log("auth information:" + data.relay.auth_required)
-                    let normalize_url = "wss://" + data.relay.name + "." + data.relay.domain + "/";
+                    var normalize_url: string
+                    if(data.relay.is_external) {
+                        normalize_url = "wss://" + data.relay.domain + "/";
+                    } else {
+                        normalize_url = "wss://" + data.relay.name + "." + data.relay.domain + "/";
+                    }
                     normalize_url = normalize_url.toLowerCase();
                     setnrelaydata(normalize_url);
                 }
@@ -336,8 +341,6 @@ export default function PostsPage(
     }
 
     async function grabStuff() {
-        var kind1Sub: NDKSubscription;
-        
         const nip07signer = new NDKNip07Signer();
         try {
             const activeUser = await nip07signer.blockUntilReady();
@@ -368,9 +371,9 @@ export default function PostsPage(
 
         ndkPool.on("relay:disconnect", (relay: NDKRelay) => {
             if (relay.url == nrelaydata) {
-                if (kind1Sub != undefined) {
-                    kind1Sub.stop();
-                }
+                ndk.subManager.subscriptions.forEach((s) => {
+                    s.stop();
+                });
                 addToStatus("disconnected: " + nrelaydata);
             }
         });
