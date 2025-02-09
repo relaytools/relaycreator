@@ -38,7 +38,7 @@ import {
     Bar,
 } from "recharts";
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 
 interface Event {
@@ -195,16 +195,21 @@ export default function PostsPage(
                 const rtResponse = await fetch(
                     `/api/relay/${props.relayName}/guiRelays`
                 );
-                if(rtResponse.ok) {
+                if (rtResponse.ok) {
                     const data = await rtResponse.json();
                     setRelayData(data);
                     setUseAuth(data.relay.auth_required);
-                    console.log("auth information:" + data.relay.auth_required)
-                    var normalize_url: string
-                    if(data.relay.is_external) {
+                    console.log("auth information:" + data.relay.auth_required);
+                    var normalize_url: string;
+                    if (data.relay.is_external) {
                         normalize_url = "wss://" + data.relay.domain + "/";
                     } else {
-                        normalize_url = "wss://" + data.relay.name + "." + data.relay.domain + "/";
+                        normalize_url =
+                            "wss://" +
+                            data.relay.name +
+                            "." +
+                            data.relay.domain +
+                            "/";
                     }
                     normalize_url = normalize_url.toLowerCase();
                     setnrelaydata(normalize_url);
@@ -212,22 +217,28 @@ export default function PostsPage(
                     console.log("relay icon", data.relay.banner_image);
                 }
             } else if (relayUrl != null) {
-                const httpUrl = relayUrl.replace("wss://", "https://").replace("ws://", "http://");
+                const httpUrl = relayUrl
+                    .replace("wss://", "https://")
+                    .replace("ws://", "http://");
                 const nip11Response = await fetch(
                     httpUrl, // + "/nostrjson",
-                {
-                    headers: {
-                        'Accept': 'application/nostr+json'
+                    {
+                        headers: {
+                            Accept: "application/nostr+json",
+                        },
                     }
-                })
+                );
 
                 if (nip11Response.ok) {
                     const data = await nip11Response.json();
-                    console.log("USING AUTH DETECTED FROM NIP11", data.limitation?.auth_required);
+                    console.log(
+                        "USING AUTH DETECTED FROM NIP11",
+                        data.limitation?.auth_required
+                    );
                     setUseAuth(data.limitation?.auth_required || false);
                     let normalize_url = relayUrl;
                     normalize_url = normalize_url.toLowerCase();
-                    if(!normalize_url.endsWith("/")) {
+                    if (!normalize_url.endsWith("/")) {
                         setnrelaydata(normalize_url + "/");
                     } else {
                         setnrelaydata(normalize_url);
@@ -241,7 +252,7 @@ export default function PostsPage(
                 } else {
                     console.log("nip11 fetch failed for " + httpUrl);
                 }
-                
+
                 setRelayData(null);
             }
 
@@ -422,10 +433,16 @@ export default function PostsPage(
             true
         );
 
-        ndk.on("event:publish-failed", (event: NDKEvent, error: NDKPublishError, relays: any) => {
-            console.log("event publish failed", event, error);
-            console.log("event publish failed to send to all relays:", relays);
-        });
+        ndk.on(
+            "event:publish-failed",
+            (event: NDKEvent, error: NDKPublishError, relays: any) => {
+                console.log("event publish failed", event, error);
+                console.log(
+                    "event publish failed to send to all relays:",
+                    relays
+                );
+            }
+        );
     }
 
     async function addToStatus(message: string) {
@@ -470,9 +487,8 @@ export default function PostsPage(
         setProfiles((prevProfiles) => [newProfile, ...prevProfiles]);
     };
 
-
     const relayParams = useSearchParams();
-    const relayUrl = relayParams?.get('relay');
+    const relayUrl = relayParams?.get("relay");
 
     const activeUser = ndk.activeUser;
     const activePubkey = activeUser?.pubkey;
@@ -864,10 +880,12 @@ export default function PostsPage(
                 const newEvent = new NDKEvent(ndk, event);
                 const publishedTo = await newEvent.publish();
                 console.log("event was published to: ", publishedTo);
-                if(publishedTo.size == 0) {
+                if (publishedTo.size == 0) {
                     toast.error("Failed to publish reply");
                 } else {
-                    toast.success("Reply published to " + publishedTo.size + " relays");
+                    toast.success(
+                        "Reply published to " + publishedTo.size + " relays"
+                    );
                     setShowPost(undefined);
                     setReplyPost("");
                 }
@@ -884,11 +902,12 @@ export default function PostsPage(
                 const publishedTo = await newEvent.publish();
                 // const publishedTo = await newEvent.publish(newSet, 10000, howMany);
                 console.log("event was published to: ", publishedTo);
-                if(publishedTo.size == 0) {
+                if (publishedTo.size == 0) {
                     toast.error("Failed to publish reply");
-
                 } else {
-                    toast.success("Reply published to " + publishedTo.size + " relays");
+                    toast.success(
+                        "Reply published to " + publishedTo.size + " relays"
+                    );
                     setShowPost(undefined);
                     setReplyPost("");
                 }
@@ -902,7 +921,7 @@ export default function PostsPage(
         if (showPost != undefined) {
             const dEvent = new NDKEvent(ndk);
             dEvent.kind = 7;
-            dEvent.tags = [["e", showPost.id],["-"]];
+            dEvent.tags = [["e", showPost.id], ["-"]];
             dEvent.content = "❌";
             await dEvent.publish();
             removePost(showPost);
@@ -940,7 +959,7 @@ export default function PostsPage(
             // deleting phase
             const dEvent = new NDKEvent(ndk);
             dEvent.kind = 7;
-            dEvent.tags = [["p", showPost.pubkey],["-"]];
+            dEvent.tags = [["p", showPost.pubkey], ["-"]];
             dEvent.content = "🔨";
             await dEvent.publish();
 
@@ -984,10 +1003,12 @@ export default function PostsPage(
             const newEvent = new NDKEvent(ndk, event);
             const publishedTo = await newEvent.publish();
             console.log("event was published to: ", publishedTo);
-            if(publishedTo.size == 0) {
+            if (publishedTo.size == 0) {
                 toast.error("Failed to publish");
             } else {
-                toast.success("Note published to " + publishedTo.size + " relays");
+                toast.success(
+                    "Note published to " + publishedTo.size + " relays"
+                );
                 form.elements[0].value = "";
                 setPostContent("");
             }
@@ -999,10 +1020,12 @@ export default function PostsPage(
             toast.info("Publishing note...");
             const publishedTo = await newEvent.publish();
             console.log("event was published to: ", publishedTo);
-            if(publishedTo.size == 0) {
+            if (publishedTo.size == 0) {
                 toast.error("Failed to publish");
             } else {
-                toast.success("Note published to " + publishedTo.size + " relays");
+                toast.success(
+                    "Note published to " + publishedTo.size + " relays"
+                );
                 form.elements[0].value = "";
                 setPostContent("");
             }
@@ -1114,7 +1137,7 @@ export default function PostsPage(
                         </div>
                     </label>
                 </div>
-                
+
                 <div className="drawer-side z-10">
                     <label
                         htmlFor="my-drawer-4"
@@ -1125,7 +1148,8 @@ export default function PostsPage(
                         <div className="mb-4">
                             <img
                                 src={
-                                    relayData?.relay?.banner_image || relayIcon ||
+                                    relayData?.relay?.banner_image ||
+                                    relayIcon ||
                                     "/green-check.png"
                                 }
                             ></img>
@@ -1146,8 +1170,8 @@ export default function PostsPage(
                                 >
                                     Members:{" "}
                                     {
-                                        relayData?.relay?.allow_list?.list_pubkeys
-                                            ?.length
+                                        relayData?.relay?.allow_list
+                                            ?.list_pubkeys?.length
                                     }
                                 </div>
                             )}
@@ -1216,15 +1240,34 @@ export default function PostsPage(
                         )}
                         {relayPaymentsUrl && (
                             <div className="mb-4 text flex-col-1">
-                                <div className="text-lg">This relay has signaled it has payments enabled. ⚡</div>
-                                <a href={relayPaymentsUrl} className="link link-secondary" target="_blank" rel="noopener noreferrer">{relayPaymentsUrl}</a>
+                                <div className="text-lg">
+                                    This relay has signaled it has payments
+                                    enabled. ⚡
+                                </div>
+                                <a
+                                    href={relayPaymentsUrl}
+                                    className="link link-secondary"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {relayPaymentsUrl}
+                                </a>
                             </div>
                         )}
                         {/*<RelayDetail relay={relayData.relay} />*/}
-                        {relayData && <Terms/> }
-                        {relayPostingPolicy && 
-                            <div className="mb-4"><a href={relayPostingPolicy} className="link link-secondary" target="_blank" rel="noopener noreferrer">{relayPostingPolicy}</a></div>
-                        }
+                        {relayData && <Terms />}
+                        {relayPostingPolicy && (
+                            <div className="mb-4">
+                                <a
+                                    href={relayPostingPolicy}
+                                    className="link link-secondary"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {relayPostingPolicy}
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -1257,11 +1300,7 @@ export default function PostsPage(
                                 </div>
                                 <div className="chat-image avatar">
                                     <div className="w-12 rounded-full">
-                                        <img
-                                            src={
-                                              relayIcon
-                                            }
-                                        />
+                                        <img src={relayIcon} />
                                     </div>
                                 </div>
                             </label>
@@ -1318,39 +1357,54 @@ export default function PostsPage(
                 </div>
                 {showStats && (
                     <div className="w-full">
-                        <div className="font-condensed items-center justify-center">
-                            Connections
-                        </div>
+                        {relayData && (
+                            <div>
+                                <div className="font-condensed items-center justify-center">
+                                    Connections
+                                </div>
 
-                        <ResponsiveContainer width="100%" height={100}>
-                            <LineChart data={transformConnStats(connStats)}>
-                                <XAxis
-                                    dataKey="time"
-                                    type="number"
-                                    domain={["dataMin", "dataMax"]}
-                                    tickFormatter={(time) =>
-                                        new Date(time).toLocaleTimeString()
-                                    }
-                                />
-                                <YAxis />
-                                <Tooltip
-                                    labelFormatter={(time) =>
-                                        new Date(time).toLocaleString()
-                                    }
-                                    formatter={(value) => [
-                                        `${value} connections`,
-                                    ]}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="value"
-                                    stroke="#8884d8"
-                                    dot={false}
-                                    name="Active Connections"
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                                <ResponsiveContainer width="100%" height={100}>
+                                    <LineChart
+                                        data={transformConnStats(connStats)}
+                                    >
+                                        <XAxis
+                                            dataKey="time"
+                                            type="number"
+                                            domain={["dataMin", "dataMax"]}
+                                            tickFormatter={(time) =>
+                                                new Date(
+                                                    time
+                                                ).toLocaleTimeString()
+                                            }
+                                        />
+                                        <YAxis />
+                                        <Tooltip
+                                            labelFormatter={(time) =>
+                                                new Date(time).toLocaleString()
+                                            }
+                                            formatter={(value) => [
+                                                `${value} connections`,
+                                            ]}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="value"
+                                            stroke="#8884d8"
+                                            dot={false}
+                                            name="Active Connections"
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
                         <div className="flex">
+                            <input
+                                type="text"
+                                value={kindFilter}
+                                onChange={(e) => setKindFilter(e.target.value)}
+                                placeholder="Enter kind #"
+                                className="mb-4 p-2 ml-2 mr-2 border rounded input input-bordered input-primary"
+                            />
                             <button
                                 className="btn btn-secondary"
                                 value={kindFilter}
@@ -1358,42 +1412,42 @@ export default function PostsPage(
                             >
                                 EXPLORE KIND
                             </button>
-                            <input
-                                type="text"
-                                value={kindFilter}
-                                onChange={(e) => setKindFilter(e.target.value)}
-                                placeholder="Enter kind #"
-                                className="mb-4 p-2 border rounded input input-bordered input-primary"
-                            />
                         </div>
 
-                        <div className="font-condensed items-center justify-center mb-2">
-                            Events (grouped by Kind) in the last 24 hours
-                        </div>
-                        <div className="flex">
-                            <label className="label cursor-pointer">
-                                <span className="label-text mr-2">
-                                    {isAllowedStats
-                                        ? "Filter: Allowed Events"
-                                        : "Filter: Blocked Events"}
-                                </span>
-                                <input
-                                    type="checkbox"
-                                    className="toggle toggle-primary"
-                                    checked={isAllowedStats}
-                                    onChange={(e) =>
-                                        setIsAllowedStats(e.target.checked)
-                                    }
-                                />
-                            </label>
-                        </div>
+                        {relayData && (
+                            <div>
+                                <div className="font-condensed items-center justify-center mb-2">
+                                    Events (grouped by Kind) in the last 24
+                                    hours
+                                </div>
+                                <div className="flex">
+                                    <label className="label cursor-pointer">
+                                        <span className="label-text mr-2">
+                                            {isAllowedStats
+                                                ? "Filter: Allowed Events"
+                                                : "Filter: Blocked Events"}
+                                        </span>
+                                        <input
+                                            type="checkbox"
+                                            className="toggle toggle-primary"
+                                            checked={isAllowedStats}
+                                            onChange={(e) =>
+                                                setIsAllowedStats(
+                                                    e.target.checked
+                                                )
+                                            }
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
 
-                        {graphStats.length == 0 && (
+                        {relayData && graphStats.length == 0 && (
                             <span className="loading loading-spinner text-primary w-4 h-4">
                                 loading
                             </span>
                         )}
-                        {graphStats.length != 0 && (
+                        {relayData && graphStats.length != 0 && (
                             <ResponsiveContainer width="100%" height={200}>
                                 <LineChart>
                                     <XAxis
@@ -1427,7 +1481,7 @@ export default function PostsPage(
                                                     );
 
                                                 return (
-                                                    <div className="custom-tooltip bg-background border p-2 rounded-md">
+                                                    <div className="custom-tooltip bg-base-100 border p-2 rounded-md">
                                                         <p>
                                                             {new Date(
                                                                 label
