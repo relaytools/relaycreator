@@ -184,6 +184,10 @@ export default function PostsPage(
     const [useAuth, setUseAuth] = useState(false);
     const [nrelaydata, setnrelaydata] = useState("");
     const [relayIcon, setRelayIcon] = useState("/green-check.png");
+    const [relayDescription, setRelayDescription] = useState("");
+    const [relayPostingPolicy, setRelayPostingPolicy] = useState(null);
+    const [relayPaymentsUrl, setRelayPaymentsUrl] = useState(null);
+    const [relayName, setRelayName] = useState(null);
 
     useEffect(() => {
         const fetchRelayData = async () => {
@@ -229,6 +233,10 @@ export default function PostsPage(
                         setnrelaydata(normalize_url);
                     }
                     setRelayIcon(data.icon);
+                    setRelayDescription(data.description);
+                    setRelayPostingPolicy(data.posting_policy);
+                    setRelayPaymentsUrl(data.payments_url);
+                    setRelayName(data.name);
                     console.log("relay icon", data.icon);
                 } else {
                     console.log("nip11 fetch failed for " + httpUrl);
@@ -367,10 +375,10 @@ export default function PostsPage(
         ndkPool.on("relay:authed", (relay: NDKRelay) => {
             console.log("authed event listener");
             if (relay.url == nrelaydata) {
-                addToStatus("authed: " + nrelaydata);
+                addToStatus("authenticated 🔓");
                 wipePosts();
                 eventListener(relay);
-                console.log("authed");
+                console.log("authenticated");
             }
         });
 
@@ -379,19 +387,19 @@ export default function PostsPage(
                 ndk.subManager.subscriptions.forEach((s) => {
                     s.stop();
                 });
-                addToStatus("disconnected: " + nrelaydata);
+                addToStatus("disconnected");
             }
         });
 
         ndkPool.on("relay:connect", (relay: NDKRelay) => {
             if (relay.url == nrelaydata) {
-                addToStatus("connected: " + nrelaydata);
+                addToStatus("connected");
                 wipePosts();
                 if (!useAuth) {
                     console.log("no auth detected, requesting events");
                     eventListener(relay);
                 } else if (signerFailed) {
-                    addToStatus("sign-in required: " + nrelaydata);
+                    addToStatus("sign-in required");
                 }
             }
         });
@@ -402,7 +410,7 @@ export default function PostsPage(
 
         ndkPool.on("relay:authfail", (relay: NDKRelay) => {
             if (relay.url == nrelaydata) {
-                addToStatus("unauthorized: " + nrelaydata);
+                addToStatus("unauthorized");
             }
         });
 
@@ -1064,14 +1072,14 @@ export default function PostsPage(
         lastStatus = relayStatus[relayStatus.length - 1];
         var statusColor = "text-sm font-condensed ml-auto badge badge-neutral";
         if (
-            lastStatus.includes("connected:") ||
-            lastStatus.includes("authed:")
+            lastStatus.includes("connected") ||
+            lastStatus.includes("authenticated")
         ) {
             statusColor = "text-sm font-condensed ml-auto badge badge-success";
         }
         if (
-            lastStatus.includes("disconnected:") ||
-            lastStatus.includes("unauthorized:") ||
+            lastStatus.includes("disconnected") ||
+            lastStatus.includes("unauthorized") ||
             lastStatus.includes("sign-in")
         ) {
             statusColor = "text-sm font-condensed ml-auto badge badge-warning";
@@ -1106,7 +1114,7 @@ export default function PostsPage(
                         </div>
                     </label>
                 </div>
-                {relayData != null &&
+                
                 <div className="drawer-side z-10">
                     <label
                         htmlFor="my-drawer-4"
@@ -1122,8 +1130,13 @@ export default function PostsPage(
                                 }
                             ></img>
                         </div>
+
+                        <div className="text text-lg p-4 font-bold">
+                            {relayData?.relay?.name || relayName}
+                        </div>
+
                         <div className="text text-lg p-4 font-condensed">
-                            {relayData?.relay?.details}
+                            {relayData?.relay?.details || relayDescription}
                         </div>
                         {relayData?.relay?.allow_list != null &&
                             !relayData?.relay?.default_message_policy && (
@@ -1201,11 +1214,19 @@ export default function PostsPage(
                                 pubkey={myPubkey}
                             />
                         )}
+                        {relayPaymentsUrl && (
+                            <div className="mb-4 text flex-col-1">
+                                <div className="text-lg">This relay has signaled it has payments enabled. ⚡</div>
+                                <a href={relayPaymentsUrl} className="link link-secondary" target="_blank" rel="noopener noreferrer">{relayPaymentsUrl}</a>
+                            </div>
+                        )}
                         {/*<RelayDetail relay={relayData.relay} />*/}
-                        {<Terms />}
+                        {relayData && <Terms/> }
+                        {relayPostingPolicy && 
+                            <div className="mb-4"><a href={relayPostingPolicy} className="link link-secondary" target="_blank" rel="noopener noreferrer">{relayPostingPolicy}</a></div>
+                        }
                     </div>
                 </div>
-                }
             </div>
         );
     };
