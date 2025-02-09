@@ -204,7 +204,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                         {referrer == "https://flotilla.social/" && <TextStringFloatilla />}
                     </div>
                     <div>
-                        <div className="flex items-center justify-center text-center">relay.tools 2023 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
+                        <div className="flex items-center justify-center text-center">relay.tools 2025 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
                     </div>
                 </div>
             </div>

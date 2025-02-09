@@ -61,7 +61,7 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
             <div className="mt-4 flex lg:justify-end justify-center">
                 <a href={`/signup`} className="btn uppercase btn-primary rounded-lg"
                 >
-                    <Image src="buttonStart.svg" className="rounded-lg" alt="Start a Relay" width={200} height={50} />
+                    <Image src="buttonStart.svg" className="rounded-lg" alt="Start a Relay" width={200} height={50} style={{ width: '200px', height: 'auto', objectFit: 'cover' }} />
                 </a>
             </div>
         </div >
