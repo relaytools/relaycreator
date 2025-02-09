@@ -325,17 +325,22 @@ export default function Wizard(
 
     // Advanced
     // Delete
-    const [deleteModal, setDeleteModal] = useState(false);
     const router = useRouter();
-    const handleDeleteRelay = async (event: any) => {
-        event.preventDefault();
+    const handleDeleteRelay = async () => {
         // call to API to delete relay
-        setDeleteModal(false);
         const response = await fetch(`/api/relay/${props.relay.id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
         });
-        router.push("/");
+        if (response.ok) {
+            toast.success("Relay deleted", {
+                onClose: () => {
+                    router.push("/");
+                }
+            });
+        } else {
+            toast.error("Error deleting relay");
+        }
     };
 
     const [menuOpen, setMenuOpen] = useState(false);
@@ -1284,7 +1289,7 @@ export default function Wizard(
                                     className="btn btn-error"
                                     onClick={() => {
                                         if (confirm("Are you sure you want to delete this relay?")) {
-                                            // Add your delete logic here
+                                            handleDeleteRelay();
                                         }
                                     }}
                                 >
