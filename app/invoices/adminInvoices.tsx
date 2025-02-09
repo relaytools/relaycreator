@@ -55,7 +55,7 @@ export default function AdminInvoices(
             case "good":
                 return balance > payment * -1;
             case "30d overdue":
-                return balance >= payment && balance <= (payment * -2);
+                return balance <= (payment * -2);
             case "60d+ overdue":
                 return balance <= (payment * -3);
             default:
