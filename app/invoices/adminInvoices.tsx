@@ -38,12 +38,30 @@ export default function AdminInvoices(
     props: React.PropsWithChildren<{
         RelayBalances: any;
         IsAdmin: boolean;
+        RelayPaymentAmount: number;
     }>
 ) {
     const router = useRouter();
     const [showOrders, setShowOrders] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [balanceDueFilter, setBalanceDueFilter] = useState("all");
 
     let useAmount = "";
+
+    // Helper function to check if balance is in range
+    const isBalanceInRange = (balance: number, range: string) => {
+        const payment = props.RelayPaymentAmount;
+        switch(range) {
+            case "good":
+                return balance > payment * -1;
+            case "30d overdue":
+                return balance >= payment && balance <= (payment * -2);
+            case "60d+ overdue":
+                return balance <= (payment * -3);
+            default:
+                return true;
+        }
+    }
 
     async function getTopUpInvoice(b: any) {
         if(useAmount == "") {
@@ -131,13 +149,21 @@ export default function AdminInvoices(
         handleUserNotification(b, "notify");
     }
 
-    //const sortedRelays = props.RelayBalances.sort((a: any, b: any) => a.owner.localeCompare(b.owner));
+    // Update the sortedRelays definition
     const sortedRelays = props.RelayBalances
-    .filter((relayBalance: any) => relayBalance.relayStatus === 'running' || relayBalance.relayStatus === 'paused')
-    .sort((a: any, b: any) => {
-        const ownerComparison = a.owner.localeCompare(b.owner);
-        return ownerComparison !== 0 ? ownerComparison : a.balance - b.balance;
-    });
+        .filter((relayBalance: any) => {
+            // Status filter
+            const statusMatch = statusFilter === "all" ? true : relayBalance.relayStatus === statusFilter;
+            
+            // Balance range filter
+            const balanceMatch = balanceDueFilter === "all" ? true : isBalanceInRange(relayBalance.balance, balanceDueFilter);
+            
+            return statusMatch && balanceMatch;
+        })
+        .sort((a: any, b: any) => {
+            const ownerComparison = a.owner.localeCompare(b.owner);
+            return ownerComparison !== 0 ? ownerComparison : a.balance - b.balance;
+        });
 
     function amountPrecision(amount: number) {
         let x = Math.round(amount)
@@ -147,6 +173,29 @@ export default function AdminInvoices(
     return (
         <div>
             <h1>SUPER ADMIN - Balances</h1>
+            <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-4">
+                    <select 
+                        className="select select-bordered w-full max-w-xs"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">All Statuses</option>
+                        <option value="running">Running</option>
+                        <option value="paused">Paused</option>
+                    </select>
+                    <select 
+                        className="select select-bordered w-full max-w-xs"
+                        value={balanceDueFilter}
+                        onChange={(e) => setBalanceDueFilter(e.target.value)}
+                    >
+                        <option value="all">All Balances</option>
+                        <option value="good">Balance is in good standing</option>
+                        <option value="30d overdue">Balance 30d overdue</option>
+                        <option value="60d overdue">Balance 60d overdue</option>
+                    </select>
+                </div>
+            </div>
             <div className="mt-4">
                 {sortedRelays.map((b: any) => (
                     <div
@@ -160,7 +209,7 @@ export default function AdminInvoices(
                         {props.IsAdmin && 
                         <div className="flex">
                             <div className="w-1/2">Relay ID</div>
-                            <div className="w-1/2">{b.relayId}</div>
+                            <div className="w-1/2"><a href={process.env.NEXT_PUBLIC_ROOT_DOMAIN + "/curator/?relay_id=" + b.relayId} className="link-primary link-hover">{b.relayId}</a></div>
                         </div>
                         }
                         <div className="flex">
@@ -182,10 +231,11 @@ export default function AdminInvoices(
                                 <div className="w-1/2">Owner (pubkey)</div>
                             )}
                             {props.IsAdmin && (
-                                <div className="w-1/2">{nip19.npubEncode(b.owner)}</div>
+                                <div className="w-1/2"><a href={"https://njump.me/" + nip19.npubEncode(b.owner)} className="link-secondary link-hover">{nip19.npubEncode(b.owner)}</a></div>
                             )}
                         </div>
-                        <div className="flex mt-4">
+                        <div className="flex">
+                        <div className="mt-4">
                             <button
                                 className="mr-2 btn btn-secondary"
                                 onClick={() => setShowOrders(b.relayId)}
@@ -193,7 +243,7 @@ export default function AdminInvoices(
                                 show orders
                             </button>
                         </div>
-                        <div className="flex mt-4">
+                        <div className="mt-4">
                             <button
                                 className="mr-2 btn btn-secondary"
                                 onClick={(e) => handleNotifyUser(b)}
@@ -201,13 +251,14 @@ export default function AdminInvoices(
                             Send Balance Notify
                             </button>
                         </div>
-                        <div className="flex mt-4">
+                        <div className="mt-4">
                             <button
                                 className="mr-2 btn btn-secondary"
                                 onClick={(e) => handlePauseRelay(b)}
                             >
                             Pause relay and send Notify
                             </button>
+                        </div>
                         </div>
                         
                         <div className="flex mt-4">
