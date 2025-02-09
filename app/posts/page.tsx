@@ -893,7 +893,11 @@ export default function PostsPage(
                 toast.info("Publishing reply...");
                 const newEvent = new NDKEvent(ndk);
                 newEvent.content = replyPost;
-                newEvent.kind = 1;
+                if(showPost.kind == 20) {
+                    newEvent.kind = 1111
+                } else {
+                    newEvent.kind = 1;
+                }
                 newEvent.tags = [
                     ["p", showPost.pubkey],
                     ["e", showPost.id],
@@ -1087,6 +1091,13 @@ export default function PostsPage(
                 new Event("submit", { cancelable: true, bubbles: true })
             );
         }
+    };
+
+    const getSrcImageFromPost = (post: Event) => {
+        const src = post.tags.find((tag: any) => tag[0] === "imeta")?.[1];
+        const removePrefix = src.replace("url ", "");
+        console.log("loading image src: ", removePrefix);
+        return removePrefix;
     };
 
     // this should be clickable and bring up some kind of menu/modal/drawer
@@ -1589,61 +1600,78 @@ export default function PostsPage(
                                             )}
                                         </div>
                                     )}
-                                    {showPost.kind != 1 && (
-                                        <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto whitespace-pre-line break-normal">
-                                            <div className="label label-text-sm">
-                                                content
-                                            </div>
-                                            <div className="border-2 border-gray-300 rounded-lg p-4 whitespace-pre-line break-normal">
-                                                {showPost.content &&
-                                                    showContentWithoutLinks4(
-                                                        showPost.content
-                                                    )}
-                                                {!showPost.content &&
-                                                    "no content"}
-                                            </div>
-
-                                            <div className="label label-text-sm">
-                                                tags
-                                            </div>
-                                            <div className="border-2 border-gray-300 rounded-lg p-4 flex-col-2">
-                                                {showPost.tags.map(
-                                                    (
-                                                        tag: any,
-                                                        index: number
-                                                    ) => (
-                                                        <div
-                                                            className="flex"
-                                                            key={
-                                                                showPost.id +
-                                                                "outertag" +
-                                                                index
-                                                            }
-                                                        >
-                                                            {tag.map(
-                                                                (
-                                                                    tval: any,
-                                                                    i: number
-                                                                ) => (
-                                                                    <div
-                                                                        className="border-2 border-primary p-2 overflow-x-auto"
-                                                                        key={
-                                                                            showPost.id +
-                                                                            "innertag" +
-                                                                            tval +
-                                                                            i
-                                                                        }
-                                                                    >
-                                                                        {tval}
-                                                                    </div>
-                                                                )
-                                                            )}
-                                                        </div>
-                                                    )
+                                    {showPost.kind == 20 && (
+                                        <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
+                                            <img
+                                                src={getSrcImageFromPost(
+                                                    showPost
                                                 )}
-                                            </div>
+                                                alt="Kind 20 media"
+                                                className="h-auto overflow-hidden mb-2"
+                                            />
+                                            {showContentWithoutLinks4(
+                                                showPost.content
+                                            )}
                                         </div>
                                     )}
+                                    {showPost.kind != 1 &&
+                                        showPost.kind != 20 && (
+                                            <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto whitespace-pre-line break-normal">
+                                                <div className="label label-text-sm">
+                                                    content
+                                                </div>
+                                                <div className="border-2 border-gray-300 rounded-lg p-4 whitespace-pre-line break-normal">
+                                                    {showPost.content &&
+                                                        showContentWithoutLinks4(
+                                                            showPost.content
+                                                        )}
+                                                    {!showPost.content &&
+                                                        "no content"}
+                                                </div>
+
+                                                <div className="label label-text-sm">
+                                                    tags
+                                                </div>
+                                                <div className="border-2 border-gray-300 rounded-lg p-4 flex-col-2">
+                                                    {showPost.tags.map(
+                                                        (
+                                                            tag: any,
+                                                            index: number
+                                                        ) => (
+                                                            <div
+                                                                className="flex"
+                                                                key={
+                                                                    showPost.id +
+                                                                    "outertag" +
+                                                                    index
+                                                                }
+                                                            >
+                                                                {tag.map(
+                                                                    (
+                                                                        tval: any,
+                                                                        i: number
+                                                                    ) => (
+                                                                        <div
+                                                                            className="border-2 border-primary p-2 overflow-x-auto"
+                                                                            key={
+                                                                                showPost.id +
+                                                                                "innertag" +
+                                                                                tval +
+                                                                                i
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                tval
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
 
                                     <div className="chat-footer opacity-50">
                                         {showLocalTime(showPost.created_at)}
@@ -1798,7 +1826,17 @@ export default function PostsPage(
                                     {showContentWithoutLinks4(post.content)}
                                 </div>
                             )}
-                            {post.kind != 1 && (
+                            {post.kind == 20 && (
+                                <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
+                                    <img
+                                        src={getSrcImageFromPost(post)}
+                                        alt="Kind 20 media"
+                                        className="h-auto overflow-hidden mb-2"
+                                    />
+                                    {showContentWithoutLinks4(post.content)}
+                                </div>
+                            )}
+                            {post.kind != 1 && post.kind != 20 && (
                                 <div className="chat-bubble chat-bubble-gray-100 text-white selectable h-auto whitespace-pre-line break-normal">
                                     <div className="label label-text-sm">
                                         content
