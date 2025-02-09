@@ -161,7 +161,8 @@ export default function ShowSession(
                             alt="menu"
                             width={500}
                             height={30}
-                            objectFit='cover'
+                            priority
+                            style={{ width: '500px', height: 'auto', objectFit: 'cover' }}
                         />
                     </a>
                 </div>
@@ -177,6 +178,8 @@ export default function ShowSession(
                             alt="menu"
                             width={500}
                             height={30}
+                            priority
+                            style={{ width: '500px', height: 'auto', objectFit: 'cover' }}
                         />
                     </a>
                 </div>

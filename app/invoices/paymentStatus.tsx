@@ -118,7 +118,7 @@ export default function PaymentStatus(
                         </div>
                         <TextStringWaitingForPayment />
                         <div>
-                            <div>relay.tools 2023 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
+                            <div>relay.tools 2025 &middot; Made with 🤙🏻 in the PNW &middot; <span className="fl pl-1"><a href="https://github.com/relaytools"><IoLogoGithub /></a></span></div>
                         </div>
                     </div>
                 </div>
