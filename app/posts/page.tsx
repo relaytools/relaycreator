@@ -220,16 +220,21 @@ export default function PostsPage(
                 const httpUrl = relayUrl
                     .replace("wss://", "https://")
                     .replace("ws://", "http://");
-                const nip11Response = await fetch(
+                let nip11Response: any;
+                try {
+                nip11Response = await fetch(
                     httpUrl, // + "/nostrjson",
                     {
                         headers: {
                             Accept: "application/nostr+json",
                         },
                     }
-                );
+                    );
+                } catch (e) {
+                    console.log("nip11 fetch error" + e);
+                }
 
-                if (nip11Response.ok) {
+                if (nip11Response && nip11Response.ok) {
                     const data = await nip11Response.json();
                     console.log(
                         "USING AUTH DETECTED FROM NIP11",
@@ -250,6 +255,13 @@ export default function PostsPage(
                     setRelayName(data.name);
                     console.log("relay icon", data.icon);
                 } else {
+                    let normalize_url = relayUrl;
+                    normalize_url = normalize_url.toLowerCase();
+                    if (!normalize_url.endsWith("/")) {
+                        setnrelaydata(normalize_url + "/");
+                    } else {
+                        setnrelaydata(normalize_url);
+                    }
                     console.log("nip11 fetch failed for " + httpUrl);
                 }
 
