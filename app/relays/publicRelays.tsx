@@ -1,19 +1,30 @@
 "use client"
 import { RelayWithEverything } from "../components/relayWithEverything"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Relay from "../components/relay"
 
-export default function PublicRelays(
-    props: React.PropsWithChildren<{
-        relays: RelayWithEverything[];
-    }>) {
+export default function PublicRelays() {
+    const [results, setResults] = useState<RelayWithEverything[]>([])
+    const [allRelays, setAllRelays] = useState<RelayWithEverything[]>([])
 
-    const [results, setResults] = useState(props.relays)
+    useEffect(() => {
+        const fetchRelays = async () => {
+            try {
+                const response = await fetch(`/api/relay/guiRelays`)
+                const data = await response.json()
+                setResults(data.publicRelays)
+                setAllRelays(data.publicRelays)
+            } catch (error) {
+                console.error('Error fetching relays:', error)
+            }
+        }
+        fetchRelays()
+    }, [])
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault()
         const targetToLower = e.target.value.toLowerCase()
-        const r = props.relays.filter((relay) => {
+        const r = allRelays.filter((relay) => {
             if (relay.name.toLowerCase().includes(targetToLower)) {
                 return true
             }
@@ -25,7 +36,6 @@ export default function PublicRelays(
         })
         setResults(r)
     }
-
 
     //maybe try flex grow
 
