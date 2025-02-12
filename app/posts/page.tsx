@@ -105,6 +105,9 @@ export default function PostsPage(
     const replyFormRef = useRef<HTMLFormElement>(null);
     const [kindFilter, setKindFilter] = useState("");
     const [isAllowedStats, setIsAllowedStats] = useState(true);
+    const [profileSearch, setProfileSearch] = useState("");
+    const [showProfileResults, setShowProfileResults] = useState(false);
+    const [profileResults, setProfileResults] = useState<Profile[]>([]);
 
     const relayLimit = 100;
     const transformToMultiSeriesData = (influxData: any) => {
@@ -488,15 +491,6 @@ export default function PostsPage(
             }
         });
         setPosts(setNewPosts);
-    };
-
-    const addProfile = (e: any) => {
-        const newProfileContent: ProfileContent = JSON.parse(e.content);
-        const newProfile: Profile = {
-            pubkey: e.pubkey,
-            content: newProfileContent,
-        };
-        setProfiles((prevProfiles) => [newProfile, ...prevProfiles]);
     };
 
     const relayParams = useSearchParams();
@@ -995,6 +989,58 @@ export default function PostsPage(
         setShowImages(false);
     };
 
+    function addProfile(profile: Profile) {
+        const newProfileContent: ProfileContent = JSON.parse(profile.content);
+        const newProfile: Profile = {
+            pubkey: profile.pubkey,
+            content: newProfileContent,
+        };
+
+        // Check if profile already exists and only add if it's newer
+        const existingProfile = profiles.find(p => p.pubkey === newProfile.pubkey);
+        
+        if (!existingProfile) {
+            // Add the new profile
+            setProfiles((prevProfiles) => [newProfile, ...prevProfiles]);
+        }
+    }
+
+    function getUniqueProfiles() {
+        // Return deduplicated profiles array
+        return Array.from(new Map(profiles.map(profile => [profile.pubkey, profile])).values());
+    }
+
+    const handlePostContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        setPostContent(value);
+
+        // Check if we just typed an @ symbol
+        if (value.endsWith("@")) {
+            setProfileSearch("");
+            setShowProfileResults(true);
+            return;
+        }
+
+        // Check if we're in profile search mode
+        const lastAtIndex = value.lastIndexOf("@");
+        if (lastAtIndex >= 0) {
+            const searchTerm = value.slice(lastAtIndex + 1);
+            setProfileSearch(searchTerm);
+            
+            // Use getUniqueProfiles() instead of direct profiles array
+            const results = getUniqueProfiles().filter(profile => {
+                const name = profile.content?.name?.toLowerCase() || "";
+                const term = searchTerm.toLowerCase();
+                return name.includes(term);
+            });
+            
+            setProfileResults(results);
+            setShowProfileResults(true);
+        } else {
+            setShowProfileResults(false);
+        }
+    };
+
     const handleSubmitPost = async (e: any) => {
         e.preventDefault();
 
@@ -1351,18 +1397,44 @@ export default function PostsPage(
                     <form
                         ref={postFormRef}
                         onSubmit={(e) => handleSubmitPost(e)}
-                        className="flex flex-wrap flex-grow items-center justify-center"
+                        className="flex flex-wrap flex-grow items-center justify-center relative"
                     >
                         <textarea
                             ref={textareaRef}
                             key="post1"
                             placeholder="say something"
                             className="flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none overflow-hidden"
-                            onChange={(e) => setPostContent(e.target.value)}
+                            onChange={handlePostContentChange}
                             onKeyDown={handleKeyDown}
                             value={postContent}
                             rows={1}
                         />
+                        {showProfileResults && profileResults.length > 0 && (
+                            <div className="absolute top-full left-0 mt-1 w-64 max-h-48 overflow-y-auto bg-base-200 rounded-lg shadow-lg z-50">
+                                {profileResults.map((profile,index) => (
+                                    <div
+                                        key={profile.pubkey + "profilelisting" + index}
+                                        className="p-2 hover:bg-primary hover:text-white cursor-pointer"
+                                        onClick={() => {
+                                            const lastAtIndex = postContent.lastIndexOf("@");
+                                            const newContent = postContent.slice(0, lastAtIndex) + 
+                                                `nostr:${nip19.npubEncode(profile.pubkey)} `;
+                                            setPostContent(newContent);
+                                            setShowProfileResults(false);
+                                            textareaRef.current?.focus();
+                                        }}
+                                    >
+                                        <div className="flex items-center">
+                                            {lookupProfileImg(profile.pubkey)}
+                                            <div className="ml-2">
+                                                <div>{profile.content?.name || summarizePubkey(profile.pubkey)}</div>
+                                                <div className="text-sm opacity-70">{profile.content?.nip05 || ''}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         <button
                             disabled={postContent == ""}
                             className="btn uppercase btn-primary justify-end"
