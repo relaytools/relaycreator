@@ -5,13 +5,13 @@ import {
 } from "../components/relayWithEverything";
 import { useState, useEffect } from "react";
 import Relay from "../components/relay";
-import PublicRelays from "./publicRelays";
 import { useSearchParams } from "next/navigation";
 
 export default function MyRelays() {
     const [myRelays, setMyRelays] = useState<RelayWithEverything[]>([]);
     const [moderatedRelays, setModeratedRelays] = useState<ModWithRelays[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [showPublicRelays, setShowPublicRelays] = useState(false);
 
     useEffect(() => {
         const fetchRelays = async () => {
@@ -82,12 +82,22 @@ export default function MyRelays() {
             </div>
             
             <div className="collapse collapse-arrow bg-base-200 mt-4">
-                <input type="checkbox" /> 
-                <div className="text-lg collapse-title text-center">
-                    Explore Other Relays
+                <input 
+                    type="checkbox" 
+                    onChange={(e) => setShowPublicRelays(e.target.checked)}
+                /> 
+                <div className="collapse-title text-center text-lg">
+                    Public Relays
                 </div>
                 <div className="collapse-content">
-                    <PublicRelays />
+                    {showPublicRelays && (
+                        <div className="mt-4">
+                            {(() => {
+                                const PublicRelays = require('./publicRelays').default;
+                                return <PublicRelays />;
+                            })()}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
