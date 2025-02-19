@@ -3,12 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepare": "npm run build-ts",
+    "prepare": "prisma generate && tsc",
     "dev": "next dev",
     "build": "next build",
     "build-ts": "tsc",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:db:push": "prisma db push",
+    "prisma:studio": "prisma studio",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:db:reset": "prisma migrate reset --force"
   },
   "dependencies": {
     "20": "link:@heroicons/react/20",
