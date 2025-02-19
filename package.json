@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepare": "npm run build-ts",
+    "prepare": "prisma generate && tsc",
     "dev": "next dev",
     "build": "next build",
     "build-ts": "tsc",
