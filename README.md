@@ -17,13 +17,6 @@ sudo npm install -g pnpm # if you don't have pnpm
 pnpm install
 ```
 
-NOTE: If you are having trouble getting the dependencies installed, 
-run the following and accept all installs before running `pnpm install` as above.
-
-```bash
-pnpm approve-builds
-```
-
 For Database migrations run the following: 
 
 ```bash
