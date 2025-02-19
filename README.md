@@ -24,6 +24,12 @@ run the following and accept all installs before running `pnpm install` as above
 pnpm approve-builds
 ```
 
+For Database migrations run the following: 
+
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
 
 Next, run the development server:
 
