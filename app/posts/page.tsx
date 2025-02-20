@@ -40,6 +40,7 @@ import {
 
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
+import styles from './posts.module.css';
 
 interface Event {
     pubkey: string;
@@ -103,6 +104,7 @@ export default function PostsPage(
     const textareaReplyRef = useRef<HTMLTextAreaElement>(null);
     const postFormRef = useRef<HTMLFormElement>(null);
     const replyFormRef = useRef<HTMLFormElement>(null);
+    const replyTextAreaRef = useRef<HTMLTextAreaElement>(null);
     const [kindFilter, setKindFilter] = useState("");
     const [isAllowedStats, setIsAllowedStats] = useState(true);
     const [profileSearch, setProfileSearch] = useState("");
@@ -925,7 +927,28 @@ export default function PostsPage(
         }
     };
 
-    // todo, delete from view
+    const handleTextAreaFocus = () => {
+        if (replyTextAreaRef.current) {
+            setTimeout(() => {
+                replyTextAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100); // Small delay to ensure keyboard is up
+        }
+    };
+
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [postContent]);
+
+    useEffect(() => {
+        if (replyTextAreaRef.current) {
+            replyTextAreaRef.current.style.height = "auto";
+            replyTextAreaRef.current.style.height = `${replyTextAreaRef.current.scrollHeight}px`;
+        }
+    }, [replyPost]);
+
     const handleDeleteEvent = async (e: any) => {
         e.preventDefault();
         if (showPost != undefined) {
@@ -1115,21 +1138,6 @@ export default function PostsPage(
             return false;
         }
     };
-
-    // textarea effects: auto expand multi-line
-    useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = "auto";
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-        }
-    }, [postContent]);
-
-    useEffect(() => {
-        if (textareaReplyRef.current) {
-            textareaReplyRef.current.style.height = "auto";
-            textareaReplyRef.current.style.height = `${textareaReplyRef.current.scrollHeight}px`;
-        }
-    }, [replyPost]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && e.shiftKey) {
@@ -1403,7 +1411,7 @@ export default function PostsPage(
                             ref={textareaRef}
                             key="post1"
                             placeholder="say something"
-                            className="flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none overflow-hidden"
+                            className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none ${styles.hideScrollbar}`}
                             onChange={handlePostContentChange}
                             onKeyDown={handleKeyDown}
                             value={postContent}
@@ -1638,7 +1646,7 @@ export default function PostsPage(
                     <div className="bg-base-100">
                         <dialog
                             key={"my_modal_5" + showPost.id}
-                            className="modal modal-top modal-open sm:modal-middle h-auto"
+                            className="modal modal-open sm:modal-middle h-auto max-h-full overflow-y-auto"
                         >
                             <form
                                 method="dialog"
@@ -1664,14 +1672,14 @@ export default function PostsPage(
                                     </div>
                                     <div className="chat-header overflow-hidden">
                                         <div className="flex flex-wrap items-center space-x-2">
-                                            <div className="hover:text-white overflow-hidden break-words break-all">
+                                            <div className="hover:text-white overflow-hidden break-normal">
                                                 {summarizePubkey(
                                                     lookupProfileName(
                                                         showPost.pubkey
                                                     )
                                                 )}
                                             </div>
-                                            <time className="text-xs text-notice opacity-80 overflow-hidden break-words break-all">
+                                            <time className="text-xs text-notice opacity-80 overflow-hidden break-all">
                                                 {lookupNip05(showPost.pubkey)}
                                             </time>
                                         </div>
@@ -1808,14 +1816,13 @@ export default function PostsPage(
 
                                 <div className="flex flex-wrap items-center justify-center mb-4 mt-2">
                                     <textarea
-                                        ref={textareaReplyRef}
+                                        ref={replyTextAreaRef}
                                         key="replypost"
                                         placeholder="send reply"
-                                        className="flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none overflow-hidden"
-                                        onChange={(e) =>
-                                            setReplyPost(e.target.value)
-                                        }
+                                        className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none ${styles.hideScrollbar}`}
+                                        onChange={(e) => setReplyPost(e.target.value)}
                                         onKeyDown={handleKeyDownReply}
+                                        onFocus={handleTextAreaFocus}
                                         value={replyPost}
                                         rows={1}
                                     />
