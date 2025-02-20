@@ -40,7 +40,6 @@ import {
 
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
-import styles from './posts.module.css';
 
 interface Event {
     pubkey: string;
@@ -1411,7 +1410,7 @@ export default function PostsPage(
                             ref={textareaRef}
                             key="post1"
                             placeholder="say something"
-                            className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none ${styles.hideScrollbar}`}
+                            className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none`}
                             onChange={handlePostContentChange}
                             onKeyDown={handleKeyDown}
                             value={postContent}
@@ -1819,7 +1818,7 @@ export default function PostsPage(
                                         ref={replyTextAreaRef}
                                         key="replypost"
                                         placeholder="send reply"
-                                        className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none ${styles.hideScrollbar}`}
+                                        className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none`}
                                         onChange={(e) => setReplyPost(e.target.value)}
                                         onKeyDown={handleKeyDownReply}
                                         onFocus={handleTextAreaFocus}
