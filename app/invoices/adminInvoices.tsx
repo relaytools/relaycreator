@@ -336,11 +336,9 @@ export default function AdminInvoices(
                                         <div className="w-1/2">Paid At</div>
                                         {order.paid_at != null && (
                                             <div className="w-1/2">
-                                                {order.paid_at
-                                                    ? new Date(
-                                                          order.paid_at
-                                                      ).toLocaleString()
-                                                    : ""}
+                                                {new Date(
+                                                    order.paid_at
+                                                ).toLocaleString()}
                                             </div>
                                         )}
                                     </div>
