@@ -104,7 +104,7 @@ export default async function ServerStatus(
                 );
 
                 const paidOrders = relay.Order.filter(
-                    (order) => order.paid_at !== null
+                    (order) => order.paid
                 );
 
                 const unpaidOrders = relay.Order.filter(
