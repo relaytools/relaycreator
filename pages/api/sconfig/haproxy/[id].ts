@@ -171,7 +171,7 @@ export default async function handle(req: any, res: any) {
 	// each domain
 	fetchDomain.forEach((element, counter) => {
         let usePort = element.port
-        if(element.auth_required) {
+        if(element.auth_required || element.request_payment) {
             usePort = interceptorPort
         }
         let useIP = "127.0.0.1"
@@ -194,7 +194,7 @@ backend ${element.name}
 	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip`
 
-    if(element.auth_required) {
+    if(element.auth_required || element.request_payment) {
         for(let i = 0; i < useInterceptors.length; i++) {
             haproxy_backends_cfg = haproxy_backends_cfg + `
     server     interceptor-${i} ${useInterceptors[i]}:${interceptorPort} maxconn 50000 weight 10 check`

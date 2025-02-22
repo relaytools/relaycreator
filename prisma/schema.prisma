@@ -124,6 +124,8 @@ model Relay {
   allow_keyword_pubkey   Boolean       @default(false)
   relay_kind_description String       @db.VarChar(255) @default("")
   referrer               String?       @db.VarChar(255) @default("")
+  request_payment       Boolean       @default(false)
+  request_payment_amount Int           @default(1000)
 
   @@index([ownerId])
 }
