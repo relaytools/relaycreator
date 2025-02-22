@@ -334,13 +334,15 @@ export default function AdminInvoices(
                                     </div>
                                     <div className="flex">
                                         <div className="w-1/2">Paid At</div>
-                                        <div className="w-1/2">
-                                            {order.paid_at
-                                                ? new Date(
-                                                      order.paid_at
-                                                  ).toLocaleString()
-                                                : ""}
-                                        </div>
+                                        {order.paid_at != null && (
+                                            <div className="w-1/2">
+                                                {order.paid_at
+                                                    ? new Date(
+                                                          order.paid_at
+                                                      ).toLocaleString()
+                                                    : ""}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
