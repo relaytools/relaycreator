@@ -104,7 +104,7 @@ export default async function ServerStatus(
                 );
 
                 const paidOrders = relay.Order.filter(
-                    (order) => order.paid
+                    (order) => order.paid !== false
                 );
 
                 const unpaidOrders = relay.Order.filter(
@@ -114,20 +114,21 @@ export default async function ServerStatus(
                     !order.paid
                 )
 
-                const now: any = new Date().getTime();
+                const now = new Date();
+                const nowTime = now.getTime();
 
-                const firstOrderDate: any = new Date(
+                const firstOrderDate = new Date(
                     Math.min(
                         ...paidOrders.map((order) =>
                             order.paid && order.paid_at
                                 ? new Date(order.paid_at).getTime()
-                                : now.getTime()
+                                : nowTime
                         )
                     )
                 );
 
-                const timeInDays: any =
-                    (now - firstOrderDate) / 1000 / 60 / 60 / 24;
+                const timeInDays =
+                    (nowTime - firstOrderDate.getTime()) / 1000 / 60 / 60 / 24;
 
                 // cost per day, paymentAmount / 30
                 const costPerDay = paymentAmount / 30;
