@@ -336,7 +336,7 @@ export default function Wizard(
             toast.success("Relay deleted", {
                 onClose: () => {
                     router.push("/");
-                }
+                },
             });
         } else {
             toast.error("Error deleting relay");
@@ -351,45 +351,55 @@ export default function Wizard(
     return (
         <div className="flex flex-row min-h-screen relative">
             {/* Mobile Menu Button */}
-            <button 
+            <button
                 className="lg:hidden fixed top-4 left-4 z-20 btn btn-circle"
                 onClick={() => setMenuOpen(!menuOpen)}
             >
-                {menuOpen ? '✕' : '☰'}
+                {menuOpen ? "✕" : "☰"}
             </button>
 
             {/* Side Menu - updated with check marks */}
-            <div className={`${
-                menuOpen ? 'translate-x-0' : '-translate-x-full'
-            } lg:translate-x-0 fixed lg:static w-64 h-full bg-base-200 p-4 transition-transform duration-300 ease-in-out z-10 flex flex-col`}>
+            <div
+                className={`${
+                    menuOpen ? "translate-x-0" : "-translate-x-full"
+                } lg:translate-x-0 fixed lg:static w-64 h-full bg-base-200 p-4 transition-transform duration-300 ease-in-out z-10 flex flex-col`}
+            >
                 <ul className="menu menu-vertical flex-grow">
                     <li>
-                        <button 
-                            className={`${checked === 1 ? 'active' : ''} flex justify-between items-center`}
+                        <button
+                            className={`${
+                                checked === 1 ? "active" : ""
+                            } flex justify-between items-center`}
                             onClick={() => {
                                 setChecked(1);
                                 setMenuOpen(false);
                             }}
                         >
                             <span>Relay Setup Wizard</span>
-                            {props.relay.relay_kind_description && <span className="text-success">✓</span>}
+                            {props.relay.relay_kind_description && (
+                                <span className="text-success">✓</span>
+                            )}
                         </button>
                     </li>
                     <li>
-                        <button 
-                            className={`${checked === 2 ? 'active' : ''} flex justify-between items-center`}
+                        <button
+                            className={`${
+                                checked === 2 ? "active" : ""
+                            } flex justify-between items-center`}
                             onClick={() => {
                                 setChecked(2);
                                 setMenuOpen(false);
                             }}
                         >
                             <span>Choose Relay Type</span>
-                            {props.relay.relay_kind_description && <span className="text-success">✓</span>}
+                            {props.relay.relay_kind_description && (
+                                <span className="text-success">✓</span>
+                            )}
                         </button>
                     </li>
                     <li>
-                        <button 
-                            className={`${checked === 3 ? 'active' : ''}`}
+                        <button
+                            className={`${checked === 3 ? "active" : ""}`}
                             onClick={() => {
                                 setChecked(3);
                                 setMenuOpen(true);
@@ -399,8 +409,8 @@ export default function Wizard(
                         </button>
                     </li>
                     <li>
-                        <button 
-                            className={`${checked === 4 ? 'active' : ''}`}
+                        <button
+                            className={`${checked === 4 ? "active" : ""}`}
                             onClick={() => {
                                 setChecked(4);
                                 setMenuOpen(false);
@@ -410,8 +420,8 @@ export default function Wizard(
                         </button>
                     </li>
                     <li>
-                        <button 
-                            className={`${checked === 5 ? 'active' : ''}`}
+                        <button
+                            className={`${checked === 5 ? "active" : ""}`}
                             onClick={() => {
                                 setChecked(5);
                                 setMenuOpen(false);
@@ -421,8 +431,8 @@ export default function Wizard(
                         </button>
                     </li>
                     <li>
-                        <button 
-                            className={`${checked === 6 ? 'active' : ''}`}
+                        <button
+                            className={`${checked === 6 ? "active" : ""}`}
                             onClick={() => {
                                 setChecked(6);
                                 setMenuOpen(true);
@@ -433,8 +443,12 @@ export default function Wizard(
                         {checked === 6 && (
                             <ul className="menu menu-vertical pl-4">
                                 <li>
-                                    <button 
-                                        className={aclSection === "auth" ? "active" : ""}
+                                    <button
+                                        className={
+                                            aclSection === "auth"
+                                                ? "active"
+                                                : ""
+                                        }
                                         onClick={() => {
                                             setAclSection("auth");
                                             setMenuOpen(false);
@@ -443,24 +457,36 @@ export default function Wizard(
                                         Authentication (NIP42)
                                     </button>
                                 </li>
-                                <li>
-                                    <button 
-                                        className={aclSection === "tags" ? "active" : ""}
-                                        onClick={() => {
-                                            setAclSection("tags");
-                                            setMenuOpen(false);
-                                        }}
-                                    >
-                                        Allow Tags
-                                    </button>
-                                </li>
+
                                 {!allow && (
                                     <>
                                         <li>
-                                            <button 
-                                                className={aclSection === "allowed-pubkeys" ? "active" : ""}
+                                            <button
+                                                className={
+                                                    aclSection === "tags"
+                                                        ? "active"
+                                                        : ""
+                                                }
                                                 onClick={() => {
-                                                    setAclSection("allowed-pubkeys");
+                                                    setAclSection("tags");
+                                                    setMenuOpen(false);
+                                                }}
+                                            >
+                                                Allow Tags
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button
+                                                className={
+                                                    aclSection ===
+                                                    "allowed-pubkeys"
+                                                        ? "active"
+                                                        : ""
+                                                }
+                                                onClick={() => {
+                                                    setAclSection(
+                                                        "allowed-pubkeys"
+                                                    );
                                                     setMenuOpen(false);
                                                 }}
                                             >
@@ -468,10 +494,17 @@ export default function Wizard(
                                             </button>
                                         </li>
                                         <li>
-                                            <button 
-                                                className={aclSection === "allowed-keywords" ? "active" : ""}
+                                            <button
+                                                className={
+                                                    aclSection ===
+                                                    "allowed-keywords"
+                                                        ? "active"
+                                                        : ""
+                                                }
                                                 onClick={() => {
-                                                    setAclSection("allowed-keywords");
+                                                    setAclSection(
+                                                        "allowed-keywords"
+                                                    );
                                                     setMenuOpen(false);
                                                 }}
                                             >
@@ -479,10 +512,17 @@ export default function Wizard(
                                             </button>
                                         </li>
                                         <li>
-                                            <button 
-                                                className={aclSection === "allowed-kinds" ? "active" : ""}
+                                            <button
+                                                className={
+                                                    aclSection ===
+                                                    "allowed-kinds"
+                                                        ? "active"
+                                                        : ""
+                                                }
                                                 onClick={() => {
-                                                    setAclSection("allowed-kinds");
+                                                    setAclSection(
+                                                        "allowed-kinds"
+                                                    );
                                                     setMenuOpen(false);
                                                 }}
                                             >
@@ -492,8 +532,12 @@ export default function Wizard(
                                     </>
                                 )}
                                 <li>
-                                    <button 
-                                        className={aclSection === "blocked-pubkeys" ? "active" : ""}
+                                    <button
+                                        className={
+                                            aclSection === "blocked-pubkeys"
+                                                ? "active"
+                                                : ""
+                                        }
                                         onClick={() => {
                                             setAclSection("blocked-pubkeys");
                                             setMenuOpen(false);
@@ -503,8 +547,12 @@ export default function Wizard(
                                     </button>
                                 </li>
                                 <li>
-                                    <button 
-                                        className={aclSection === "blocked-keywords" ? "active" : ""}
+                                    <button
+                                        className={
+                                            aclSection === "blocked-keywords"
+                                                ? "active"
+                                                : ""
+                                        }
                                         onClick={() => {
                                             setAclSection("blocked-keywords");
                                             setMenuOpen(false);
@@ -514,8 +562,12 @@ export default function Wizard(
                                     </button>
                                 </li>
                                 <li>
-                                    <button 
-                                        className={aclSection === "blocked-kinds" ? "active" : ""}
+                                    <button
+                                        className={
+                                            aclSection === "blocked-kinds"
+                                                ? "active"
+                                                : ""
+                                        }
                                         onClick={() => {
                                             setAclSection("blocked-kinds");
                                             setMenuOpen(false);
@@ -528,8 +580,8 @@ export default function Wizard(
                         )}
                     </li>
                     <li>
-                        <button 
-                            className={`${checked === 7 ? 'active' : ''}`}
+                        <button
+                            className={`${checked === 7 ? "active" : ""}`}
                             onClick={() => {
                                 setChecked(7);
                                 setMenuOpen(false);
@@ -539,8 +591,8 @@ export default function Wizard(
                         </button>
                     </li>
                     <li>
-                        <button 
-                            className={`${checked === 8 ? 'active' : ''}`}
+                        <button
+                            className={`${checked === 8 ? "active" : ""}`}
                             onClick={() => {
                                 setChecked(8);
                                 setMenuOpen(false);
@@ -551,7 +603,7 @@ export default function Wizard(
                     </li>
                     <div className="divider"></div>
                     <li>
-                        <button 
+                        <button
                             className="text-error"
                             onClick={() => {
                                 setChecked(9);
@@ -568,56 +620,56 @@ export default function Wizard(
             <div className="flex-1 p-6 lg:p-6 pt-16 lg:pt-6">
                 <div className="flex flex-col lg:items-center lg:justify-center">
                     <div className="flex flex-grow w-full mb-4">
+                        {checked === 0 && (
+                            <Relay
+                                showEdit={false}
+                                showSettings={false}
+                                showDetail={true}
+                                showExplorer={true}
+                                showCopy={false}
+                                relay={props.relay}
+                            />
+                        )}
 
-                    {checked === 0 &&
-                        <Relay
-                            showEdit={false}
-                            showSettings={false}
-                            showDetail={true}
-                            showExplorer={true}
-                            showCopy={false}
-                            relay={props.relay}
-                        />
-                    }
-
-                    {checked != 0 && 
-                        <div>
-
-                        <RelaySmall relay={props.relay} />
-                        <div className="badge badge-neutral mt-4 mb-4">
-                            status: {props.relay.status}
-                        </div>
-                        </div>
-                    }
+                        {checked != 0 && (
+                            <div>
+                                <RelaySmall relay={props.relay} />
+                                <div className="badge badge-neutral mt-4 mb-4">
+                                    status: {props.relay.status}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Content sections - only show the active one */}
                     {checked === 1 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Relay Setup Wizard</h2>
+                            <h2 className="text-lg font-bold mb-4">
+                                Relay Setup Wizard
+                            </h2>
                             <article className="prose">
                                 <p>
-                                    This wizard will walk you through the process of
-                                    setting up your relay. You can always
-                                    re-configure your relay after you complete the
-                                    setup.
+                                    This wizard will walk you through the
+                                    process of setting up your relay. You can
+                                    always re-configure your relay after you
+                                    complete the setup.
                                 </p>
                                 <p>
-                                    There are many capabilities available for all
-                                    types of relays and you can mix-and-match them
-                                    to suit your needs.
+                                    There are many capabilities available for
+                                    all types of relays and you can
+                                    mix-and-match them to suit your needs.
                                 </p>
                                 <ul>
                                     <li>Lightning Payments</li>
                                     <li>Moderation</li>
                                     <li>
-                                        Access Control by Pubkey, Event Kind, and
-                                        Keywords
+                                        Access Control by Pubkey, Event Kind,
+                                        and Keywords
                                     </li>
                                     <li>Access Control for read/write</li>
                                     <li>
-                                        Specialized support for DMs, private groups,
-                                        and lists.
+                                        Specialized support for DMs, private
+                                        groups, and lists.
                                     </li>
                                 </ul>
                             </article>
@@ -636,7 +688,9 @@ export default function Wizard(
                     {checked === 2 && (
                         <div className="w-full">
                             <h2 className="text-lg font-bold mb-4">
-                                {relayKindDescription == "" ? "Choose a Relay Type" : relayKindDescription}
+                                {relayKindDescription == ""
+                                    ? "Choose a Relay Type"
+                                    : relayKindDescription}
                             </h2>
                             <div className="flex flex-wrap">
                                 <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
@@ -648,8 +702,8 @@ export default function Wizard(
                                             This relay can shared with multiple
                                             people. You can use this relay for
                                             backups of your notes. You can
-                                            optionally setup lightning payments and
-                                            invite friends.
+                                            optionally setup lightning payments
+                                            and invite friends.
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -676,8 +730,9 @@ export default function Wizard(
                                         <p>
                                             This relay can shared with multiple
                                             people. You can use this relay for
-                                            backups of your notes. Enhanced privacy
-                                            for Nostr DMs, and read access controls.
+                                            backups of your notes. Enhanced
+                                            privacy for Nostr DMs, and read
+                                            access controls.
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -689,7 +744,9 @@ export default function Wizard(
                                                     setChecked(3);
                                                     setAndPostAllow(false);
                                                     setAndPostAllowTagged(true);
-                                                    setAndPostAuthRequired(true);
+                                                    setAndPostAuthRequired(
+                                                        true
+                                                    );
                                                 }}
                                             >
                                                 select
@@ -704,8 +761,9 @@ export default function Wizard(
                                             Public Paid Relay
                                         </h2>
                                         <p>
-                                            This relay can be setup for the general
-                                            public with lightning payments to join.
+                                            This relay can be setup for the
+                                            general public with lightning
+                                            payments to join.
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -716,7 +774,9 @@ export default function Wizard(
                                                     );
                                                     setChecked(3);
                                                     setAndPostAllow(false);
-                                                    setAndPostAllowTagged(false);
+                                                    setAndPostAllowTagged(
+                                                        false
+                                                    );
                                                 }}
                                             >
                                                 select
@@ -731,9 +791,9 @@ export default function Wizard(
                                             Public Free Relay
                                         </h2>
                                         <p>
-                                            This relay allows free access. This is
-                                            not recommended unless you have a solid
-                                            moderation team.
+                                            This relay allows free access. This
+                                            is not recommended unless you have a
+                                            solid moderation team.
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -757,16 +817,20 @@ export default function Wizard(
 
                     {checked === 3 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Relay Profile and Directory Listing</h2>
+                            <h2 className="text-lg font-bold mb-4">
+                                Relay Profile and Directory Listing
+                            </h2>
                             <article className="prose">
-                                <p>Setup your relay banner image and details.</p>
                                 <p>
-                                    This will be the icon used for your relay and
-                                    it's public facing image.
+                                    Setup your relay banner image and details.
                                 </p>
                                 <p>
-                                    Decide if you want the relay to be listed in the
-                                    public directory.
+                                    This will be the icon used for your relay
+                                    and it's public facing image.
+                                </p>
+                                <p>
+                                    Decide if you want the relay to be listed in
+                                    the public directory.
                                 </p>
                             </article>
                             <div className="form-control mt-4">
@@ -776,8 +840,8 @@ export default function Wizard(
                                         onClick={(e) => handleListedChange(e)}
                                     >
                                         <div className="btn uppercase btn-accent swap-on">
-                                            Relay is listed in the public directory
-                                            ✅
+                                            Relay is listed in the public
+                                            directory ✅
                                         </div>
                                         <div className="btn uppercase btn-accent swap-off">
                                             Relay is NOT listed in the public
@@ -828,11 +892,17 @@ export default function Wizard(
 
                     {checked === 4 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Moderators</h2>
+                            <h2 className="text-lg font-bold mb-4">
+                                Moderators
+                            </h2>
                             <article className="prose">
-                                <p>Moderators can edit the access control lists.</p>
                                 <p>
-                                    Moderators also have access to post by default.
+                                    Moderators can edit the access control
+                                    lists.
+                                </p>
+                                <p>
+                                    Moderators also have access to post by
+                                    default.
                                 </p>
                             </article>
                             {props.relay != null &&
@@ -856,7 +926,9 @@ export default function Wizard(
 
                     {checked === 5 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Access Control Mode</h2>
+                            <h2 className="text-lg font-bold mb-4">
+                                Access Control Mode
+                            </h2>
                             <article className="prose">
                                 <p>
                                     There are two different ways you can setup
@@ -865,18 +937,19 @@ export default function Wizard(
                                 <ul>
                                     <li>
                                         Block events by default and specifically
-                                        allow pubkeys, keywords or kinds. This mode
-                                        is easier to manage.
+                                        allow pubkeys, keywords or kinds. This
+                                        mode is easier to manage.
                                     </li>
                                     <li>
                                         Allow events by default and specifically
-                                        block pubkeys, keywords or kinds. This mode
-                                        requires more moderation.
+                                        block pubkeys, keywords or kinds. This
+                                        mode requires more moderation.
                                     </li>
                                 </ul>
                                 <p>
-                                    You may still allow or block pubkeys, keywords
-                                    and kinds regardless of the default mode.
+                                    You may still allow or block pubkeys,
+                                    keywords and kinds regardless of the default
+                                    mode.
                                 </p>
                                 {relayKindDescription == "Community Relay" && (
                                     <p>
@@ -893,14 +966,16 @@ export default function Wizard(
                                         start with Blocking
                                     </p>
                                 )}
-                                {relayKindDescription == "Public Paid Relay" && (
+                                {relayKindDescription ==
+                                    "Public Paid Relay" && (
                                     <p>
                                         Since you would like a{" "}
                                         {relayKindDescription} we recommend you
                                         start with Blocking
                                     </p>
                                 )}
-                                {relayKindDescription == "Public Free Relay" && (
+                                {relayKindDescription ==
+                                    "Public Free Relay" && (
                                     <p>
                                         Since you would like a{" "}
                                         {relayKindDescription} we recommend you
@@ -917,12 +992,12 @@ export default function Wizard(
                                     onClick={(e) => handleAllowChange(e)}
                                 >
                                     <div className="btn uppercase btn-accent swap-on">
-                                        Allow by default and block what I don't want
-                                        🔨
+                                        Allow by default and block what I don't
+                                        want 🔨
                                     </div>
                                     <div className="btn uppercase btn-accent swap-off">
-                                        Block by default and then allow what I want
-                                        ✅
+                                        Block by default and then allow what I
+                                        want ✅
                                     </div>
                                 </label>
                             </div>
@@ -939,37 +1014,42 @@ export default function Wizard(
 
                     {checked === 6 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Access Control Lists (ACLs)</h2>
-                            
+                            <h2 className="text-lg font-bold mb-4">
+                                Access Control Lists (ACLs)
+                            </h2>
+
                             {aclSection === "auth" && (
                                 <div>
                                     <article className="prose">
-                                        <p>This setting controls whether your relay requires authentication to connect.</p>
+                                        <p>
+                                            This setting controls whether your
+                                            relay requires authentication to
+                                            connect.
+                                        </p>
                                         <p>Also known as NIP-42 AUTH</p>
                                         <p>
-                                            Most clients support this,
-                                            however blastr and nostr search
-                                            engines do not (yet). So if you
-                                            enjoy having the greater nostr
-                                            network discover and blast your
-                                            relay you may want to have this
-                                            off. But if you are providing
-                                            private messaging support to
-                                            your members you will want it
-                                            on.
+                                            Most clients support this, however
+                                            blastr and nostr search engines do
+                                            not (yet). So if you enjoy having
+                                            the greater nostr network discover
+                                            and blast your relay you may want to
+                                            have this off. But if you are
+                                            providing private messaging support
+                                            to your members you will want it on.
                                         </p>
                                         <p>
                                             In the future, all relays will
-                                            likely use this. You can turn it
-                                            on and off depending on your
-                                            needs.
+                                            likely use this. You can turn it on
+                                            and off depending on your needs.
                                         </p>
                                     </article>
                                     <div className="mt-4">
-                                        <label className={isAuthRequired()} onClick={(e) => handleAuthChange(e)}>
+                                        <label
+                                            className={isAuthRequired()}
+                                            onClick={(e) => handleAuthChange(e)}
+                                        >
                                             <div className="btn uppercase btn-accent swap-on">
-                                                Relay requires AUTH (NIP42)
-                                                ✅
+                                                Relay requires AUTH (NIP42) ✅
                                             </div>
                                             <div className="btn uppercase btn-accent swap-off">
                                                 Relay does not require AUTH
@@ -983,35 +1063,42 @@ export default function Wizard(
                             {aclSection === "tags" && !allow && (
                                 <div>
                                     <article className="prose">
-                                        <p>This setting will allow users on the wider nostr network to send events to this relay that are tagged to your pubkeys.</p>
                                         <p>
-                                            This is useful if you want
-                                            people to be able to DM you
-                                            that are not a member of the
-                                            relay or if you want to
-                                            backup conversations with
+                                            This setting will allow users on the
+                                            wider nostr network to send events
+                                            to this relay that are tagged to
+                                            your pubkeys.
+                                        </p>
+                                        <p>
+                                            This is useful if you want people to
+                                            be able to DM you that are not a
+                                            member of the relay or if you want
+                                            to backup conversations with
                                             non-member users.
                                         </p>
                                         <p>
-                                            Since this is a commonly
-                                            requested feature we
-                                            recommend you start with
-                                            this turned on. However if
-                                            you get a lot of unwanted
-                                            comments or stalkers and get
-                                            tired of blocking them you
+                                            Since this is a commonly requested
+                                            feature we recommend you start with
+                                            this turned on. However if you get a
+                                            lot of unwanted comments or stalkers
+                                            and get tired of blocking them you
                                             can turn it off at any time.
                                         </p>
                                     </article>
                                     <div className="mt-4">
-                                        <label className={isTagged()} onClick={(e) => handleTaggedChange(e)}>
+                                        <label
+                                            className={isTagged()}
+                                            onClick={(e) =>
+                                                handleTaggedChange(e)
+                                            }
+                                        >
                                             <div className="btn uppercase btn-accent swap-on">
-                                                Allow Events Tagged to
-                                                Pubkeys ✅
+                                                Allow Events Tagged to Pubkeys
+                                                ✅
                                             </div>
                                             <div className="btn uppercase btn-accent swap-off">
-                                                Do NOT Allow Events
-                                                Tagged to Pubkeys 🙈
+                                                Do NOT Allow Events Tagged to
+                                                Pubkeys 🙈
                                             </div>
                                         </label>
                                     </div>
@@ -1021,10 +1108,16 @@ export default function Wizard(
                             {/* Continue with similar pattern for other ACL sections */}
                             {aclSection === "allowed-pubkeys" && !allow && (
                                 <div>
-                                    <p>These are pubkeys that will be allowed to post.</p>
+                                    <p>
+                                        These are pubkeys that will be allowed
+                                        to post.
+                                    </p>
                                     {props.relay?.allow_list?.list_pubkeys && (
                                         <ListEntryPubkeys
-                                            pubkeys={props.relay.allow_list.list_pubkeys}
+                                            pubkeys={
+                                                props.relay.allow_list
+                                                    .list_pubkeys
+                                            }
                                             relay_id={props.relay.id}
                                             relay_url={relayUrl}
                                             kind="Allowed Pubkeys ✅"
@@ -1036,10 +1129,16 @@ export default function Wizard(
                             {/* Add similar sections for other ACL components */}
                             {aclSection === "allowed-keywords" && !allow && (
                                 <div>
-                                    <p>These are keywords that will be allowed to post.</p>
+                                    <p>
+                                        These are keywords that will be allowed
+                                        to post.
+                                    </p>
                                     {props.relay?.allow_list?.list_keywords && (
                                         <ListEntryKeywords
-                                            keywords={props.relay.allow_list.list_keywords}
+                                            keywords={
+                                                props.relay.allow_list
+                                                    .list_keywords
+                                            }
                                             relay_id={props.relay.id}
                                             kind="Allowed Keywords ✅"
                                         />
@@ -1049,10 +1148,16 @@ export default function Wizard(
 
                             {aclSection === "allowed-kinds" && !allow && (
                                 <div>
-                                    <p>These are kinds that will be allowed to post.</p>
+                                    <p>
+                                        These are kinds that will be allowed to
+                                        post.
+                                    </p>
                                     {props.relay?.allow_list?.list_kinds && (
                                         <ListEntryKinds
-                                            kinds={props.relay.allow_list.list_kinds}
+                                            kinds={
+                                                props.relay.allow_list
+                                                    .list_kinds
+                                            }
                                             relay_id={props.relay.id}
                                             allowdeny="Allowed Kinds ✅"
                                         />
@@ -1060,12 +1165,18 @@ export default function Wizard(
                                 </div>
                             )}
 
-                            {aclSection === "blocked-pubkeys" && !allow && (
+                            {aclSection === "blocked-pubkeys" && (
                                 <div>
-                                    <p>These are pubkeys that will be blocked from posting.</p>
+                                    <p>
+                                        These are pubkeys that will be blocked
+                                        from posting.
+                                    </p>
                                     {props.relay?.block_list?.list_pubkeys && (
                                         <ListEntryPubkeys
-                                            pubkeys={props.relay.block_list.list_pubkeys}
+                                            pubkeys={
+                                                props.relay.block_list
+                                                    .list_pubkeys
+                                            }
                                             relay_id={props.relay.id}
                                             relay_url={relayUrl}
                                             kind="Blocked Pubkeys 🙈"
@@ -1074,12 +1185,18 @@ export default function Wizard(
                                 </div>
                             )}
 
-                            {aclSection === "blocked-keywords" && !allow && (
+                            {aclSection === "blocked-keywords" && (
                                 <div>
-                                    <p>These are keywords that will be blocked from posting.</p>
+                                    <p>
+                                        These are keywords that will be blocked
+                                        from posting.
+                                    </p>
                                     {props.relay?.block_list?.list_keywords && (
                                         <ListEntryKeywords
-                                            keywords={props.relay.block_list.list_keywords}
+                                            keywords={
+                                                props.relay.block_list
+                                                    .list_keywords
+                                            }
                                             relay_id={props.relay.id}
                                             kind="Blocked Keywords 🙈"
                                         />
@@ -1087,12 +1204,18 @@ export default function Wizard(
                                 </div>
                             )}
 
-                            {aclSection === "blocked-kinds" && !allow && (
+                            {aclSection === "blocked-kinds" && (
                                 <div>
-                                    <p>These are kinds that will be blocked from posting.</p>
+                                    <p>
+                                        These are kinds that will be blocked
+                                        from posting.
+                                    </p>
                                     {props.relay?.block_list?.list_kinds && (
                                         <ListEntryKinds
-                                            kinds={props.relay.block_list.list_kinds}
+                                            kinds={
+                                                props.relay.block_list
+                                                    .list_kinds
+                                            }
                                             relay_id={props.relay.id}
                                             allowdeny="Blocked Kinds 🙈"
                                         />
@@ -1104,7 +1227,9 @@ export default function Wizard(
 
                     {checked === 7 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Lightning Payments</h2>
+                            <h2 className="text-lg font-bold mb-4">
+                                Lightning Payments
+                            </h2>
                             <article className="prose">
                                 <p>
                                     Lightning payments can be enabled and will
@@ -1170,7 +1295,9 @@ export default function Wizard(
 
                     {checked === 8 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Streams Configuration</h2>
+                            <h2 className="text-lg font-bold mb-4">
+                                Streams Configuration
+                            </h2>
                             <article className="prose">
                                 <p>
                                     Add stream URLs that this relay should
@@ -1194,9 +1321,7 @@ export default function Wizard(
                                         className="select select-bordered"
                                         value={streamDirection}
                                         onChange={(e) =>
-                                            setStreamDirection(
-                                                e.target.value
-                                            )
+                                            setStreamDirection(e.target.value)
                                         }
                                     >
                                         <option value="down">down</option>
@@ -1212,8 +1337,7 @@ export default function Wizard(
                                             if (streamUrl) {
                                                 handleAddStream({
                                                     url: streamUrl,
-                                                    direction:
-                                                        streamDirection,
+                                                    direction: streamDirection,
                                                 });
                                                 setStreamUrl("");
                                             }
@@ -1271,24 +1395,41 @@ export default function Wizard(
 
                     {checked === 9 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">Delete Relay</h2>
+                            <h2 className="text-lg font-bold mb-4">
+                                Delete Relay
+                            </h2>
                             <div className="alert alert-error">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="stroke-current shrink-0 h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                    />
                                 </svg>
                                 <div>
                                     <h3 className="font-bold">Warning!</h3>
                                     <div className="text-sm">
-                                        This action cannot be undone. This will permanently delete the relay
-                                        and all associated data.
+                                        This action cannot be undone. This will
+                                        permanently delete the relay and all
+                                        associated data.
                                     </div>
                                 </div>
                             </div>
                             <div className="mt-4">
-                                <button 
+                                <button
                                     className="btn btn-error"
                                     onClick={() => {
-                                        if (confirm("Are you sure you want to delete this relay?")) {
+                                        if (
+                                            confirm(
+                                                "Are you sure you want to delete this relay?"
+                                            )
+                                        ) {
                                             handleDeleteRelay();
                                         }
                                     }}
