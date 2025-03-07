@@ -182,9 +182,11 @@ export default async function handle(req: any, res: any) {
 		acl ${element.name + "_root"} path_beg -i /
 		acl ${element.name} hdr(Host) -i ${element.name}.${element.domain}
 		acl ${element.name + "_nostrjson"} req.hdr(Accept) -i application/nostr+json
+		acl ${element.name + "_nostrjsonrpc"} req.hdr(Accept) -i application/nostr+json+rpc
 		use_backend ${element.name} if host_ws ${element.name}
 		use_backend ${element.name} if hdr_connection_upgrade hdr_upgrade_websocket ${element.name} 
 		http-request set-path /api/relay/${element.id}/nostrjson if ${element.name} ${element.name + "_root"} ${element.name + "_nostrjson"}
+		http-request set-path /api/86/${element.id} if ${element.name} ${element.name + "_root"} ${element.name + "_nostrjsonrpc"}
 		`
 
 		haproxy_backends_cfg = haproxy_backends_cfg + `
