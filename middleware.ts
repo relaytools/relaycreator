@@ -28,7 +28,7 @@ export async function middleware(req: NextRequest) {
 
         // Skip public files
         // it skips .well-known
-        if (!url.pathname.includes("/.well-known/nostr.json")) {
+        if (!url.pathname.includes("/.well-known/nostr.json") && !url.pathname.includes('/api/86')) {
             if (PUBLIC_FILE.test(url.pathname) || url.pathname.includes('_next') || url.pathname.includes('/api/'))  return;
         }
 
@@ -62,6 +62,9 @@ export async function middleware(req: NextRequest) {
                 // nip05 for subdomains
                 console.log(`>>> Rewriting for nip05: ${url.pathname} to ->`)
                 url.pathname = `/api/nip05/${host}`;
+            } else if(url.pathname.includes('api/86')) {
+                // NIP-86 for subdomains
+                // DONT REWRITE TO RELAYS DOWN BELOW HERE..
             } else {
                 // Subdomain available, rewriting
                 console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);
