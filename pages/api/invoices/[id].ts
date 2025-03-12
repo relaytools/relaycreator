@@ -20,19 +20,26 @@ export default async function handle(req: any, res: any) {
         return
     }
 
-    const checkinvoice = await wallet.checkInvoice({
-        payment_hash: invoiceId,
-    });
-
-    console.log(checkinvoice);
-    // if invoice is paid, update prisma
-
     const findOrder = await prisma.order.findFirst({
         where: {
-            payment_hash: invoiceId,
+            id: invoiceId,
         },
-        include: {
-            relay: true,
+        select: {
+            id: true,
+            paid: true,
+            lnurl: true,
+            payment_hash: true,
+            expires_at: true,
+
+            relay: {
+                select: {
+                    id: true,
+                    status: true,
+                    name: true,
+                    domain: true,
+                    created_at: true,
+                },
+            }
         }
     })
 
@@ -41,6 +48,11 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+    const checkinvoice = await wallet.checkInvoice({
+        payment_hash: findOrder.payment_hash,
+    });
+
+    // if invoice is paid, update prisma
     // update the expire date for this order 
     if (findOrder.paid != true && findOrder.expires_at == null) {
         await prisma.order.update({
@@ -87,8 +99,8 @@ export default async function handle(req: any, res: any) {
                 }
             })
         }
-        res.status(200).json({ checkinvoice });
+        res.status(200).json({ order: findOrder });
     } else {
-        res.status(200).json({ checkinvoice });
+        res.status(200).json({ order: findOrder });
     }
 }
