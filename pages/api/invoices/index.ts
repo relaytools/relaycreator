@@ -38,9 +38,15 @@ export default async function handle(req: any, res: any) {
             if (process.env.INVOICE_AMOUNT != null) {
                 useAmount = parseInt(process.env.INVOICE_AMOUNT)
             }
-            if(sats != null) {
-                useAmount = parseInt(sats)
+
+            // make sure the relay is active
+            if (r.status != null) {
+                // allow top up of any amount
+                if(sats != null) {
+                    useAmount = parseInt(sats)
+                }
             }
+
             const { wallet } = LNBits({
                 adminKey: process.env.LNBITS_ADMIN_KEY,
                 invoiceReadKey: process.env.LNBITS_INVOICE_READ_KEY,

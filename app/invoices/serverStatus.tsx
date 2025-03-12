@@ -207,6 +207,7 @@ export default async function ServerStatus(
                     relay_id={o.relay.id}
                     payment_hash={o.payment_hash}
                     payment_request={o.lnurl}
+                    order_id={o.id}
                 />
             </div>
         );

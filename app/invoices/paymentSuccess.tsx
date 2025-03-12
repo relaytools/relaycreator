@@ -8,19 +8,20 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
     relay_id: string;
     payment_hash: string;
     payment_request: string;
+    order_id: string;
 }>) {
 
     const [status, setStatus] = useState(false)
 
-    const getInvoiceStatus = async (paymentHash: string) => {
-        const result = await fetch(`/api/invoices/${paymentHash}`)
+    const getInvoiceStatus = async () => {
+        const result = await fetch(`/api/invoices/${props.order_id}`)
         const j = await result.json()
-        setStatus(j.checkinvoice.paid)
+        setStatus(j.order.paid)
     }
 
     useEffect(() => {
         const interval = setInterval(() => {
-            getInvoiceStatus(props.payment_hash);
+            getInvoiceStatus();
         }, 2000);
         return () => clearInterval(interval);
     }, []);
