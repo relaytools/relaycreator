@@ -333,7 +333,6 @@ export default function AdminInvoices(
                                         </div>
                                     </div>
                                     <div className="flex">
-                                        { /*
                                         <div className="w-1/2">Paid At</div>
                                         {order.paid_at != null && (
                                             <div className="w-1/2">
@@ -342,7 +341,6 @@ export default function AdminInvoices(
                                                 ).toLocaleString()}
                                             </div>
                                         )}
-                                            */}
                                     </div>
                                 </div>
                             ))}
