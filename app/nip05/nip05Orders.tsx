@@ -1,11 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { UserWithNip05s } from "../components/userWithNip05s";
-import { useRouter } from "next/navigation";
-import ShowClientOrder from "../components/showClientOrder";
 import { useSession } from "next-auth/react";
-import { nip19 } from "nostr-tools";
 import ShowNip05Order from "../components/showNip05Order";
+import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 import {
     Label,
     Listbox,
@@ -13,8 +11,7 @@ import {
     ListboxOption,
     ListboxOptions,
 } from "@headlessui/react";
-
-import { Prisma } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 export default function Nip05Orders(
     props: React.PropsWithChildren<{
@@ -36,8 +33,11 @@ export default function Nip05Orders(
     const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
     const [editingRelayUrls, setEditingRelayUrls] = useState<string[]>([]);
     const [newRelayUrl, setNewRelayUrl] = useState("");
+    const [editingPubkey, setEditingPubkey] = useState("");
+    const [pubkeyValidationError, setPubkeyValidationError] = useState("");
 
     const { data: session, status } = useSession();
+    const router = useRouter();
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
 
@@ -67,9 +67,14 @@ export default function Nip05Orders(
         }
     };
 
-    const handleEdit = (orderId: string, relayUrls: string[]) => {
+    const handleEdit = (
+        orderId: string,
+        relayUrls: string[],
+        pubkey: string
+    ) => {
         setEditingOrderId(orderId);
         setEditingRelayUrls(relayUrls);
+        setEditingPubkey(pubkey);
     };
 
     const handleAddRelayUrl = () => {
@@ -85,8 +90,33 @@ export default function Nip05Orders(
         );
     };
 
+    const validatePubkey = (pubkey: string): string | undefined => {
+        // Clear any previous validation errors
+        setPubkeyValidationError("");
+        
+        // Check if it's empty
+        if (!pubkey.trim()) {
+            return "";
+        }
+        
+        // Use the existing validation function
+        const validatedPubkey = convertOrValidatePubkey(pubkey);
+        
+        if (!validatedPubkey) {
+            setPubkeyValidationError("Invalid pubkey format. Must be npub or 64-character hex.");
+        }
+        
+        return validatedPubkey;
+    };
+
     const handleSaveEdit = async () => {
         if (!editingOrderId) return;
+
+        // Validate pubkey before saving
+        const validatedPubkey = validatePubkey(editingPubkey);
+        if (pubkeyValidationError || !validatedPubkey) {
+            return;
+        }
 
         try {
             const response = await fetch(
@@ -96,22 +126,24 @@ export default function Nip05Orders(
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ relayUrls: editingRelayUrls }),
+                    body: JSON.stringify({
+                        relayUrls: editingRelayUrls,
+                        pubkey: validatedPubkey,
+                    }),
                 }
             );
 
             if (response.ok) {
-                // Update the local state to reflect the changes
-                // Note: You might need to implement a way to update the user prop here
-                // This depends on how you're managing state in your Next.js app
-                // TODO
-
                 setEditingOrderId(null);
+                setEditingPubkey("");
+                
+                // Refresh the data without a full page navigation
+                router.refresh();
             } else {
-                console.error("Failed to update relay URLs");
+                console.error("Failed to update NIP-05");
             }
         } catch (error) {
-            console.error("Error updating relay URLs:", error);
+            console.error("Error updating NIP-05:", error);
         }
     };
 
@@ -203,6 +235,33 @@ export default function Nip05Orders(
                             <div className="w-1/2 text-lg font-condensed">
                                 {nip05.name}@{nip05.domain}
                             </div>
+                            <div className="w-1/2 text-sm">
+                                {editingOrderId === nip05.id ? (
+                                    <div>
+                                        <div className="flex items-center mt-2">
+                                            <label className="label">Pubkey</label>
+                                            <input
+                                                type="text"
+                                                value={editingPubkey}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setEditingPubkey(value);
+                                                    validatePubkey(value);
+                                                }}
+                                                placeholder="Pubkey hex or npub"
+                                                className={`input input-secondary flex-grow ${pubkeyValidationError ? 'input-error' : ''}`}
+                                            />
+                                        </div>
+                                        {pubkeyValidationError && (
+                                            <div className="text-error text-sm mt-1">
+                                                {pubkeyValidationError}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    nip05.pubkey
+                                )}
+                            </div>
                             <div className="flex border-t">
                                 <div className="w-1/2">Relay Urls</div>
                                 <div className="w-full">
@@ -247,22 +306,6 @@ export default function Nip05Orders(
                                                     className="btn btn-xs btn-success ml-2"
                                                 >
                                                     Add
-                                                </button>
-                                            </div>
-                                            <div className="mt-4">
-                                                <button
-                                                    onClick={handleSaveEdit}
-                                                    className="btn btn-primary mr-2"
-                                                >
-                                                    Save
-                                                </button>
-                                                <button
-                                                    onClick={() =>
-                                                        setEditingOrderId(null)
-                                                    }
-                                                    className="btn"
-                                                >
-                                                    Cancel
                                                 </button>
                                             </div>
                                         </div>
@@ -287,7 +330,8 @@ export default function Nip05Orders(
                                                 nip05.id,
                                                 nip05.relayUrls.map(
                                                     (o: any) => o.url
-                                                )
+                                                ),
+                                                nip05.pubkey
                                             )
                                         }
                                     >
@@ -295,14 +339,34 @@ export default function Nip05Orders(
                                     </button>
                                 )}
                                 <div className="flex justify-end w-full">
-                                    <button
-                                        className="btn btn-primary mt-2 max-w-24"
-                                        onClick={() => handleDelete(nip05.id)}
-                                    >
-                                        Delete
-                                    </button>
+                                    {editingOrderId !== nip05.id && (
+                                        <button
+                                            className="btn btn-primary mt-2 max-w-24"
+                                            onClick={() => handleDelete(nip05.id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
                                 </div>
                             </div>
+                            {editingOrderId === nip05.id && (
+                                <div className="flex flex-grow w-full mt-4 justify-between">
+                                    <button
+                                        onClick={() =>
+                                            setEditingOrderId(null)
+                                        }
+                                        className="btn"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveEdit}
+                                        className="btn btn-primary"
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -316,7 +380,33 @@ export default function Nip05Orders(
                             <div className="w-1/2 text-lg font-condensed">
                                 {nip05.name}@{nip05.domain}
                             </div>
-                            <div className="w-1/2 text-sm">{nip05.pubkey}</div>
+                            <div className="w-1/2 text-sm">
+                                {editingOrderId === nip05.id ? (
+                                    <div>
+                                        <div className="flex items-center mt-2">
+                                            <label className="label">Pubkey</label>
+                                            <input
+                                                type="text"
+                                                value={editingPubkey}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setEditingPubkey(value);
+                                                    validatePubkey(value);
+                                                }}
+                                                placeholder="Pubkey hex or npub"
+                                                className={`input input-secondary flex-grow ${pubkeyValidationError ? 'input-error' : ''}`}
+                                            />
+                                        </div>
+                                        {pubkeyValidationError && (
+                                            <div className="text-error text-sm mt-1">
+                                                {pubkeyValidationError}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    nip05.pubkey
+                                )}
+                            </div>
                             <div className="flex border-t">
                                 <div className="w-1/2">Relay Urls</div>
                                 <div className="w-full">
@@ -363,22 +453,6 @@ export default function Nip05Orders(
                                                     Add
                                                 </button>
                                             </div>
-                                            <div className="mt-4">
-                                                <button
-                                                    onClick={handleSaveEdit}
-                                                    className="btn btn-primary mr-2"
-                                                >
-                                                    Save
-                                                </button>
-                                                <button
-                                                    onClick={() =>
-                                                        setEditingOrderId(null)
-                                                    }
-                                                    className="btn"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
                                         </div>
                                     ) : (
                                         nip05.relayUrls.map((o: any) => (
@@ -394,28 +468,54 @@ export default function Nip05Orders(
                             </div>
                             <div className="flex">
                                 {true && editingOrderId !== nip05.id && (
-                                    <button
-                                        className="btn btn-secondary mt-2 w-24"
-                                        onClick={() =>
-                                            handleEdit(
-                                                nip05.id,
-                                                nip05.relayUrls.map(
-                                                    (o: any) => o.url
+                                    <div className="flex flex-grow w-full mt-4 justify-between">
+                                        <button
+                                            className="btn btn-secondary mt-2 w-24"
+                                            onClick={() =>
+                                                handleEdit(
+                                                    nip05.id,
+                                                    nip05.relayUrls.map(
+                                                        (o: any) => o.url
+                                                    ),
+                                                    nip05.pubkey
                                                 )
-                                            )
-                                        }
-                                    >
-                                        Edit
-                                    </button>
+                                            }
+                                        >
+                                            Edit
+                                        </button>
+                                        <div className="flex justify-end w-full">
+                                            {editingOrderId !== nip05.id && (
+                                                <button
+                                                    className="btn btn-primary mt-2 max-w-24"
+                                                    onClick={() =>
+                                                        handleDelete(nip05.id)
+                                                    }
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 )}
-                                <div className="flex justify-end w-full">
-                                    <button
-                                        className="btn btn-primary mt-2 max-w-24"
-                                        onClick={() => handleDelete(nip05.id)}
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
+
+                                {editingOrderId === nip05.id && (
+                                    <div className="flex flex-grow w-full mt-4 justify-between">
+                                        <button
+                                            onClick={() =>
+                                                setEditingOrderId(null)
+                                            }
+                                            className="btn"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleSaveEdit}
+                                            className="btn btn-primary"
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
