@@ -1,5 +1,6 @@
 import { checkSessionForNip05 } from "../../../lib/checkSession";
 import prisma from "../../../lib/prisma";
+import { convertOrValidatePubkey } from "../../../lib/pubkeyValidation";
 
 export default async function handle(req: any, res: any) {
     if (req.method == "GET") {
@@ -51,7 +52,19 @@ export default async function handle(req: any, res: any) {
         if (nip05 == null) {
             return;
         } else {
-            const { relayUrls } = req.body;
+            const { relayUrls, pubkey } = req.body;
+            const validatedPubkey = convertOrValidatePubkey(pubkey);
+            if (!validatedPubkey) {
+                res.status(400).json({ error: "Invalid pubkey format" });
+                return;
+            }
+
+            // save updated pubkey
+            await prisma.nip05.update({
+                where: { id: nip05.id },
+                data: { pubkey: validatedPubkey },
+            });
+
             if (!Array.isArray(relayUrls)) {
                 res.status(400).json({ error: "Invalid relays format" });
                 return;
