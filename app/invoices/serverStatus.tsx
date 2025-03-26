@@ -9,15 +9,19 @@ import AdminInvoices from "./adminInvoices";
 
 export const dynamic = "force-dynamic";
 
-type Params = Promise< Record<string, string> >
+export default async function ServerStatus(props: {
+    relayname: string|undefined,
+    order_id: string|undefined,
+    pubkey: string|undefined,
+}) {
 
-export default async function ServerStatus(
-    { params }: {params: Params }
-) {
     const session = await getServerSession(authOptions);
 
-    const { relayname, pubkey, order_id } = await params;
+    const relayname = props.relayname;
+    const pubkey = props.pubkey;
+    const order_id = props.order_id;
 
+    // display the user invoices
     if (!relayname || !pubkey || !order_id) {
         if (session && (session as any).user.name) {
             // list the relays for the account
