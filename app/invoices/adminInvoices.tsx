@@ -1,13 +1,9 @@
 "use client";
-import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import Bolt11Invoice from "../components/invoice";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 import NDK, { NDKEvent, NDKNip07Signer, NDKPublishError, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet, NDKSubscription } from "@nostr-dev-kit/ndk";
 import { getRelayListForUser, getRelayListForUsers } from "@nostr-dev-kit/ndk";
-import handle from "../../pages/api/clientorders";
 
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();

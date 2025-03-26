@@ -9,12 +9,14 @@ import AdminInvoices from "./adminInvoices";
 
 export const dynamic = "force-dynamic";
 
+type Params = Promise< Record<string, string> >
+
 export default async function ServerStatus(
-    searchParams: Record<string, string>
+    { params }: {params: Params }
 ) {
     const session = await getServerSession(authOptions);
 
-    const { relayname, pubkey, order_id } = searchParams;
+    const { relayname, pubkey, order_id } = await params;
 
     if (!relayname || !pubkey || !order_id) {
         if (session && (session as any).user.name) {
