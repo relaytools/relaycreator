@@ -1,5 +1,5 @@
 "use client"
-import { useSpring, animated } from '@react-spring/web';
+//import { useSpring, animated } from '@react-spring/web';
 
 export default function LogoComponent() {
 
@@ -15,12 +15,12 @@ export default function LogoComponent() {
         'M 37.334763 48.052872 L 127.456238 138.085022 L 169.97142 95.569839 L 213.469101 139.067535 L 225.973557 126.384422 L 170.953918 71.454086 L 131.386215 111.379059 L 52.876026 32.690247 L 73.954987 11.343338 C 73.954987 11.343338 31.798319 26.824554 10.896749 74.490891 Z',
     ];
 
-    const pathAnimation = useSpring({
+    /*const pathAnimation = useSpring({
         from: { strokeDashoffset: 1000, strokeDasharray: 500 },
         to: { strokeDashoffset: 0, strokeDasharray: 500 },
         config: { duration: 5000 },
         loop: true, // Use loop object with reverse property for seamless loop
-    });
+    });*/
 
     /*
     useEffect(() => {
@@ -41,7 +41,8 @@ export default function LogoComponent() {
 
     return (
         <svg width="100%" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
-            {paths.map((path, index) => (
+            
+            {/* paths.map((path, index) => (
                 <animated.path
                     key={`path-${index + 1}`}
                     id={`Path-${index + 1}`}
@@ -51,7 +52,8 @@ export default function LogoComponent() {
                     d={path}
                     style={pathAnimation}
                 />
-            ))}
+            ))*/}
+
         </svg>
     );
 };
