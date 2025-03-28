@@ -120,7 +120,7 @@ export default function Moderators(
                     <div
                         key={entry.id}
                         onClick={() => actionsModToggle(entry.id)}
-                        className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-screen-2xl"
+                        className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-(--breakpoint-2xl)"
                     >
                         <div className="overflow-none mr-2 p-2">
                             {entry.user.pubkey}
