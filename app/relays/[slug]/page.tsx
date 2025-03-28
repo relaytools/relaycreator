@@ -4,16 +4,10 @@ import { headers } from 'next/headers'
 
 export default async function Relays({
     params,
-    searchParams
 }: {
-    params: { slug: string }
-    searchParams: { [key: string]: string | undefined }
+    params: Promise<{ slug: string }>
 }) {
-    const { slug } = params;
-    const { successpayment } = searchParams;
-
-    const headersList = headers()
-    const rewritten = headersList.get('middleware-rewritten')
+    const { slug } = await params;
 
     /*
 // this will be user fav relays eventually

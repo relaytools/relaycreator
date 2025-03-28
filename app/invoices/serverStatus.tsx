@@ -9,19 +9,25 @@ import AdminInvoices from "./adminInvoices";
 
 export const dynamic = "force-dynamic";
 
-export default async function ServerStatus(
-    searchParams: Record<string, string>
-) {
+export default async function ServerStatus(props: {
+    relayname: string|undefined,
+    order_id: string|undefined,
+    pubkey: string|undefined,
+}) {
+
     const session = await getServerSession(authOptions);
 
-    const { relayname, pubkey, order_id } = searchParams;
+    const relayname = props.relayname;
+    const pubkey = props.pubkey;
+    const order_id = props.order_id;
 
+    // display the user invoices
     if (!relayname || !pubkey || !order_id) {
         if (session && (session as any).user.name) {
             // list the relays for the account
             let relays = await prisma.relay.findMany({
                 where: {
-                    OR: [{ status: "running" }, { status: "paused" }],
+                    OR: [{ status: "running" }, { status: "paused" }, { status: null}],
                     owner: {
                         pubkey: (session as any).user.name,
                     },
@@ -195,7 +201,7 @@ export default async function ServerStatus(
 
     if (paymentsEnabled) {
         return (
-            <div>
+            <div className="flex items-center justify-center flex-col">
                 <PaymentStatus
                     amount={o.amount}
                     payment_hash={o.payment_hash}
