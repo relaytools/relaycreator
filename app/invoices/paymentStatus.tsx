@@ -1,13 +1,8 @@
 "use client";
-import Image from "next/image";
 import React from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Bolt11Invoice from "../components/invoice";
-import LogoComponent from "../components/logoComponent";
-import TextStringWaitingForPayment from "../components/textStringWaitingForPayment";
-import { IoLogoGithub } from "react-icons/io5";
-import NoSSRWrapper from "../components/noSSRWrapper";
 
 // two flows here:
 // 1. user is not logged in, so we just need their nostr pubkey (by paste or by extension)
