@@ -1,14 +1,54 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
-/*
-@layer base {
-  @font-face {
-    font-family: 'roboto';
-    font-weight: 100;
-    font-display: swap;
-    font-style: normal;
-  }
+@plugin "daisyui" {
+    themes: light, dark;
+};
+
+
+@plugin "daisyui/theme" {
+    name: "light";
+    default: false;
+    prefersdark: false;
+    color-scheme: "light";
+    --color-secondary: oklch(65.66% 0.177 286.79);
+    --color-secondary-content: oklch(65.66% 0.177 286.79); 
+    --color-accent: oklch(77.39% 0.143 288.01);
+    --color-accent-content: oklch(77.39% 0.143 288.01);
+    --color-neutral: oklch(23.39% 0.027 255.03);
+    --color-neutral-content: oklch(23.39% 0.027 255.03);
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(98% 0 0);
+    --color-base-300: oklch(95% 0 0);
+    --color-base-content: oklch(21% 0.006 285.885);
+    --color-primary: oklch(63.64% 0.284 0.95)
+    --color-primary-content: oklch(63.64% 0.284 0.95)
+    --color-info: oklch(74% 0.16 232.661);
+    --color-info-content: oklch(29% 0.066 243.157);
+    --color-success: oklch(76% 0.177 163.223);
+    --color-success-content: oklch(37% 0.077 168.94);
+    --color-warning: oklch(82% 0.189 84.429);
+    --color-warning-content: oklch(41% 0.112 45.904);
+    --color-error: oklch(71% 0.194 13.428);
+    --color-error-content: oklch(27% 0.105 12.094);
+    --radius-selector: 0.5rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.5rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+    --rounded-btn: 0.1rem;
+    --rounded-badge: 1.9rem;
+    --animation-btn: 0.2s;
+    --animation-input: 0.2s;
+    --btn-case-text: uppercase;
+    --border-btn: 1px;
+    --tab-border: 1px;
+    --tab-radius: 0.5rem;
+    
 }
-*/
+
+
+
+@config '../tailwind.config.js';

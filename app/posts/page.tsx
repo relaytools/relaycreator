@@ -1404,13 +1404,13 @@ export default function PostsPage(
                     <form
                         ref={postFormRef}
                         onSubmit={(e) => handleSubmitPost(e)}
-                        className="flex flex-wrap flex-grow items-center justify-center relative"
+                        className="flex flex-wrap grow items-center justify-center relative"
                     >
                         <textarea
                             ref={textareaRef}
                             key="post1"
                             placeholder="say something"
-                            className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none`}
+                            className={`grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none`}
                             onChange={handlePostContentChange}
                             onKeyDown={handleKeyDown}
                             value={postContent}
@@ -1505,7 +1505,7 @@ export default function PostsPage(
                                 value={kindFilter}
                                 onChange={(e) => setKindFilter(e.target.value)}
                                 placeholder="Enter kind #"
-                                className="mb-4 p-2 ml-2 mr-2 border rounded input input-bordered input-primary"
+                                className="mb-4 p-2 ml-2 mr-2 border rounded-sm input input-bordered input-primary"
                             />
                             <button
                                 className="btn btn-secondary"
@@ -1818,7 +1818,7 @@ export default function PostsPage(
                                         ref={replyTextAreaRef}
                                         key="replypost"
                                         placeholder="send reply"
-                                        className={`flex-grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none`}
+                                        className={`grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none`}
                                         onChange={(e) => setReplyPost(e.target.value)}
                                         onKeyDown={handleKeyDownReply}
                                         onFocus={handleTextAreaFocus}
@@ -1836,7 +1836,7 @@ export default function PostsPage(
 
                                 {modActions && (
                                     <div>
-                                        <div className="w-full bg-gradient-to-r from-gray-600 to-gray-900 items-center h-5 px-3 sm:text-sm text-center mb-4">
+                                        <div className="w-full bg-linear-to-r from-gray-600 to-gray-900 items-center h-5 px-3 sm:text-sm text-center mb-4">
                                             - actions -{" "}
                                         </div>
                                         <ShowSmallSession pubkey={myPubkey} />
@@ -1890,7 +1890,7 @@ export default function PostsPage(
                         <div
                             key={"post" + post.id}
                             className={
-                                chatStartOrEnd(post) + "flex-grow w-full"
+                                chatStartOrEnd(post) + "grow w-full"
                             }
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}

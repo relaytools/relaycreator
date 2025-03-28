@@ -364,7 +364,7 @@ export default function Wizard(
                     menuOpen ? "translate-x-0" : "-translate-x-full"
                 } lg:translate-x-0 fixed lg:static w-64 h-full bg-base-200 p-4 transition-transform duration-300 ease-in-out z-10 flex flex-col`}
             >
-                <ul className="menu menu-vertical flex-grow">
+                <ul className="menu menu-vertical grow">
                     <li>
                         <button
                             className={`${
@@ -619,7 +619,7 @@ export default function Wizard(
             {/* Main Content - adjusted padding for mobile menu button */}
             <div className="flex-1 p-6 lg:p-6 pt-16 lg:pt-6">
                 <div className="flex flex-col lg:items-center lg:justify-center">
-                    <div className="flex flex-grow w-full mb-4">
+                    <div className="flex grow w-full mb-4">
                         {checked === 0 && (
                             <Relay
                                 showEdit={false}
@@ -1354,7 +1354,7 @@ export default function Wizard(
                                         key={stream.id}
                                         className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
                                     >
-                                        <div className="flex-grow break-all font-bold">
+                                        <div className="grow break-all font-bold">
                                             <span className="font-bold mr-4">
                                                 relay url
                                             </span>
