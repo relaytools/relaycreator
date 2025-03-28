@@ -33,8 +33,9 @@ module.exports = {
   plugins: [
     //require('@tailwindcss/forms'),
     require("@tailwindcss/typography"),
-    require("daisyui"),
+    //require("daisyui"),
   ],
+  /*
   daisyui: {
     styled: true,
     utils: true,
@@ -91,4 +92,5 @@ module.exports = {
       },
     ],
   },
+  */
 }
