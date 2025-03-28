@@ -55,9 +55,7 @@
     "tailwind-variants": "^0.3.1",
     "tailwindcss": "^4.0.17",
     "typescript": "^5.8.2",
-    "usehooks-ts": "^3.1.1"
-  },
-  "devDependencies": {
+    "usehooks-ts": "^3.1.1",
     "daisyui": "^5.0.9"
   }
 }
