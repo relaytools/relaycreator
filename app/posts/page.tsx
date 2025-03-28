@@ -226,13 +226,13 @@ export default function PostsPage(
                     .replace("ws://", "http://");
                 let nip11Response: any;
                 try {
-                nip11Response = await fetch(
-                    httpUrl, // + "/nostrjson",
-                    {
-                        headers: {
-                            Accept: "application/nostr+json",
-                        },
-                    }
+                    nip11Response = await fetch(
+                        httpUrl, // + "/nostrjson",
+                        {
+                            headers: {
+                                Accept: "application/nostr+json",
+                            },
+                        }
                     );
                 } catch (e) {
                     console.log("nip11 fetch error" + e);
@@ -900,8 +900,8 @@ export default function PostsPage(
                 toast.info("Publishing reply...");
                 const newEvent = new NDKEvent(ndk);
                 newEvent.content = replyPost;
-                if(showPost.kind == 20) {
-                    newEvent.kind = 1111
+                if (showPost.kind == 20) {
+                    newEvent.kind = 1111;
                 } else {
                     newEvent.kind = 1;
                 }
@@ -929,7 +929,10 @@ export default function PostsPage(
     const handleTextAreaFocus = () => {
         if (replyTextAreaRef.current) {
             setTimeout(() => {
-                replyTextAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                replyTextAreaRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
             }, 100); // Small delay to ensure keyboard is up
         }
     };
@@ -1019,8 +1022,10 @@ export default function PostsPage(
         };
 
         // Check if profile already exists and only add if it's newer
-        const existingProfile = profiles.find(p => p.pubkey === newProfile.pubkey);
-        
+        const existingProfile = profiles.find(
+            (p) => p.pubkey === newProfile.pubkey
+        );
+
         if (!existingProfile) {
             // Add the new profile
             setProfiles((prevProfiles) => [newProfile, ...prevProfiles]);
@@ -1029,10 +1034,16 @@ export default function PostsPage(
 
     function getUniqueProfiles() {
         // Return deduplicated profiles array
-        return Array.from(new Map(profiles.map(profile => [profile.pubkey, profile])).values());
+        return Array.from(
+            new Map(
+                profiles.map((profile) => [profile.pubkey, profile])
+            ).values()
+        );
     }
 
-    const handlePostContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handlePostContentChange = (
+        e: React.ChangeEvent<HTMLTextAreaElement>
+    ) => {
         const value = e.target.value;
         setPostContent(value);
 
@@ -1048,14 +1059,14 @@ export default function PostsPage(
         if (lastAtIndex >= 0) {
             const searchTerm = value.slice(lastAtIndex + 1);
             setProfileSearch(searchTerm);
-            
+
             // Use getUniqueProfiles() instead of direct profiles array
-            const results = getUniqueProfiles().filter(profile => {
+            const results = getUniqueProfiles().filter((profile) => {
                 const name = profile.content?.name?.toLowerCase() || "";
                 const term = searchTerm.toLowerCase();
                 return name.includes(term);
             });
-            
+
             setProfileResults(results);
             setShowProfileResults(true);
         } else {
@@ -1259,6 +1270,7 @@ export default function PostsPage(
                                 copy url to clipboard
                             </button>
                         </div>
+
                         {modActions && (
                             <div className="mb-4">
                                 <a
@@ -1400,11 +1412,11 @@ export default function PostsPage(
                     {displayRelayStatus()}
                 </div>
 
-                <div className="w-full p-2 flex flex-wrap">
+                <div className="w-full p-2 flex flex-wrap items-center">
                     <form
                         ref={postFormRef}
                         onSubmit={(e) => handleSubmitPost(e)}
-                        className="flex flex-wrap grow items-center justify-center relative"
+                        className="flex grow items-center justify-center relative"
                     >
                         <textarea
                             ref={textareaRef}
@@ -1418,14 +1430,25 @@ export default function PostsPage(
                         />
                         {showProfileResults && profileResults.length > 0 && (
                             <div className="absolute top-full left-0 mt-1 w-64 max-h-48 overflow-y-auto bg-base-200 rounded-lg shadow-lg z-50">
-                                {profileResults.map((profile,index) => (
+                                {profileResults.map((profile, index) => (
                                     <div
-                                        key={profile.pubkey + "profilelisting" + index}
+                                        key={
+                                            profile.pubkey +
+                                            "profilelisting" +
+                                            index
+                                        }
                                         className="p-2 hover:bg-primary hover:text-white cursor-pointer"
                                         onClick={() => {
-                                            const lastAtIndex = postContent.lastIndexOf("@");
-                                            const newContent = postContent.slice(0, lastAtIndex) + 
-                                                `nostr:${nip19.npubEncode(profile.pubkey)} `;
+                                            const lastAtIndex =
+                                                postContent.lastIndexOf("@");
+                                            const newContent =
+                                                postContent.slice(
+                                                    0,
+                                                    lastAtIndex
+                                                ) +
+                                                `nostr:${nip19.npubEncode(
+                                                    profile.pubkey
+                                                )} `;
                                             setPostContent(newContent);
                                             setShowProfileResults(false);
                                             textareaRef.current?.focus();
@@ -1434,8 +1457,16 @@ export default function PostsPage(
                                         <div className="flex items-center">
                                             {lookupProfileImg(profile.pubkey)}
                                             <div className="ml-2">
-                                                <div>{profile.content?.name || summarizePubkey(profile.pubkey)}</div>
-                                                <div className="text-sm opacity-70">{profile.content?.nip05 || ''}</div>
+                                                <div>
+                                                    {profile.content?.name ||
+                                                        summarizePubkey(
+                                                            profile.pubkey
+                                                        )}
+                                                </div>
+                                                <div className="text-sm opacity-70">
+                                                    {profile.content?.nip05 ||
+                                                        ""}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1444,7 +1475,7 @@ export default function PostsPage(
                         )}
                         <button
                             disabled={postContent == ""}
-                            className="btn uppercase btn-primary justify-end"
+                            className="btn uppercase btn-primary"
                         >
                             Post
                         </button>
@@ -1452,7 +1483,7 @@ export default function PostsPage(
                     <button
                         onClick={(e) => setShowStats(!showStats)}
                         key="showstats"
-                        className="btn btn-secondary ml-2"
+                        className="btn btn-info ml-2 justify-end"
                     >
                         STATS
                     </button>
@@ -1819,7 +1850,9 @@ export default function PostsPage(
                                         key="replypost"
                                         placeholder="send reply"
                                         className={`grow p-4 max-w-7xl min-h-[40px] max-h-[300px] input input-bordered input-primary resize-none`}
-                                        onChange={(e) => setReplyPost(e.target.value)}
+                                        onChange={(e) =>
+                                            setReplyPost(e.target.value)
+                                        }
                                         onKeyDown={handleKeyDownReply}
                                         onFocus={handleTextAreaFocus}
                                         value={replyPost}
@@ -1889,9 +1922,7 @@ export default function PostsPage(
                     {sortPosts(false).map((post) => (
                         <div
                             key={"post" + post.id}
-                            className={
-                                chatStartOrEnd(post) + "grow w-full"
-                            }
+                            className={chatStartOrEnd(post) + "grow w-full"}
                             onClick={(e) => handleClick(e, post)}
                             id={"eventid:" + post.id + ";pubkey:" + post.pubkey}
                         >

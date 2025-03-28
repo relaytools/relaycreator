@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 
 const TextStringWaitingForPayment: React.FC = () => {
-    const items = ['This relay name has been reserved!', 'Invoice will expire in 1 hour.', 'Waiting for payment..'];
+    const items = ['Invoice will expire in 1 hour.', 'Waiting for payment..'];
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {

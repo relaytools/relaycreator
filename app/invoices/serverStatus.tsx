@@ -27,7 +27,7 @@ export default async function ServerStatus(props: {
             // list the relays for the account
             let relays = await prisma.relay.findMany({
                 where: {
-                    OR: [{ status: "running" }, { status: "paused" }],
+                    OR: [{ status: "running" }, { status: "paused" }, { status: null}],
                     owner: {
                         pubkey: (session as any).user.name,
                     },
@@ -201,7 +201,7 @@ export default async function ServerStatus(props: {
 
     if (paymentsEnabled) {
         return (
-            <div>
+            <div className="flex items-center justify-center flex-col">
                 <PaymentStatus
                     amount={o.amount}
                     payment_hash={o.payment_hash}
