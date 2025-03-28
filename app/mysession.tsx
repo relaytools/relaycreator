@@ -223,7 +223,7 @@ export default function ShowSession(
                                 tabIndex={0}
                                 className="btn uppercase cursor-pointer mask mask-squircle"
                             >
-                                <div className="rounded bg-white">
+                                <div className="rounded-sm bg-white">
                                     <Image
                                         src="/settings2-svgrepo-com.svg"
                                         alt="menu"
@@ -234,7 +234,7 @@ export default function ShowSession(
                             </label>
                             <ul
                                 tabIndex={0}
-                                className="menu menu-lg dropdown-content mt-3 p-2 shadow bg-base-200 font-bold rounded-box w-52 z-[1]"
+                                className="menu menu-lg dropdown-content mt-3 p-2 shadow-sm bg-base-200 font-bold rounded-box w-52 z-1"
                             >
                                 <li>
                                     <a href={rootDomain + "/"}>Faq</a>
@@ -306,7 +306,7 @@ export default function ShowSession(
                         </label>
                         <ul
                             tabIndex={0}
-                            className="menu menu-lg dropdown-content mt-3 p-2 shadow-lg bg-base-100 font-bold rounded-box w-52 z-[50]"
+                            className="menu menu-lg dropdown-content mt-3 p-2 shadow-lg bg-base-100 font-bold rounded-box w-52 z-50"
                         >
                             <li>
                                 <a href={rootDomain + "/?myrelays=true"}>

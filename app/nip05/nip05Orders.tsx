@@ -183,7 +183,7 @@ export default function Nip05Orders(
                             Nip05 Domain
                         </Label>
                         <div className="relative mt-2">
-                            <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                            <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 <span className="block truncate">
                                     {nip05Domain || "Select a Nip05 Domain"}
                                 </span>
@@ -192,19 +192,19 @@ export default function Nip05Orders(
 
                             <ListboxOptions
                                 transition
-                                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
+                                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden data-closed:data-leave:opacity-0 data-leave:transition data-leave:duration-100 data-leave:ease-in sm:text-sm"
                             >
                                 {props.domains.map((domain, index) => (
                                     <ListboxOption
                                         key={domain + index}
                                         value={domain}
-                                        className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
+                                        className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-focus:bg-indigo-600 data-focus:text-white"
                                     >
-                                        <span className="block truncate font-normal group-data-[selected]:font-semibold">
+                                        <span className="block truncate font-normal group-data-selected:font-semibold">
                                             {domain}
                                         </span>
 
-                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden"></span>
+                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-data-focus:text-white [.group:not([data-selected])_&]:hidden"></span>
                                     </ListboxOption>
                                 ))}
                             </ListboxOptions>
@@ -229,7 +229,7 @@ export default function Nip05Orders(
                 <div className="flex flex-col mb-4  p-4">
                     {props.myNip05.map((nip05: any, index: number) => (
                         <div
-                            className="flex flex-col bg-gradient-to-r from-accent to-base-100 border rounded-lg round mb-4"
+                            className="flex flex-col bg-linear-to-r from-accent to-base-100 border rounded-lg round mb-4"
                             key={index + "-nip05orders123"}
                         >
                             <div className="w-1/2 text-lg font-condensed">
@@ -249,7 +249,7 @@ export default function Nip05Orders(
                                                     validatePubkey(value);
                                                 }}
                                                 placeholder="Pubkey hex or npub"
-                                                className={`input input-secondary flex-grow ${pubkeyValidationError ? 'input-error' : ''}`}
+                                                className={`input input-secondary grow ${pubkeyValidationError ? 'input-error' : ''}`}
                                             />
                                         </div>
                                         {pubkeyValidationError && (
@@ -273,7 +273,7 @@ export default function Nip05Orders(
                                                         key={idx}
                                                         className="flex items-center mb-2"
                                                     >
-                                                        <span className="flex-grow">
+                                                        <span className="grow">
                                                             {url}
                                                         </span>
                                                         <button
@@ -299,7 +299,7 @@ export default function Nip05Orders(
                                                         )
                                                     }
                                                     placeholder="New relay URL"
-                                                    className="input input-bordered flex-grow"
+                                                    className="input input-bordered grow"
                                                 />
                                                 <button
                                                     onClick={handleAddRelayUrl}
@@ -313,7 +313,7 @@ export default function Nip05Orders(
                                         nip05.relayUrls.map((o: any) => (
                                             <div
                                                 key={o.url}
-                                                className="flex-grow overflow-hidden"
+                                                className="grow overflow-hidden"
                                             >
                                                 {o.url}
                                             </div>
@@ -324,7 +324,7 @@ export default function Nip05Orders(
                             <div className="flex">
                                 {true && editingOrderId !== nip05.id && (
                                     <button
-                                        className="btn btn-secondary mt-2 w-24 flex-grow"
+                                        className="btn btn-secondary mt-2 w-24 grow"
                                         onClick={() =>
                                             handleEdit(
                                                 nip05.id,
@@ -350,7 +350,7 @@ export default function Nip05Orders(
                                 </div>
                             </div>
                             {editingOrderId === nip05.id && (
-                                <div className="flex flex-grow w-full mt-4 justify-between">
+                                <div className="flex grow w-full mt-4 justify-between">
                                     <button
                                         onClick={() =>
                                             setEditingOrderId(null)
@@ -374,7 +374,7 @@ export default function Nip05Orders(
                 <div className="flex flex-col mb-4  p-4">
                     {props.otherNip05.map((nip05: any, index: number) => (
                         <div
-                            className="flex flex-col bg-gradient-to-r from-accent to-base-100 border rounded-lg round mb-4"
+                            className="flex flex-col bg-linear-to-r from-accent to-base-100 border rounded-lg round mb-4"
                             key={index + "-nip05orders123"}
                         >
                             <div className="w-1/2 text-lg font-condensed">
@@ -394,7 +394,7 @@ export default function Nip05Orders(
                                                     validatePubkey(value);
                                                 }}
                                                 placeholder="Pubkey hex or npub"
-                                                className={`input input-secondary flex-grow ${pubkeyValidationError ? 'input-error' : ''}`}
+                                                className={`input input-secondary grow ${pubkeyValidationError ? 'input-error' : ''}`}
                                             />
                                         </div>
                                         {pubkeyValidationError && (
@@ -418,7 +418,7 @@ export default function Nip05Orders(
                                                         key={idx}
                                                         className="flex items-center mb-2"
                                                     >
-                                                        <span className="flex-grow">
+                                                        <span className="grow">
                                                             {url}
                                                         </span>
                                                         <button
@@ -444,7 +444,7 @@ export default function Nip05Orders(
                                                         )
                                                     }
                                                     placeholder="New relay URL"
-                                                    className="input input-bordered flex-grow"
+                                                    className="input input-bordered grow"
                                                 />
                                                 <button
                                                     onClick={handleAddRelayUrl}
@@ -458,7 +458,7 @@ export default function Nip05Orders(
                                         nip05.relayUrls.map((o: any) => (
                                             <div
                                                 key={o.url}
-                                                className="flex-grow overflow-hidden"
+                                                className="grow overflow-hidden"
                                             >
                                                 {o.url}
                                             </div>
@@ -468,7 +468,7 @@ export default function Nip05Orders(
                             </div>
                             <div className="flex">
                                 {true && editingOrderId !== nip05.id && (
-                                    <div className="flex flex-grow w-full mt-4 justify-between">
+                                    <div className="flex grow w-full mt-4 justify-between">
                                         <button
                                             className="btn btn-secondary mt-2 w-24"
                                             onClick={() =>
@@ -499,7 +499,7 @@ export default function Nip05Orders(
                                 )}
 
                                 {editingOrderId === nip05.id && (
-                                    <div className="flex flex-grow w-full mt-4 justify-between">
+                                    <div className="flex grow w-full mt-4 justify-between">
                                         <button
                                             onClick={() =>
                                                 setEditingOrderId(null)
