@@ -31,11 +31,8 @@ module.exports = {
     }
   },
   plugins: [
-    //require('@tailwindcss/forms'),
     require("@tailwindcss/typography"),
-    //require("daisyui"),
   ],
-  /*
   daisyui: {
     styled: true,
     utils: true,
@@ -44,7 +41,7 @@ module.exports = {
       {
         light: {
 
-          "primary": "#ff007c",
+          //"primary": "#ff007c",
           //"primary": "#6c4ab6",
           "secondary": "#8d72e1",
           "accent": "#bd9fff",
@@ -66,7 +63,7 @@ module.exports = {
       },
       {
         dark: {
-          "primary": "#ff007c",
+          //"primary": "#ff007c",
           //"primary": "#6c4ab6",
           "secondary": "#8d72e1",
           "accent": "#8d5edd",
@@ -92,5 +89,4 @@ module.exports = {
       },
     ],
   },
-  */
 }

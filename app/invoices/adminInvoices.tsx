@@ -196,7 +196,7 @@ export default function AdminInvoices(
                 {sortedRelays.map((b: any) => (
                     <div
                         key={b.relayId + "rowkey"}
-                        className="flex flex-col border mb-4 bg-gradient-to-r from-accent to-base-100 p-4 "
+                        className="flex flex-col border mb-4 bg-linear-to-r from-accent to-base-100 p-4 "
                     >
                         <div className="flex">
                             <div className="w-1/2 border-b">Relay Name</div>
