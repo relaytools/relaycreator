@@ -1,15 +1,10 @@
 "use client";
-import LogoComponent from "../components/logoComponent";
-import TextString from "../components/textString";
-import TextStringFloatilla from "../components/textStringFloatilla";
-import { IoArrowForwardOutline, IoLogoGithub } from "react-icons/io5";
+import { IoLogoGithub } from "react-icons/io5";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import NoSSRWrapper from "../components/noSSRWrapper";
 import { nip19 } from "nostr-tools";
 import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
-import Image from "next/image";
 
 export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();
@@ -143,7 +138,9 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                             Most Popular
                         </span>
                         <div className="flex justify-between">
-                            <h2 className="text-3xl font-bold">Standard Relay</h2>
+                            <h2 className="text-3xl font-bold">
+                                Standard Relay
+                            </h2>
                             <span className="text-xl">12,000 sats/mo</span>
                         </div>
                         <ul className="mt-6 flex flex-col gap-2 text-xs">
@@ -164,7 +161,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                 </svg>
                                 <span>Customizable on-the-fly</span>
                             </li>
-<li>
+                            <li>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="size-4 me-2 inline-block text-success"
@@ -181,7 +178,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                 </svg>
                                 <span>Inbox / Outbox</span>
                             </li>
-        <li>
+                            <li>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="size-4 me-2 inline-block text-success"
@@ -198,7 +195,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                 </svg>
                                 <span>Public / Private</span>
                             </li>
-        <li>
+                            <li>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="size-4 me-2 inline-block text-success"
@@ -215,10 +212,6 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                                 </svg>
                                 <span>Communities / DMs</span>
                             </li>
-
-
-
-
                         </ul>
                         <label className="label">pubkey</label>
                         <input
