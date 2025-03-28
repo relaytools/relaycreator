@@ -93,11 +93,11 @@ export default function Balances(
                 {sortedRelays.map((b: any) => (
                     <div
                         key={b.relayId + "rowkey"}
-                        className="flex flex-col border mb-4 bg-linear-to-r from-accent to-base-100 p-4 "
+                        className="text-white flex flex-col border mb-4 bg-linear-to-r from-primary to-neutral p-4 "
                     >
                         <div className="flex">
                             <div className="w-1/2 border-b">Relay Name</div>
-                            <div className="w-1/2 border-b text-lg">{b.relayName}</div>
+                            <div className="w-1/2 border-b text-lg text-amber-200 text-">{b.relayName}</div>
                         </div>
                         {props.IsAdmin && 
                         <div className="flex">
@@ -105,7 +105,7 @@ export default function Balances(
                             <div className="w-1/2">{b.relayId}</div>
                         </div>
                         }
-                        <div className="flex">
+                        <div className="flex text-white">
                             <div className="w-1/2">Relay Status</div>
                             <div className="w-1/2">{b.relayStatus}</div>
                         </div>

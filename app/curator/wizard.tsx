@@ -856,7 +856,7 @@ export default function Wizard(
                                 </label>
                                 <textarea
                                     id={props.relay.id + "textareaedit"}
-                                    className="textarea textarea-bordered h-24"
+                                    className="textarea textarea-bordered h-24 w-full"
                                     placeholder="description"
                                     value={profileDetail || ""}
                                     onChange={(e) =>
