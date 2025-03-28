@@ -154,7 +154,7 @@ export default function ShowSession(
                 <div className="flex-1">
                     <a
                         href={rootDomain + "/"}
-                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center max-h-40"
+                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-start max-h-40"
                     >
                         <Image
                             src="/17.svg"

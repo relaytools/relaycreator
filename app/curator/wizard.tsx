@@ -839,11 +839,11 @@ export default function Wizard(
                                         className={isListed()}
                                         onClick={(e) => handleListedChange(e)}
                                     >
-                                        <div className="btn uppercase btn-accent swap-on">
+                                        <div className="btn uppercase btn-primary swap-on">
                                             Relay is listed in the public
                                             directory ✅
                                         </div>
-                                        <div className="btn uppercase btn-accent swap-off">
+                                        <div className="btn uppercase btn-primary swap-off">
                                             Relay is NOT listed in the public
                                             directory 🙈
                                         </div>
@@ -991,11 +991,11 @@ export default function Wizard(
                                     className={isAllow()}
                                     onClick={(e) => handleAllowChange(e)}
                                 >
-                                    <div className="btn uppercase btn-accent swap-on">
+                                    <div className="btn uppercase btn-primary swap-on">
                                         Allow by default and block what I don't
                                         want 🔨
                                     </div>
-                                    <div className="btn uppercase btn-accent swap-off">
+                                    <div className="btn uppercase btn-primary swap-off">
                                         Block by default and then allow what I
                                         want ✅
                                     </div>
@@ -1048,10 +1048,10 @@ export default function Wizard(
                                             className={isAuthRequired()}
                                             onClick={(e) => handleAuthChange(e)}
                                         >
-                                            <div className="btn uppercase btn-accent swap-on">
+                                            <div className="btn uppercase btn-primary swap-on">
                                                 Relay requires AUTH (NIP42) ✅
                                             </div>
-                                            <div className="btn uppercase btn-accent swap-off">
+                                            <div className="btn uppercase btn-primary swap-off">
                                                 Relay does not require AUTH
                                                 (NIP42) 🙈
                                             </div>
@@ -1092,11 +1092,11 @@ export default function Wizard(
                                                 handleTaggedChange(e)
                                             }
                                         >
-                                            <div className="btn uppercase btn-accent swap-on">
+                                            <div className="btn uppercase btn-primary swap-on">
                                                 Allow Events Tagged to Pubkeys
                                                 ✅
                                             </div>
-                                            <div className="btn uppercase btn-accent swap-off">
+                                            <div className="btn uppercase btn-primary swap-off">
                                                 Do NOT Allow Events Tagged to
                                                 Pubkeys 🙈
                                             </div>
@@ -1251,10 +1251,10 @@ export default function Wizard(
                                     className={isPay()}
                                     onClick={(e) => handlePayChange(e)}
                                 >
-                                    <div className="btn uppercase btn-accent swap-on">
+                                    <div className="btn uppercase btn-primary swap-on">
                                         Require lightning to post: on ⚡
                                     </div>
-                                    <div className="btn uppercase btn-accent swap-off">
+                                    <div className="btn uppercase btn-primary swap-off">
                                         Require lightning to post: off
                                     </div>
                                 </label>
