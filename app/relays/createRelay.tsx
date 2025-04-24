@@ -141,7 +141,7 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
                             <h2 className="text-3xl font-bold">
                                 Standard Relay
                             </h2>
-                            <span className="text-xl">12,000 sats/mo</span>
+                            <span className="text-xl">7,000 sats/mo</span>
                         </div>
                         <ul className="mt-6 flex flex-col gap-2 text-xs">
                             <li>
