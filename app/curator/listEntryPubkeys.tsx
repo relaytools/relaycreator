@@ -404,17 +404,17 @@ export default function ListEntryPubkeys(
                                     <button
                                         onClick={() => setNewPubkeyHandler()}
                                         type="button"
-                                        className="btn uppercase btn-primary mr-2 flex-grow w-full mt-4"
+                                        className="btn uppercase btn-primary mr-2 grow w-full mt-4"
                                     >
                                         Add pubkey(s)
                                     </button>
                                 </div>
                             )}
                         </div>
-                        <div className="w-full flex-grow">
+                        <div className="w-full grow">
                             {!showHidePubkeys && !newpubkey && (
                                 <button
-                                    className="btn btn-secondary uppercase flex-grow w-full mt-4"
+                                    className="btn btn-secondary uppercase grow w-full mt-4"
                                     onClick={() => setShowHidePubkeys(true)}
                                 >
                                     show {pubkeys.length.toString()}{" "}
@@ -444,7 +444,7 @@ export default function ListEntryPubkeys(
                                     <div className="font-condensed">
                                         Click to filter:
                                     </div>
-                                    <div className="flex-grow">
+                                    <div className="grow">
                                         {listsFromPubkeys().map(
                                             (entry: any) => (
                                                 <button
@@ -460,7 +460,7 @@ export default function ListEntryPubkeys(
                                         )}
                                     </div>
                                     <button
-                                        className="btn btn-secondary uppercase flex-grow w-full mt-4 mb-4"
+                                        className="btn btn-secondary uppercase grow w-full mt-4 mb-4"
                                         onClick={() =>
                                             setShowHidePubkeys(false)
                                         }
@@ -480,7 +480,7 @@ export default function ListEntryPubkeys(
                                     </button>
                                     <button
                                         onClick={handleDeleteAll}
-                                        className="btn uppercase btn-warning flex-grow w-full mt-4"
+                                        className="btn uppercase btn-warning grow w-full mt-4"
                                         id="all"
                                     >
                                         Delete
@@ -573,7 +573,7 @@ export default function ListEntryPubkeys(
                                 filteredPubkeys().map((entry: any) => (
                                     <div
                                         key={entry.id}
-                                        className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-screen-2xl"
+                                        className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-(--breakpoint-2xl)"
                                         onClick={() =>
                                             setShowActionsPubkey(entry.id)
                                         }

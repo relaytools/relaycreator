@@ -143,7 +143,7 @@ export default function RelayPayment(
                                 )}
                             </div>
                             {showPubkeyInput && (
-                                <div className="mt-2 flex rounded-md shadow-sm">
+                                <div className="mt-2 flex rounded-md shadow-xs">
                                     <input
                                         type="text"
                                         name="pubkey"

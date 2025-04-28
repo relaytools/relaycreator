@@ -364,7 +364,7 @@ export default function Wizard(
                     menuOpen ? "translate-x-0" : "-translate-x-full"
                 } lg:translate-x-0 fixed lg:static w-64 h-full bg-base-200 p-4 transition-transform duration-300 ease-in-out z-10 flex flex-col`}
             >
-                <ul className="menu menu-vertical flex-grow">
+                <ul className="menu menu-vertical grow">
                     <li>
                         <button
                             className={`${
@@ -619,7 +619,7 @@ export default function Wizard(
             {/* Main Content - adjusted padding for mobile menu button */}
             <div className="flex-1 p-6 lg:p-6 pt-16 lg:pt-6">
                 <div className="flex flex-col lg:items-center lg:justify-center">
-                    <div className="flex flex-grow w-full mb-4">
+                    <div className="flex grow w-full mb-4">
                         {checked === 0 && (
                             <Relay
                                 showEdit={false}
@@ -839,11 +839,11 @@ export default function Wizard(
                                         className={isListed()}
                                         onClick={(e) => handleListedChange(e)}
                                     >
-                                        <div className="btn uppercase btn-accent swap-on">
+                                        <div className="btn uppercase btn-primary swap-on">
                                             Relay is listed in the public
                                             directory ✅
                                         </div>
-                                        <div className="btn uppercase btn-accent swap-off">
+                                        <div className="btn uppercase btn-primary swap-off">
                                             Relay is NOT listed in the public
                                             directory 🙈
                                         </div>
@@ -856,7 +856,7 @@ export default function Wizard(
                                 </label>
                                 <textarea
                                     id={props.relay.id + "textareaedit"}
-                                    className="textarea textarea-bordered h-24"
+                                    className="textarea textarea-bordered h-24 w-full"
                                     placeholder="description"
                                     value={profileDetail || ""}
                                     onChange={(e) =>
@@ -991,11 +991,11 @@ export default function Wizard(
                                     className={isAllow()}
                                     onClick={(e) => handleAllowChange(e)}
                                 >
-                                    <div className="btn uppercase btn-accent swap-on">
+                                    <div className="btn uppercase btn-primary swap-on">
                                         Allow by default and block what I don't
                                         want 🔨
                                     </div>
-                                    <div className="btn uppercase btn-accent swap-off">
+                                    <div className="btn uppercase btn-primary swap-off">
                                         Block by default and then allow what I
                                         want ✅
                                     </div>
@@ -1048,10 +1048,10 @@ export default function Wizard(
                                             className={isAuthRequired()}
                                             onClick={(e) => handleAuthChange(e)}
                                         >
-                                            <div className="btn uppercase btn-accent swap-on">
+                                            <div className="btn uppercase btn-primary swap-on">
                                                 Relay requires AUTH (NIP42) ✅
                                             </div>
-                                            <div className="btn uppercase btn-accent swap-off">
+                                            <div className="btn uppercase btn-primary swap-off">
                                                 Relay does not require AUTH
                                                 (NIP42) 🙈
                                             </div>
@@ -1092,11 +1092,11 @@ export default function Wizard(
                                                 handleTaggedChange(e)
                                             }
                                         >
-                                            <div className="btn uppercase btn-accent swap-on">
+                                            <div className="btn uppercase btn-primary swap-on">
                                                 Allow Events Tagged to Pubkeys
                                                 ✅
                                             </div>
-                                            <div className="btn uppercase btn-accent swap-off">
+                                            <div className="btn uppercase btn-primary swap-off">
                                                 Do NOT Allow Events Tagged to
                                                 Pubkeys 🙈
                                             </div>
@@ -1251,10 +1251,10 @@ export default function Wizard(
                                     className={isPay()}
                                     onClick={(e) => handlePayChange(e)}
                                 >
-                                    <div className="btn uppercase btn-accent swap-on">
+                                    <div className="btn uppercase btn-primary swap-on">
                                         Require lightning to post: on ⚡
                                     </div>
-                                    <div className="btn uppercase btn-accent swap-off">
+                                    <div className="btn uppercase btn-primary swap-off">
                                         Require lightning to post: off
                                     </div>
                                 </label>
@@ -1354,7 +1354,7 @@ export default function Wizard(
                                         key={stream.id}
                                         className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
                                     >
-                                        <div className="flex-grow break-all font-bold">
+                                        <div className="grow break-all font-bold">
                                             <span className="font-bold mr-4">
                                                 relay url
                                             </span>

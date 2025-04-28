@@ -40,7 +40,7 @@ export default function RelaySmall(
 
     return (
         <div id={props.relay.id + "rootview"} className="mb-4">
-                <a href={useRelayHttps} className="flex flex-shrink items-center">
+                <a href={useRelayHttps} className="flex shrink items-center">
                     <div className="chat-image avatar mr-2">
                         <div className="w-10 rounded-full">
                             <img src={props.relay.banner_image || '/green-check.png'} />

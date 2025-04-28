@@ -54,7 +54,7 @@ export default function ShowNip05Order(
                 <button
                     onClick={(e) => copyToClipboard(e, props.nip05Order.lnurl)}
                     type="submit"
-                    className="flex justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300 mb-4"
+                    className="flex justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-xs hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300 mb-4"
                 >
                     Copy ⚡ invoice to clipboard
                 </button>

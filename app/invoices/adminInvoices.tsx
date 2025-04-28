@@ -1,13 +1,9 @@
 "use client";
-import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import Bolt11Invoice from "../components/invoice";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 import NDK, { NDKEvent, NDKNip07Signer, NDKPublishError, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet, NDKSubscription } from "@nostr-dev-kit/ndk";
 import { getRelayListForUser, getRelayListForUsers } from "@nostr-dev-kit/ndk";
-import handle from "../../pages/api/clientorders";
 
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();
@@ -200,7 +196,7 @@ export default function AdminInvoices(
                 {sortedRelays.map((b: any) => (
                     <div
                         key={b.relayId + "rowkey"}
-                        className="flex flex-col border mb-4 bg-gradient-to-r from-accent to-base-100 p-4 "
+                        className="flex flex-col border mb-4 bg-linear-to-r from-accent to-base-100 p-4 "
                     >
                         <div className="flex">
                             <div className="w-1/2 border-b">Relay Name</div>
