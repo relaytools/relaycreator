@@ -101,6 +101,7 @@ model Relay {
   Order                  Order[]
   ClientOrder            ClientOrder[]
   streams                Stream[]
+  acl_sources            AclSource[]
   allow_list             AllowList?
   block_list             BlockList?
   details                String?       @db.Text
@@ -128,6 +129,14 @@ model Relay {
   request_payment_amount Int           @default(1000)
 
   @@index([ownerId])
+}
+
+model AclSource {
+  id String @id @default(cuid())
+  relayId String
+  relay Relay @relation(fields: [relayId], references: [id])
+  url String @db.VarChar(1024)
+  aclType String @db.VarChar(128)
 }
 
 model Server {

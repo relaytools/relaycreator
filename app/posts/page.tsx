@@ -362,7 +362,6 @@ export default function PostsPage(
                     [
                         nrelaydata,
                         "wss://profiles.nostr1.com",
-                        "wss://purplepag.es",
                     ],
                     ndk
                 );
