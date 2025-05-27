@@ -35,6 +35,7 @@ export default async function handle(req: any, res: any) {
                     user: { select: { pubkey: true } },
                 },
             },
+            acl_sources: true,
         },
     });
 
