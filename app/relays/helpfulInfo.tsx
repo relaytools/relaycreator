@@ -51,9 +51,7 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
                         <h2 className="text-xl mb-2">Relay Creator</h2>
                         <div className="font-roboto">
                             <p>Create relays of any type quickly and easily</p>
-                            <p>Pricing: 12,000 sats/month</p>
-                            <p className="">open source on <a className="link" href="https://github.com/relaytools">github</a></p>
-                            
+                            <p className="">Open source on <a className="link" href="https://github.com/relaytools">github</a></p>
                         </div>
                     </div>
                 </div>
