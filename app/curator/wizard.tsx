@@ -3,7 +3,7 @@ import ListEntryKeywords from "./listEntryKeywords";
 import ListEntryPubkeys from "./listEntryPubkeys";
 import ListEntryKinds from "./listEntryKinds";
 import Moderators from "./moderators";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
 import { useRouter } from "next/navigation";
@@ -56,6 +56,28 @@ export default function Wizard(
     const [streamUrl, setStreamUrl] = useState("");
     const [streamDirection, setStreamDirection] = useState("both"); // can be "up", "down", "both"
 
+    // ACL sources
+    const [aclSources, setAclSources] = useState<Array<{id: string, url: string, aclType: string}>>([]);
+    const [aclSourceUrl, setAclSourceUrl] = useState("");
+    const [aclSourceType, setAclSourceType] = useState("grapevine"); // can be "grapevine" or "nip05"
+    
+    // Load ACL sources when component mounts
+    useEffect(() => {
+        const loadAclSources = async () => {
+            try {
+                const response = await fetch(`/api/relay/${props.relay.id}/aclsources`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setAclSources(data);
+                }
+            } catch (error) {
+                console.error("Error loading ACL sources:", error);
+            }
+        };
+        
+        loadAclSources();
+    }, [props.relay.id]);
+
     const handleAddStream = async (newStream: {
         url: string;
         direction: string;
@@ -96,6 +118,48 @@ export default function Wizard(
             toast.success("Stream configuration updated");
         } else {
             toast.error("Failed to delete stream: ");
+        }
+    };
+    
+    // Handler for adding ACL sources
+    const handleAddAclSource = async (newSource: {
+        url: string;
+        type: string;
+    }) => {
+        const response = await fetch(`/api/relay/${props.relay.id}/aclsources`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                url: newSource.url,
+                type: newSource.type, // API expects 'type' parameter
+            }),
+        });
+
+        if (response.ok) {
+            const responseData = await response.json();
+            const updatedSources = [...aclSources, responseData];
+            setAclSources(updatedSources);
+            toast.success("ACL source added");
+        } else {
+            const errorMessage = await response.json();
+            toast.error("Error adding ACL source: " + errorMessage.error);
+        }
+    };
+    
+    // Handler for removing ACL sources
+    const handleRemoveAclSource = async (indexToRemove: number) => {
+        const response = await fetch(`/api/relay/${props.relay.id}/aclsources`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: aclSources[indexToRemove].id }),
+        });
+
+        if (response.ok) {
+            const updatedSources = aclSources.filter((_, index) => index !== indexToRemove);
+            setAclSources(updatedSources);
+            toast.success("ACL source removed");
+        } else {
+            toast.error("Failed to remove ACL source");
         }
     };
 
@@ -601,12 +665,23 @@ export default function Wizard(
                             Streams Configuration
                         </button>
                     </li>
+                    <li>
+                        <button
+                            className={`${checked === 8 ? "active" : ""}`}
+                            onClick={() => {
+                                setChecked(9);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            ACL Sources Configuration
+                        </button>
+                    </li>
                     <div className="divider"></div>
                     <li>
                         <button
                             className="text-error"
                             onClick={() => {
-                                setChecked(9);
+                                setChecked(10);
                                 setMenuOpen(false);
                             }}
                         >
@@ -1381,19 +1456,99 @@ export default function Wizard(
                                     </div>
                                 ))}
                             </div>
-
-                            <div className="flex justify-center">
-                                <div
-                                    className="btn btn-primary uppercase mt-4"
-                                    onClick={() => setChecked(9)}
-                                >
-                                    next
-                                </div>
-                            </div>
                         </div>
                     )}
 
                     {checked === 9 && (
+                        <div className="w-full">
+                            <h2 className="text-lg font-bold mb-4">
+                                ACL Source Configuration
+                            </h2>
+                            <article className="prose">
+                                <p>
+                                    Add ACL sources like grapevine scores or nip05 domains
+                                </p>
+                            </article>
+
+                            <div className="form-control mt-4">
+                                <input
+                                    type="text"
+                                    placeholder="Enter ACL source URL (https://...)"
+                                    className="input input-bordered w-full"
+                                    value={aclSourceUrl}
+                                    onChange={(e) =>
+                                        setAclSourceUrl(e.target.value)
+                                    }
+                                />
+
+                                <div className="flex gap-2 mt-2">
+                                    <select
+                                        className="select select-bordered"
+                                        value={aclSourceType}
+                                        onChange={(e) =>
+                                            setAclSourceType(e.target.value)
+                                        }
+                                    >
+                                        <option value="grapevine">grapevine</option>
+                                        <option value="nip05">nip05 domain</option>
+                                    </select>
+
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                            if (aclSourceUrl && aclSourceUrl.startsWith('https://')) {
+                                                handleAddAclSource({
+                                                    url: aclSourceUrl,
+                                                    type: aclSourceType,
+                                                });
+                                                setAclSourceUrl("");
+                                            } else {
+                                                toast.error("URL must start with https://");
+                                            }
+                                        }}
+                                    >
+                                        Add ACL Source
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 flex flex-col gap-4">
+                                {aclSources.map((source, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
+                                    >
+                                        <div className="grow break-all font-bold">
+                                            <span className="font-bold mr-4">
+                                                source url
+                                            </span>
+                                            <span className="font-condensed">
+                                                {source.url}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className="font-bold">
+                                                type
+                                            </span>
+                                            <span className="font-condensed">
+                                                {source.aclType}
+                                            </span>
+                                        </div>
+                                        <button
+                                            className="btn btn-sm btn-error"
+                                            onClick={() =>
+                                                handleRemoveAclSource(index)
+                                            }
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {checked === 10 && (
                         <div className="w-full">
                             <h2 className="text-lg font-bold mb-4">
                                 Delete Relay
