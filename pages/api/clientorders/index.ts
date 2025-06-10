@@ -3,7 +3,7 @@ import prisma from '../../../lib/prisma'
 
 export default async function handle(req: any, res: any) {
 
-    const { relayid, pubkey } = req.query as { relayid: string, pubkey: string };
+    const { relayid, pubkey, sats } = req.query as { relayid: string, pubkey: string, sats: string };
 
     if (relayid == null || pubkey == "") {
         console.log("WHOOPS")
@@ -31,15 +31,20 @@ export default async function handle(req: any, res: any) {
         endpoint: process.env.LNBITS_ENDPOINT,
     });
 
+    let useamount = relay.payment_amount
+    if(sats != null) {
+        useamount = parseInt(sats)
+    }
+
     const newInvoice = await wallet.createInvoice({
-        amount: relay.payment_amount,
+        amount: useamount,
         memo: relay.name + " " + pubkey,
         out: false,
     });
 
     const newClientOrder = await prisma.clientOrder.create({
         data: {
-            amount: relay.payment_amount,
+            amount: useamount,
             relayId: relayid,
             pubkey: pubkey,
             paid: false,
