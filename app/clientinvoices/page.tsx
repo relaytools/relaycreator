@@ -6,15 +6,24 @@ import ServerStatus from "./serverStatus.tsx"
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
 export default async function ClientPaymentPage(props: {
-    searchParams: SearchParams,
+    searchParams?: SearchParams,
 }) {
 
     const p = await props.searchParams
 
+    let gotParams=false
+    if(p != null) {
+        gotParams = true
+    } 
+
     return (
         <div>
-            {/* @ts-expect-error Server Component */}
-            <ServerStatus relayname={p.relayname} pubkey={p.pubkey} order_id={p.order_id} relayid={p.relayid}></ServerStatus>
+            {p != null &&
+                <ServerStatus relayname={p.relayname as any} pubkey={p.pubkey as any} order_id={p.order_id as any} relayid={p.relayid as any}></ServerStatus>
+            }
+            {!gotParams &&
+                <ServerStatus relayname={""} pubkey={""} order_id={""} relayid={""}></ServerStatus>
+            }
         </div>
     )
 

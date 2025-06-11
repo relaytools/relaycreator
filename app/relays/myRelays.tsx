@@ -12,6 +12,7 @@ export default function MyRelays() {
     const [moderatedRelays, setModeratedRelays] = useState<ModWithRelays[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showPublicRelays, setShowPublicRelays] = useState(false);
+    const [showRelaySubs, setShowRelaySubs] = useState(false)
 
     useEffect(() => {
         const fetchRelays = async () => {
@@ -38,10 +39,11 @@ export default function MyRelays() {
 
     return (
         <div>
+            
             <div className="collapse collapse-arrow bg-base-200">
                 <input type="checkbox" defaultChecked /> 
                 <div className="collapse-title text-lg font-bold text-center">
-                    Your Relay(s)
+                    Relay Owner/Moderator
                 </div>
                 <div className="collapse-content">
                     {isLoading ? (
