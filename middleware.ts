@@ -65,6 +65,11 @@ export async function middleware(req: NextRequest) {
             } else if(url.pathname.includes('api/86')) {
                 // NIP-86 for subdomains
                 // DONT REWRITE TO RELAYS DOWN BELOW HERE..
+            } else if(url.pathname.includes('trex')) {
+                // DONT REWRITE TO RELAYS DOWN BELOW HERE..
+                console.log(`>>> Rewriting for trex: ${url.pathname} to /trex/${subdomain}`);
+                url.pathname = `/trex/${subdomain}`;
+
             } else {
                 // Subdomain available, rewriting
                 console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);
