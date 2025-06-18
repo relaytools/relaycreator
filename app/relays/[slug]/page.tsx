@@ -136,10 +136,10 @@ export default async function RelayPage({
                 </div>
             </div>
             
+            {/* Mobile-first layout with custom ordering */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* Left column - Team and Stats */}
+                {/* Team card - always first */}
                 <div className="lg:col-span-2">
-                    {/* Team card */}
                     <div className="card bg-base-100 shadow-xl mb-6">
                         <div className="card-body">
                             <div>
@@ -196,37 +196,30 @@ export default async function RelayPage({
                             </div>
                         </div>
                     </div>
-                    
-                    {/* Stats card */}
+                </div>
+                
+                {/* Your Status - second on mobile, first in right column on desktop */}
+                <div className="lg:col-span-1">
+                    <UserRelayStatus relay={relay} />
+                </div>
+                
+                {/* Stats card - third on mobile, second in left column on desktop */}
+                <div className="lg:col-span-2 lg:order-2">
                     <div className="card bg-base-100 shadow-xl mb-6">
                         <div className="card-body">
                             <h2 className="card-title flex items-center gap-2">
                                 <FaChartLine className="text-primary" /> Relay Statistics
                             </h2>
                             <div className="divider my-1"></div>
-                            
-                            {/* Connection Stats Chart */}
-                            <div className="mb-4">
+                            <div>
                                 <ConnectionStats relayName={slug} />
                             </div>
                         </div>
                     </div>
-                    
-                    {/* Posts related to this relay */}
-                    <div className="card bg-base-100 shadow-xl">
-                        <div className="card-body">
-                            <h2 className="card-title">Explore Notes</h2>
-                            <div className="divider my-1"></div>
-                            <DinosaurPosts relayName={slug} />
-                        </div>
-                    </div>
                 </div>
                 
-                {/* Sidebar */}
-                <div className="lg:col-span-1">
-                    {/* User Relay Status Component */}
-                    <UserRelayStatus relay={relay} />
-                    
+                {/* Connect to Relay - fourth on mobile, second in right column on desktop */}
+                <div className="lg:col-span-1 lg:order-3">
                     <div className="card bg-base-100 shadow-xl mb-4">
                         <div className="card-body">
                             <h2 className="card-title">Connect to Relay</h2>
@@ -238,6 +231,17 @@ export default async function RelayPage({
                             <div className="card-actions justify-end mt-4">
                                 <button className="btn btn-primary btn-sm">Copy URL</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Posts related to this relay - fifth on mobile, third in left column on desktop */}
+                <div className="lg:col-span-2 lg:order-4">
+                    <div className="card bg-base-100 shadow-xl">
+                        <div className="card-body">
+                            <h2 className="card-title">Explore Notes</h2>
+                            <div className="divider my-1"></div>
+                            <DinosaurPosts relayName={slug} />
                         </div>
                     </div>
                 </div>
