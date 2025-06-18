@@ -232,20 +232,7 @@ export default async function RelayPage({
                             
                             {/* Connection Stats Chart */}
                             <div className="mb-4">
-                                <h3 className="font-semibold mb-2">Connection History (24h)</h3>
                                 <ConnectionStats relayName={slug} />
-                            </div>
-                            
-                            <div className="stats stats-vertical lg:stats-horizontal shadow">
-                                <div className="stat">
-                                    <div className="stat-title">Active Users</div>
-                                    <div className="stat-value">0</div>
-                                </div>
-                                
-                                <div className="stat">
-                                    <div className="stat-title">Uptime</div>
-                                    <div className="stat-value">99.9%</div>
-                                </div>
                             </div>
                         </div>
                     </div>
