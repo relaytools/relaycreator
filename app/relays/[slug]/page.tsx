@@ -4,8 +4,8 @@ import { FaUser, FaShieldAlt, FaCheck, FaBan, FaGlobe, FaCalendarAlt, FaInfoCirc
 import { RelayWithEverything } from '../../components/relayWithEverything'
 import DinosaurPosts from '../../components/dinosaurPosts'
 import ConnectionStats from '../../components/connectionStats'
+import UserRelayStatus from '../../components/userRelayStatus'
 // Using regular img tag instead of Next.js Image for more flexibility with external URLs
-
 
 export default async function RelayPage({
     params,
@@ -249,6 +249,9 @@ export default async function RelayPage({
                 
                 {/* Sidebar */}
                 <div className="lg:col-span-1">
+                    {/* User Relay Status Component */}
+                    <UserRelayStatus relay={relay} />
+                    
                     <div className="card bg-base-100 shadow-xl mb-4">
                         <div className="card-body">
                             <h2 className="card-title">Connect to Relay</h2>
