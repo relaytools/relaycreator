@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { FaUser, FaShieldAlt, FaBolt, FaCheck, FaBan } from 'react-icons/fa';
 import { RelayWithEverything } from './relayWithEverything';
 import ShowSmallSession from '../smallsession';
+import RelayPayment from './relayPayment';
 
 interface UserRelayStatusProps {
     relay: RelayWithEverything;
@@ -34,21 +35,29 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
         try {
             // Check if user is owner or moderator
             const isOwner = relay.owner?.pubkey === myPubkey;
-            const isMod = relay.moderators?.some((mod) => mod.user.pubkey === myPubkey);
-            setIsModOrOwner(isOwner || isMod);
+            const isMod = relay.moderators?.some((mod) => mod.user.pubkey === myPubkey) || false;
+            setIsModOrOwner(Boolean(isOwner || isMod));
             
             // Check if user is a member (in allow list)
             const isInAllowList = relay.allow_list?.list_pubkeys?.some(
                 (entry) => entry.pubkey === myPubkey
-            );
-            setIsMember(isInAllowList);
+            ) || false;
+            setIsMember(Boolean(isInAllowList));
             
-            // Check if relay accepts lightning payments
-            // Ensure we always pass a boolean value to avoid TypeScript errors
-            setAcceptsLightning(Boolean(relay.payment_required));
+            // Check if relay accepts lightning payments - check both field sets
+            // Relay schema has both payment_required/payment_amount and request_payment/request_payment_amount
+            const paymentRequired = Boolean(relay.payment_required || relay.request_payment);
+            console.log('Relay payment fields:', {
+                payment_required: relay.payment_required,
+                request_payment: relay.request_payment,
+                combined: paymentRequired
+            });
+            setAcceptsLightning(paymentRequired);
             
-            // Get payment amount
-            setPaymentAmount(relay.payment_amount || 0);
+            // Get payment amount - check both field sets
+            const amount = relay.payment_amount || relay.request_payment_amount || 0;
+            console.log('Relay payment amount:', amount);
+            setPaymentAmount(amount);
             
         } catch (error) {
             console.error('Error processing relay data:', error);
@@ -137,13 +146,24 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                     </div>
                 </div>
                 
-                {acceptsLightning && !isMember && !isModOrOwner && (
-                    <div className="mt-4">
-                        <a href={`/clientinvoices?relayid=${relay.id}&pubkey=${myPubkey}&amount=${paymentAmount}`} className="btn btn-primary btn-sm w-full">
-                            <FaBolt size={12} className="mr-1" /> Pay for Access
-                        </a>
+                {/* Payment section - always show for debugging */}
+                {/* Debug info */}
+                <div className="text-xs text-gray-500 mt-2">
+                    Payment required: {acceptsLightning ? 'Yes' : 'No'}, 
+                    Amount: {paymentAmount} sats, 
+                    Member: {isMember ? 'Yes' : 'No'}, 
+                    Mod/Owner: {isModOrOwner ? 'Yes' : 'No'}
+                </div>
+                
+                {/* TESTING: Always show payment component */}
+                <div className="mt-4">
+                    <div className="card bg-base-200 p-3">
+                        <h3 className="font-medium flex items-center mb-2">
+                            <FaBolt size={12} className="mr-2 text-warning" /> Pay for Access ({paymentAmount} sats)
+                        </h3>
+                        <RelayPayment relay={relay} pubkey={myPubkey || ''} />
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );
