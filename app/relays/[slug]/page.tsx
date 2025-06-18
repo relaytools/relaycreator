@@ -59,23 +59,15 @@ export default async function RelayPage({
         day: 'numeric'
     }) : 'Unknown';
 
-    // Determine policy badge color
-    const policyBadge = relay.default_message_policy ? 
-        <span className="badge badge-success gap-1"><FaCheck size={12} /> Allow by default</span> : 
-        <span className="badge badge-warning gap-1"><FaBan size={12} /> Deny by default</span>;
-    
     // Auth required badge
     const authBadge = relay.auth_required ? 
         <span className="badge badge-secondary gap-1"><FaLock size={12} /> Auth required</span> : 
         <span className="badge badge-outline gap-1"><FaUnlock size={12} /> No auth</span>;
     
 
-    // Default banner if none is provided - using a more reliable placeholder service
-    const defaultBanner = 'https://via.placeholder.com/1200x400/1d283a/ffffff?text=Nostr+Relay';
-    
     // Check if banner_image exists and is not empty
     const bannerImage = relay.banner_image && relay.banner_image.trim() !== '' ? 
-        relay.banner_image : defaultBanner;
+        relay.banner_image : '/green-check.png';
     
     // Log the banner URL for debugging
     console.log('Banner image URL:', bannerImage);
@@ -108,7 +100,6 @@ export default async function RelayPage({
                             <span className="font-mono">{'wss://' + relay.name + '.' + relay.domain}</span>
                         </p>
                         <div className="flex flex-wrap justify-center gap-2 mt-2">
-                            {policyBadge}
                             {authBadge}
                             <span className="badge badge-neutral gap-1">
                                 <FaCalendarAlt size={12} />est. {createdAt}
