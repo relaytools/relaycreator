@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { FaUser, FaShieldAlt, FaBolt, FaCheck, FaBan } from 'react-icons/fa';
+import { useSession, signOut } from 'next-auth/react';
+import { FaUser, FaShieldAlt, FaBolt, FaCheck, FaBan, FaSignOutAlt } from 'react-icons/fa';
 import { RelayWithEverything } from './relayWithEverything';
 import ShowSmallSession from '../smallsession';
 import RelayPayment from './relayPayment';
@@ -91,7 +91,21 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
     return (
         <div className="card bg-base-100 shadow-xl mb-4">
             <div className="card-body">
-                <h2 className="card-title">Your Status</h2>
+                <div className="flex justify-between items-center">
+                    <h2 className="card-title">Your Status</h2>
+                    <button 
+                        onClick={() => {
+                            // Stay on the current relay page after signing out
+                            const currentPath = window.location.pathname;
+                            signOut({ callbackUrl: "/#"});
+                        }} 
+                        className="btn btn-sm btn-ghost text-base-content/70 hover:text-error flex gap-1 items-center"
+                        title="Sign out"
+                    >
+                        <FaSignOutAlt size={14} />
+                        <span className="hidden sm:inline">Sign out</span>
+                    </button>
+                </div>
                 <div className="divider my-1"></div>
                 
                 <div className="flex flex-col gap-2">
