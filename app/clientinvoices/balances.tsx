@@ -116,13 +116,6 @@ export default function ClientBalances(
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                 <div className="stats bg-base-300 shadow">
                                     <div className="stat">
-                                        <div className="stat-title">Relay Status</div>
-                                        <div className="stat-value text-lg">{relay.relayStatus}</div>
-                                    </div>
-                                </div>
-                                
-                                <div className="stats bg-base-300 shadow">
-                                    <div className="stat">
                                         <div className="stat-title">Subscription Amount</div>
                                         <div className="stat-value text-lg">{relay.paymentAmount} sats</div>
                                     </div>
