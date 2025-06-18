@@ -6,7 +6,7 @@ import DinosaurPosts from '../../components/dinosaurPosts'
 import ConnectionStats from '../../components/connectionStats'
 import UserRelayStatus from '../../components/userRelayStatus'
 import ProfileImage from '../../components/profileImage'
-import ProfileWrapper from '../../components/profileWrapper'
+import TeamProfilesWrapper from '../../components/teamProfilesWrapper'
 // Using regular img tag instead of Next.js Image for more flexibility with external URLs
 
 export default async function RelayPage({
@@ -142,12 +142,7 @@ export default async function RelayPage({
                     {/* Team card */}
                     <div className="card bg-base-100 shadow-xl mb-6">
                         <div className="card-body">
-                            <h2 className="card-title flex items-center gap-2">
-                                <FaUser className="text-primary" /> Relay Team
-                            </h2>
-                            <div className="divider my-1"></div>
-                            
-                            <div className="space-y-2">
+                            <div>
                                 {/* Create a combined, deduplicated team list */}
                                 {(() => {
                                     // Define team member type
@@ -159,7 +154,7 @@ export default async function RelayPage({
                                     // Start with the owner
                                     const teamMembers: TeamMember[] = [];
                                     const seenPubkeys = new Set<string>();
-                                                                               // Add owner if exists
+                                    // Add owner if exists
                                     if (relay.owner?.pubkey) {
                                         teamMembers.push({
                                             pubkey: relay.owner.pubkey,
@@ -189,30 +184,13 @@ export default async function RelayPage({
                                     });
                                     
                                     return (
-                                        <div>
-                                            {teamMembers.map((member, index) => (
-                                                <div key={index} className="bg-base-200 p-3 rounded-lg flex items-center">
-                                                    <div className="w-full">
-                                                        <div className="flex items-center justify-between">
-                                                            <ProfileWrapper 
-                                                                pubkey={member.pubkey} 
-                                                                size="small" 
-                                                                showName={true} 
-                                                                showPubkey={true} 
-                                                                showCopy={true} 
-                                                            />
-                                                            <div className="flex gap-2">
-                                                                {member.roles.includes('owner') && (
-                                                                    <div className="tooltip" data-tip="Owner">
-                                                                        <FaCrown size={16} className="text-amber-400" />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <TeamProfilesWrapper 
+                                            teamMembers={teamMembers}
+                                            size="small"
+                                            showName={true}
+                                            showPubkey={true}
+                                            showCopy={true}
+                                        />
                                     );
                                 })()}
                             </div>
@@ -260,15 +238,6 @@ export default async function RelayPage({
                             <div className="card-actions justify-end mt-4">
                                 <button className="btn btn-primary btn-sm">Copy URL</button>
                             </div>
-                        </div>
-                    </div>
-                    
-                    {/* About card - only shown on mobile */}
-                    <div className="card bg-base-100 shadow-xl md:hidden">
-                        <div className="card-body">
-                            <h2 className="card-title">About</h2>
-                            <div className="divider my-1"></div>
-                            <p>{relay.details || 'A Nostr relay powered by relay.tools'}</p>
                         </div>
                     </div>
                 </div>

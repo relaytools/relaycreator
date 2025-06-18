@@ -16,12 +16,17 @@ export default async function ClientPaymentPage(props: {
         gotParams = true
     } 
 
+    let gotName=false
+    if(p?.relayname != null) {
+        gotName=true
+    }
+
     return (
         <div>
             {p != null &&
                 <ServerStatus relayname={p.relayname as any} pubkey={p.pubkey as any} order_id={p.order_id as any} relayid={p.relayid as any}></ServerStatus>
             }
-            {!gotParams &&
+            {!gotParams  &&
                 <ServerStatus relayname={""} pubkey={""} order_id={""} relayid={""}></ServerStatus>
             }
         </div>
