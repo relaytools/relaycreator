@@ -27,11 +27,12 @@ export default async function handle(req: any, res: any) {
         |> range(start: -24h)
         |> filter(fn: (r) => r["_measurement"] == "haproxy")
         |> filter(fn: (r) => r["_field"] == "h1_open_streams")
-        |> filter(fn: (r) => r["proxy"] == "${slug}")
+        |> filter(fn: (r) => r["proxy"] == "TheForest")
         |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
         |> yield(name: "mean")
     `;
 
+    // |> filter(fn: (r) => r["proxy"] == "${slug}")
         const result = await queryApi.collectRows(fluxQuery);
         return res.status(200).json({ stats: result });
     } catch (e) {
