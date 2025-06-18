@@ -27,12 +27,14 @@ export default function ShowSession(
         // adding additional call to support new signing clients -- until we can get bugs fixed upstream
         // oct-20 update, attempting to re-enable one event sign-in
         try {
-            const thisPubkeyRes = await (window as any).nostr.getPublicKey();
+            // jun2025, trying the one key method again, the other signers with bugs are gone
+            // this allows us to only ask for one permission from the signer extension
+            //const thisPubkeyRes = await (window as any).nostr.getPublicKey();
             let signThis = {
                 kind: 27235,
                 created_at: Math.floor(Date.now() / 1000),
                 tags: [],
-                pubkey: thisPubkeyRes,
+                //pubkey: thisPubkeyRes,
                 content: token,
             };
             let useMe = await (window as any).nostr.signEvent(signThis);

@@ -86,6 +86,8 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
         );
     }
 
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+
     return (
         <div className="card bg-base-100 shadow-xl mb-4">
             <div className="card-body">
@@ -135,7 +137,7 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                         <div>
                             {acceptsLightning ? (
                                 <span className="badge badge-secondary gap-1">
-                                    <FaBolt size={12} /> {paymentAmount} sats Required
+                                    <FaBolt size={12} /> {paymentAmount} sats/mo
                                 </span>
                             ) : (
                                 <span className="badge badge-outline gap-1">
@@ -146,22 +148,19 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                     </div>
                 </div>
                 
-                {/* Payment section - always show for debugging */}
-                {/* Debug info */}
-                <div className="text-xs text-gray-500 mt-2">
-                    Payment required: {acceptsLightning ? 'Yes' : 'No'}, 
-                    Amount: {paymentAmount} sats, 
-                    Member: {isMember ? 'Yes' : 'No'}, 
-                    Mod/Owner: {isModOrOwner ? 'Yes' : 'No'}
-                </div>
-                
-                {/* TESTING: Always show payment component */}
                 <div className="mt-4">
                     <div className="card bg-base-200 p-3">
-                        <h3 className="font-medium flex items-center mb-2">
-                            <FaBolt size={12} className="mr-2 text-warning" /> Pay for Access ({paymentAmount} sats)
-                        </h3>
-                        <RelayPayment relay={relay} pubkey={myPubkey || ''} />
+                        {(isMember || isModOrOwner) && <a
+                                            className="btn btn-primary uppercase mt-2 mb-2"
+                                            href={`${rootDomain}` + "/clientinvoices"}
+                                        >
+
+                                            <FaBolt size={12} className="mr-2 text-warning" />
+                                            manage subscription
+                                        </a>
+                        }
+
+                        {(!isMember && !isModOrOwner) && <RelayPayment relay={relay} pubkey={myPubkey || ''} />}
                     </div>
                 </div>
             </div>
