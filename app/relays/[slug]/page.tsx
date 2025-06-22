@@ -1,12 +1,13 @@
 
 import prisma from '../../../lib/prisma'
-import { FaUser, FaShieldAlt, FaCheck, FaBan, FaGlobe, FaCalendarAlt, FaInfoCircle, FaLock, FaUnlock, FaChartLine, FaCrown } from 'react-icons/fa'
+import { FaUser, FaShieldAlt, FaCheck, FaBan, FaGlobe, FaCalendarAlt, FaInfoCircle, FaLock, FaUnlock, FaChartLine, FaCrown, FaCog } from 'react-icons/fa'
 import { RelayWithEverything } from '../../components/relayWithEverything'
 import DinosaurPosts from '../../components/dinosaurPosts'
 import ConnectionStats from '../../components/connectionStats'
 import UserRelayStatus from '../../components/userRelayStatus'
 import ProfileImage from '../../components/profileImage'
 import TeamProfilesWrapper from '../../components/teamProfilesWrapper'
+import RelayPageClient from './client'
 // Using regular img tag instead of Next.js Image for more flexibility with external URLs
 
 export default async function RelayPage({
@@ -76,56 +77,57 @@ export default async function RelayPage({
         relay.profile_image : bannerImage;
 
     return (
-        <div className="container mx-auto p-4">
-            {/* Full-width banner with overlay */}
-            <div className="relative rounded-xl overflow-hidden mb-6">
-                {/* Banner image - full width */}
-                <div className="w-full h-40 sm:h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 relative overflow-hidden">
-                    {bannerImage && (
-                        <div className="absolute inset-0 w-full h-full">
-                            <img 
-                                src={bannerImage} 
-                                alt={`${relay.name} banner`}
-                                className="w-full h-full object-cover opacity-50"
-                            />
-                        </div>
-                    )}
-                </div>
-                
-                {/* Overlay content */}
-                <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-base-300/90 to-transparent">
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                        {/* Profile image */}
-                        <div className="relative sm:-mb-12 border-4 border-base-100 rounded-full overflow-hidden bg-base-100 w-20 h-20 sm:w-24 sm:h-24 mx-auto sm:mx-0">
-                            <ProfileImage 
-                                imageUrl={profileImage} 
-                                altText={`${relay.name} profile`} 
-                                className="w-full h-full"
-                            />
-                        </div>
-                        
-                        {/* Relay info container - stacked on mobile, side by side on larger screens */}
-                        <div className="flex flex-col sm:flex-row w-full justify-between items-center sm:items-end mt-2 sm:mt-0">
-                            {/* Relay name and URL */}
-                            <div>
-                                <h1 className="text-2xl sm:text-3xl font-bold text-white text-center sm:text-left">{relay.name}</h1>
-                                <p className="text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1 text-white/90 mt-1">
-                                    <FaGlobe className="text-primary" /> 
-                                    <span className="font-mono overflow-hidden text-ellipsis">{'wss://' + relay.name + '.' + relay.domain}</span>
-                                </p>
+        <RelayPageClient relay={relay}>
+            <div className="container mx-auto p-4">
+                {/* Full-width banner with overlay */}
+                <div className="relative rounded-xl overflow-hidden mb-6">
+                    {/* Banner image - full width */}
+                    <div className="w-full h-40 sm:h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 relative overflow-hidden">
+                        {bannerImage && (
+                            <div className="absolute inset-0 w-full h-full">
+                                <img 
+                                    src={bannerImage} 
+                                    alt={`${relay.name} banner`}
+                                    className="w-full h-full object-cover opacity-50"
+                                />
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Overlay content */}
+                    <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-base-300/90 to-transparent">
+                        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                            {/* Profile image */}
+                            <div className="relative sm:-mb-12 border-4 border-base-100 rounded-full overflow-hidden bg-base-100 w-20 h-20 sm:w-24 sm:h-24 mx-auto sm:mx-0">
+                                <ProfileImage 
+                                    imageUrl={profileImage} 
+                                    altText={`${relay.name} profile`} 
+                                    className="w-full h-full"
+                                />
                             </div>
                             
-                            {/* Badges */}
-                            <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-end mt-3 sm:mt-0">
-                                {authBadge}
-                                <span className="badge badge-neutral gap-1">
-                                    <FaCalendarAlt size={12} />est. {createdAt}
-                                </span>
+                            {/* Relay info container - stacked on mobile, side by side on larger screens */}
+                            <div className="flex flex-col sm:flex-row w-full justify-between items-center sm:items-end mt-2 sm:mt-0">
+                                {/* Relay name and URL */}
+                                <div>
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-white text-center sm:text-left">{relay.name}</h1>
+                                    <p className="text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1 text-white/90 mt-1">
+                                        <FaGlobe className="text-primary" /> 
+                                        <span className="font-mono overflow-hidden text-ellipsis">{'wss://' + relay.name + '.' + relay.domain}</span>
+                                    </p>
+                                </div>
+                                
+                                {/* Badges */}
+                                <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-end mt-3 sm:mt-0">
+                                    {authBadge}
+                                    <span className="badge badge-neutral gap-1">
+                                        <FaCalendarAlt size={12} />est. {createdAt}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             
             {/* About section - adjust margin top for mobile */}
             <div className="card bg-base-100 shadow-xl mb-6 mt-8 sm:mt-12">
@@ -246,6 +248,7 @@ export default async function RelayPage({
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </RelayPageClient>
     )
 }
