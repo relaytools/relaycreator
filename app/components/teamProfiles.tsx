@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import NDK, { NDKEvent, NDKRelaySet } from '@nostr-dev-kit/ndk';
 import { nip19 } from 'nostr-tools';
 import ProfileImage from './profileImage';
-import { FaCopy, FaCheck, FaTwitter, FaChevronDown, FaChevronUp, FaUsers, FaCrown } from 'react-icons/fa';
+import { FaCopy, FaCheck, FaChevronDown, FaChevronUp, FaUsers, FaCrown } from 'react-icons/fa';
 
 interface Profile {
   pubkey: string;
@@ -160,21 +160,9 @@ export default function TeamProfiles({
     return npub;
   };
 
-  // Check if a string is a Twitter handle in nip05
-  const isTwitterHandle = (nip05: string | undefined) => {
-    return nip05?.includes("twitter.com") || nip05?.includes("_@twitter.com");
-  };
-
-  // Extract Twitter handle from nip05
-  const getTwitterHandle = (nip05: string | undefined) => {
-    if (!nip05) return "";
-    if (nip05.includes("_@twitter.com")) {
-      return nip05.split("_@twitter.com")[0];
-    }
-    if (nip05.includes("@twitter.com")) {
-      return nip05.split("@twitter.com")[0];
-    }
-    return "";
+  // Check if nip05 is present
+  const hasNip05 = (nip05: string | undefined) => {
+    return !!nip05;
   };
 
   // Determine image size class for the collapse bar
@@ -193,40 +181,38 @@ export default function TeamProfiles({
     <div className="rounded-lg overflow-hidden">
       {/* Collapsible header with overlapping profile pictures */}
       <div 
-        className="bg-base-200 p-3 flex items-center justify-between cursor-pointer hover:bg-base-300 transition-colors"
+        className="bg-base-200 p-2 flex items-center justify-between cursor-pointer hover:bg-base-300 transition-colors"
         onClick={toggleExpanded}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex items-center">
-            {/* Team icon */}
-            <div className="bg-primary/10 p-2 rounded-full">
-              <FaUsers className="text-primary" size={16} />
-            </div>
-            
-            {/* Team info */}
-            <span className="ml-3 font-medium flex flex-col">
-              <span className="flex items-center gap-1">
-                <span>Relay Team</span>
-                <span className="text-xs text-base-content/70">({teamMembers.length})</span>
-              </span>
-              
-              {/* Show first few team member names if available */}
-              {teamMembers.length > 0 && (
-                <span className="text-xs text-base-content/70">
-                  {teamMembers.slice(0, 2).map((member, index) => {
-                    const profile = profiles.get(member.pubkey);
-                    const name = profile?.content?.name || formatPubkey(member.pubkey);
-                    return (
-                      <span key={index}>
-                        {name}{index < Math.min(2, teamMembers.length) - 1 ? ', ' : ''}
-                      </span>
-                    );
-                  })}
-                  {teamMembers.length > 2 && ` and ${teamMembers.length - 2} more`}
-                </span>
-              )}
-            </span>
+        <div className="flex items-center">
+          {/* Team icon */}
+          <div className="bg-primary/10 p-2 rounded-full">
+            <FaUsers className="text-primary" size={16} />
           </div>
+          
+          {/* Team info */}
+          <span className="ml-3 font-medium flex flex-col">
+            <span className="flex items-center gap-1">
+              <span>Relay Team</span>
+              <span className="text-xs text-base-content/70">({teamMembers.length})</span>
+            </span>
+            
+            {/* Show first few team member names if available */}
+            {teamMembers.length > 0 && (
+              <span className="text-xs text-base-content/70">
+                {teamMembers.slice(0, 2).map((member, index) => {
+                  const profile = profiles.get(member.pubkey);
+                  const name = profile?.content?.name || formatPubkey(member.pubkey);
+                  return (
+                    <span key={index}>
+                      {name}{index < Math.min(2, teamMembers.length) - 1 ? ', ' : ''}
+                    </span>
+                  );
+                })}
+                {teamMembers.length > 2 && ` and ${teamMembers.length - 2} more`}
+              </span>
+            )}
+          </span>
         </div>
         
         {/* Profile pictures in a clean row */}
@@ -265,12 +251,12 @@ export default function TeamProfiles({
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="space-y-2 p-3 bg-base-100 border-t border-base-300">
+        <div className="space-y-2 p-2 bg-base-100 border-t border-base-300">
           {teamMembers.map((member, index) => {
             const profile = profiles.get(member.pubkey);
             
             return (
-              <div key={index} className="bg-base-200 p-3 rounded-lg flex items-center">
+              <div key={index} className="bg-base-200 p-2 rounded-lg flex items-center">
                 <div className="w-full">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -292,14 +278,7 @@ export default function TeamProfiles({
                             </span>
                             {profile?.content?.nip05 && (
                               <span className="text-xs text-gray-500">
-                                {isTwitterHandle(profile.content.nip05) ? (
-                                  <span className="flex items-center gap-1">
-                                    <FaTwitter className="text-blue-400" />
-                                    {getTwitterHandle(profile.content.nip05)}
-                                  </span>
-                                ) : (
-                                  profile.content.nip05
-                                )}
+                                {profile.content.nip05}
                               </span>
                             )}
                           </div>
