@@ -141,7 +141,7 @@ export default async function RelayPage({
                 {/* Team card - always first */}
                 <div className="lg:col-span-2">
                     <div className="card bg-base-100 shadow-xl mb-6">
-                        <div className="card-body">
+                        <div className="card-body p-4">
                             <div>
                                 {/* Create a combined, deduplicated team list */}
                                 {(() => {
