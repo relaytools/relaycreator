@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { FaUser, FaShieldAlt, FaBolt, FaCheck, FaBan, FaSignOutAlt } from 'react-icons/fa';
+import { nip19 } from 'nostr-tools';
+import { FaUser, FaShieldAlt, FaBolt, FaCheck, FaBan, FaSignOutAlt, FaSearch } from 'react-icons/fa';
 import { RelayWithEverything } from './relayWithEverything';
 import ShowSmallSession from '../smallsession';
 import RelayPayment from './relayPayment';
@@ -14,6 +15,8 @@ interface UserRelayStatusProps {
 export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
     const { data: session } = useSession();
     const [myPubkey, setMyPubkey] = useState<string | null>(null);
+    const [inputPubkey, setInputPubkey] = useState<string>('');
+    const [checkedPubkey, setCheckedPubkey] = useState<string | null>(null);
     const [isModOrOwner, setIsModOrOwner] = useState(false);
     const [isMember, setIsMember] = useState(false);
     const [acceptsLightning, setAcceptsLightning] = useState(false);
@@ -30,17 +33,48 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
 
     // Process relay data to check user status and lightning payment acceptance
     useEffect(() => {
-        if (!myPubkey || !relay) return;
+        // Use either the logged-in pubkey or a manually checked pubkey
+        const pubkeyToCheck = myPubkey || checkedPubkey;
+        if (!pubkeyToCheck || !relay) return;
+        
+        // Reset status when pubkey changes
+        setIsModOrOwner(false);
+        setIsMember(false);
         
         try {
-            // Check if user is owner or moderator
-            const isOwner = relay.owner?.pubkey === myPubkey;
-            const isMod = relay.moderators?.some((mod) => mod.user.pubkey === myPubkey) || false;
+            // Debug logs
+            console.log('Checking pubkey:', pubkeyToCheck);
+            console.log('Relay owner:', relay.owner?.pubkey);
+            console.log('Moderators:', relay.moderators?.map(mod => mod.user.pubkey));
+            
+            // Check if user is owner or moderator - case insensitive comparison
+            const isOwner = relay.owner?.pubkey?.toLowerCase() === pubkeyToCheck.toLowerCase();
+            console.log('Is owner?', isOwner);
+            
+            // More detailed check for moderators with logging
+            let isMod = false;
+            if (relay.moderators && relay.moderators.length > 0) {
+                for (const mod of relay.moderators) {
+                    // Ensure we're comparing strings in the same format
+                    const modPubkey = mod.user.pubkey.toLowerCase();
+                    const checkPubkey = pubkeyToCheck.toLowerCase();
+                    
+                    console.log(`Comparing mod pubkey: ${modPubkey} with checked pubkey: ${checkPubkey}`);
+                    
+                    if (modPubkey === checkPubkey) {
+                        console.log('Found matching moderator!');
+                        isMod = true;
+                        break;
+                    }
+                }
+            }
+            console.log('Is moderator?', isMod);
+            
             setIsModOrOwner(Boolean(isOwner || isMod));
             
             // Check if user is a member (in allow list)
             const isInAllowList = relay.allow_list?.list_pubkeys?.some(
-                (entry) => entry.pubkey === myPubkey
+                (entry) => entry.pubkey.toLowerCase() === pubkeyToCheck.toLowerCase()
             ) || false;
             setIsMember(Boolean(isInAllowList));
             
@@ -63,7 +97,46 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
             console.error('Error processing relay data:', error);
             setError('Failed to determine user status');
         }
-    }, [myPubkey, relay]);
+    }, [myPubkey, checkedPubkey, relay]);
+    
+    // Handle pubkey check submission
+    const handleCheckPubkey = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(''); // Clear any previous errors
+        
+        if (inputPubkey.trim()) {
+            // Clean the input - handle npub format or hex format
+            let cleanPubkey = inputPubkey.trim();
+            
+            try {
+                // Handle npub format
+                if (cleanPubkey.startsWith('npub')) {
+                    // Decode the npub to get the hex pubkey
+                    const { type, data } = nip19.decode(cleanPubkey);
+                    console.log('Decoded npub:', { type, data });
+                    
+                    if (type === 'npub') {
+                        // Set the hex pubkey
+                        const hexPubkey = data as string;
+                        console.log('Setting checked pubkey to hex:', hexPubkey);
+                        setCheckedPubkey(hexPubkey);
+                        
+                        // For debugging - show the npub that was entered
+                        console.log('Original npub input:', cleanPubkey);
+                    } else {
+                        setError('Invalid npub format');
+                    }
+                } else {
+                    // Assume it's already a hex pubkey
+                    console.log('Using hex pubkey directly:', cleanPubkey);
+                    setCheckedPubkey(cleanPubkey);
+                }
+            } catch (error) {
+                console.error('Error processing pubkey:', error);
+                setError('Invalid pubkey format');
+            }
+        }
+    };
 
     if (isLoading) {
         return <div className="text-sm text-center py-2">Loading status...</div>;
@@ -73,14 +146,42 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
         return <div className="text-sm text-center py-2 text-error">{error}</div>;
     }
 
-    if (!myPubkey) {
+    if (!myPubkey && !checkedPubkey) {
         return (
             <div className="card bg-base-100 shadow-xl mb-4">
                 <div className="card-body">
                     <h2 className="card-title">Your Status</h2>
                     <div className="divider my-1"></div>
-                    <p className="text-sm mb-3">Sign in to see your status with this relay</p>
-                    <ShowSmallSession pubkey="" />
+                    
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <p className="text-sm mb-3">Sign in to see your status with this relay</p>
+                            <ShowSmallSession pubkey="" />
+                        </div>
+                        
+                        <div className="divider text-xs text-base-content/50">OR</div>
+                        
+                        <div>
+                            <p className="text-sm mb-3">Check status by entering a pubkey</p>
+                            <form onSubmit={handleCheckPubkey} className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    value={inputPubkey}
+                                    onChange={(e) => setInputPubkey(e.target.value)}
+                                    placeholder="Enter npub or hex pubkey"
+                                    className="input input-bordered input-sm flex-grow"
+                                />
+                                <button 
+                                    type="submit" 
+                                    className="btn btn-primary btn-sm"
+                                    disabled={!inputPubkey.trim()}
+                                >
+                                    <FaSearch size={12} />
+                                    Check
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -92,19 +193,50 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
         <div className="card bg-base-100 shadow-xl mb-4">
             <div className="card-body">
                 <div className="flex justify-between items-center">
-                    <h2 className="card-title">Your Status</h2>
-                    <button 
-                        onClick={() => {
-                            // Stay on the current relay page after signing out
-                            const currentPath = window.location.pathname;
-                            signOut({ callbackUrl: "/#"});
-                        }} 
-                        className="btn btn-sm btn-ghost text-base-content/70 hover:text-error flex gap-1 items-center"
-                        title="Sign out"
-                    >
-                        <FaSignOutAlt size={14} />
-                        <span className="hidden sm:inline">Sign out</span>
-                    </button>
+                    <div>
+                        <h2 className="card-title">
+                            {myPubkey ? 'Your Status' : 'Pubkey Status'}
+                            {checkedPubkey && !myPubkey && (
+                                <span className="text-xs font-normal text-base-content/70 ml-2">
+                                    {checkedPubkey.substring(0, 8)}...{checkedPubkey.substring(checkedPubkey.length - 4)}
+                                    <button 
+                                        onClick={() => navigator.clipboard.writeText(checkedPubkey)}
+                                        className="ml-1 opacity-50 hover:opacity-100"
+                                        title="Copy full pubkey"
+                                    >
+                                        📋
+                                    </button>
+                                </span>
+                            )}
+                        </h2>
+                    </div>
+                    
+                    {myPubkey ? (
+                        <button 
+                            onClick={() => {
+                                // Stay on the current relay page after signing out
+                                signOut({ callbackUrl: "/#"});
+                            }} 
+                            className="btn btn-sm btn-ghost text-base-content/70 hover:text-error flex gap-1 items-center"
+                            title="Sign out"
+                        >
+                            <FaSignOutAlt size={14} />
+                            <span className="hidden sm:inline">Sign out</span>
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => {
+                                // Clear the checked pubkey to go back to the form
+                                setCheckedPubkey(null);
+                                setInputPubkey('');
+                            }} 
+                            className="btn btn-sm btn-ghost text-base-content/70 hover:text-primary flex gap-1 items-center"
+                            title="Check another pubkey"
+                        >
+                            <FaSearch size={14} />
+                            <span className="hidden sm:inline">Check another</span>
+                        </button>
+                    )}
                 </div>
                 <div className="divider my-1"></div>
                 
@@ -166,7 +298,7 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                     <div className="card bg-base-200 p-3">
                         {(isMember || isModOrOwner) && <a
                                             className="btn btn-primary uppercase mt-2 mb-2"
-                                            href={`${rootDomain}` + "/clientinvoices"}
+                                            href={`/clientinvoices`}
                                         >
 
                                             <FaBolt size={12} className="mr-2 text-warning" />
