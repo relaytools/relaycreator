@@ -12,7 +12,7 @@ export default function DinosaurPosts({ relayName }: { relayName: string }) {
             className="btn btn-lg btn-primary gap-2 animate-pulse"
           >
             <FaDragon className="text-2xl" />
-            <span className="text-xl">Release the T-Rex!</span>
+            <span className="text-xl">Release TREX!</span>
             <FaDragon className="text-2xl" />
           </button>
         </Link>

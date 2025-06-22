@@ -99,8 +99,8 @@ export default function ClientBalances(
             <div className="card bg-base-100 shadow-xl mb-8">
                 <div className="card-body">
                     <h2 className="card-title text-2xl">Relay Subscriptions</h2>
-                    <p>Here you can view and manage your subscriptions to Nostr relays.</p>
-                    <p>You can see all your paid and pending relay subscriptions.</p>
+                    <p>View and manage your subscriptions to Nostr relays.</p>
+                    <p>You can see all your paid and pending relay subscriptions here.</p>
                 </div>
             </div>
 
@@ -117,7 +117,7 @@ export default function ClientBalances(
                                 <div className="stats bg-base-300 shadow">
                                     <div className="stat">
                                         <div className="stat-title">Subscription Amount</div>
-                                        <div className="stat-value text-lg">{relay.paymentAmount} sats</div>
+                                        <div className="stat-value text-lg">{relay.paymentAmount} sats/month</div>
                                     </div>
                                 </div>
                                 
