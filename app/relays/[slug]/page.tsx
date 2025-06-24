@@ -7,6 +7,7 @@ import ConnectionStats from '../../components/connectionStats'
 import UserRelayStatus from '../../components/userRelayStatus'
 import ProfileImage from '../../components/profileImage'
 import TeamProfilesWrapper from '../../components/teamProfilesWrapper'
+import CopyUrlButton from '../../components/copyUrlButton'
 import RelayPageClient from './client'
 // Using regular img tag instead of Next.js Image for more flexibility with external URLs
 
@@ -231,7 +232,7 @@ export default async function RelayPage({
                                 {'wss://' + relay.name + '.' + relay.domain}
                             </div>
                             <div className="card-actions justify-end mt-4">
-                                <button className="btn btn-primary btn-sm">Copy URL</button>
+                                <CopyUrlButton url={'wss://' + relay.name + '.' + relay.domain} />
                             </div>
                         </div>
                     </div>
