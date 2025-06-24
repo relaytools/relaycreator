@@ -127,20 +127,7 @@ export default function RelayPayment(
                 <div className="flex">
                     <div className=" ">
                         <div>
-                            <div className="lg:text-sm">
-                                {isAlreadyPaid && (
-                                    <div className="text-sm">
-                                        You're already a member of this relay.{" "}
-                                        <a
-                                            className="btn btn-primary uppercase mt-2 mb-2"
-                                            href={`${rootDomain}` + "/clientinvoices"}
-                                        >
-                                            manage subscription
-                                        </a>
-                                    </div>
-                                )}
-                            </div>
-                            {showPubkeyInput && !isAlreadyPaid && (
+                            {showPubkeyInput && (
                                 <div className="mt-2 flex rounded-md shadow-xs">
                                     <input
                                         type="text"
