@@ -298,15 +298,14 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                     <div className="card bg-base-200 p-3">
                         {(isMember || isModOrOwner) && <a
                                             className="btn btn-primary uppercase mt-2 mb-2"
-                                            href={`/clientinvoices`}
+                                            href={session ? `/clientinvoices` : `/clientinvoices?pubkey=${checkedPubkey || myPubkey || ''}`}
                                         >
-
                                             <FaBolt size={12} className="mr-2 text-warning" />
                                             manage subscription
                                         </a>
                         }
 
-                        {(!isMember && !isModOrOwner) && <RelayPayment relay={relay} pubkey={myPubkey || ''} />}
+                        {(!isMember && !isModOrOwner) && <RelayPayment relay={relay} pubkey={myPubkey || checkedPubkey || ''} />}
                     </div>
                 </div>
             </div>

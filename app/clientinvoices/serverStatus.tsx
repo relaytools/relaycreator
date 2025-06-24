@@ -4,6 +4,7 @@ import PaymentStatus from "./paymentStatus";
 import PaymentSuccess from "./paymentSuccess";
 import prisma from "../../lib/prisma";
 import ClientBalances from "./balances";
+import RelayPayment from "../components/relayPayment";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,9 @@ export default async function ServerStatus(props: {
     const pubkey = props.pubkey;
     const order_id = props.order_id;
 
-    // display the client invoices
+    // Case 1: User is logged in but no specific order is being viewed
     if (!relayid || !pubkey || !order_id) {
+        // Case 1a: User is logged in with a session
         if (session && (session as any).user.name) {
             const userPubkey = (session as any).user.name;
             
@@ -96,14 +98,79 @@ export default async function ServerStatus(props: {
                     <ClientBalances IsAdmin={false} RelayClientOrders={relayClientOrders} />
                 </div>
             );
+        } 
+        // Case 1b: Has pubkey only - show payment options for all relays with previous orders
+        else if(pubkey) {
+            // show option to pay with lightning, the payment amount
+            // do not show balances, only payment options.
+            
+            // Find all client orders for this pubkey
+            const clientOrders = await prisma.clientOrder.findMany({
+                where: {
+                    pubkey: pubkey
+                },
+                include: {
+                    relay: {
+                        include: {
+                            owner: true,
+                            allow_list: {
+                                include: {
+                                    list_pubkeys: true
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Get unique relays from the orders
+            const uniqueRelays = Array.from(
+                new Map(clientOrders.map(order => [order.relayId, order.relay])).values()
+            );
+            
+            if (uniqueRelays.length === 0) {
+                return (
+                    <div className="flow-root">
+                        <h1>No relays found for this pubkey</h1>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="flow-root">
+                    <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                        <div className="mx-auto max-w-2xl lg:text-center">
+                            <h2 className="text-base font-semibold leading-7 text-indigo-600">
+                                Client Subscription Payment Options
+                            </h2>
+                            <p className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                                Pay for client access to relays
+                            </p>
+                            <p className="mt-6 text-lg leading-8">
+                                Choose a relay below to pay with Lightning
+                            </p>
+                        </div>
+                        <div className="mt-10 space-y-8">
+                            {uniqueRelays.map((relay) => (
+                                <div key={relay.id} className="card bg-base-200 p-6 rounded-lg shadow">
+                                    <h3 className="text-xl font-bold mb-2">{relay.name}</h3>
+                                    <p className="mb-4">Payment amount: <span className="font-semibold text-primary">{relay.payment_amount || 21} sats/month</span></p>
+                                    <RelayPayment relay={relay as any} pubkey={pubkey} />
+                                </div>
+                            ))}
+                        </div>
+                        <p className="mt-6 text-lg leading-8">
+                            Hint: you can pay here without logging in.  If you do login, you will see additional information about your memberships.
+                        </p>
+                    </div>
+                </div>
+            );
         }
-    }
-
-    // not logged in or no relayname/pubkey/order_id
-    if (!order_id || !relayid) {
+        
+        // Case 1c: Not logged in and missing required parameters
         return (
             <div className="flow-root">
-                <h1>please login to view client invoices</h1>
+                <h1>Please login to view client invoices</h1>
             </div>
         );
     }
@@ -179,11 +246,13 @@ export default async function ServerStatus(props: {
                     </p>
                 </div>
                 <div className="flex items-center justify-center">
-                <PaymentStatus
-                    amount={o.amount}
-                    payment_hash={o.payment_hash}
-                    payment_request={o.lnurl}
-                />
+                    <div className="flex flex-col items-center">
+                        <PaymentStatus
+                            amount={o.amount}
+                            payment_hash={o.payment_hash}
+                            payment_request={o.lnurl}
+                        />
+                    </div>
                 </div>
                 <PaymentSuccess
                         signed_in={session ? true : false}
