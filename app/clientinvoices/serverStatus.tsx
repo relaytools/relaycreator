@@ -93,9 +93,40 @@ export default async function ServerStatus(props: {
                 };
             });
 
+            // Fetch NIP-05 data for the current user
+            const nip05Orders = await prisma.nip05.findMany({
+                where: {
+                    pubkey: userPubkey
+                },
+                include: {
+                    relayUrls: true
+                }
+            });
+
+            // Fetch admin/mod NIP-05s if user is admin
+            const otherNip05Orders = await prisma.nip05.findMany({
+                where: {
+                    pubkey: {
+                        not: userPubkey
+                    }
+                },
+                include: {
+                    relayUrls: true
+                }
+            });
+
+            // Get available domains for NIP-05 creation
+            const domains = process.env.NIP05_DOMAINS ? process.env.NIP05_DOMAINS.split(',') : [];
+
             return (
                 <div>
-                    <ClientBalances IsAdmin={false} RelayClientOrders={relayClientOrders} />
+                    <ClientBalances 
+                        IsAdmin={false} 
+                        RelayClientOrders={relayClientOrders}
+                        nip05Orders={nip05Orders}
+                        otherNip05Orders={otherNip05Orders}
+                        domains={domains}
+                    />
                 </div>
             );
         } 
