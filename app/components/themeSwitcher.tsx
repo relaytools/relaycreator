@@ -18,6 +18,7 @@ export default function ThemeSwitcher({
         document.cookie =
             `theme=${currentTheme};expires=` +
             new Date(new Date().getTime() + 400 * 24 * 60 * 60 * 1000).toUTCString()
+        
         // Set the data-theme attribute for <html>
         document.documentElement.setAttribute('data-theme', currentTheme)
         
