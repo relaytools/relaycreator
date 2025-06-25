@@ -155,7 +155,6 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                     
                     <div className="flex flex-col gap-4">
                         <div>
-                            <p className="text-sm mb-2">View membership status</p>
                             <ShowSmallSession pubkey="" />
                         </div>
                         
