@@ -227,12 +227,36 @@ export default async function RelayPage({
                         <div className="card-body">
                             <h2 className="card-title">Connect to Relay</h2>
                             <div className="divider my-1"></div>
-                            <p className="text-sm mb-3">Use this relay URL in your Nostr client:</p>
-                            <div className="bg-base-200 p-3 rounded-md font-mono text-xs break-all">
-                                {'wss://' + relay.name + '.' + relay.domain}
+                            <div className="flex items-center justify-between bg-base-200 p-3 rounded-md">
+                                <div className="font-mono text-xs break-all">
+                                    {'wss://' + relay.name + '.' + relay.domain}
+                                </div>
+                                <CopyUrlButton 
+                                    url={'wss://' + relay.name + '.' + relay.domain} 
+                                    className="btn btn-sm btn-ghost ml-2"
+                                />
                             </div>
-                            <div className="card-actions justify-end mt-4">
-                                <CopyUrlButton url={'wss://' + relay.name + '.' + relay.domain} />
+                            
+                            <div className="mt-4">
+                                <h3 className="text-sm font-medium mb-2">Recommended clients:</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    <a 
+                                        href={`https://jumble.social/relay/${encodeURIComponent('wss://' + relay.name + '.' + relay.domain)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-xs btn-outline"
+                                    >
+                                        jumble.social
+                                    </a>
+                                    <a 
+                                        href={`https://alexandria.nostr.wine/relay/${encodeURIComponent('wss://' + relay.name + '.' + relay.domain)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-xs btn-outline"
+                                    >
+                                        alexandria
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -242,7 +266,7 @@ export default async function RelayPage({
                 <div className="lg:col-span-2 lg:order-4">
                     <div className="card bg-base-100 shadow-xl">
                         <div className="card-body">
-                            <h2 className="card-title">Explore Notes</h2>
+                            <h2 className="card-title">Moderator Portal</h2>
                             <div className="divider my-1"></div>
                             <DinosaurPosts relayName={slug} />
                         </div>
