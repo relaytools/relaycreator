@@ -46,7 +46,7 @@ export default async function RootLayout({ children, }: React.PropsWithChildren)
   const path = headersList.get('next-url')
 
   return (
-    <html data-theme={currentTheme} className={`${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal`}>
+    <html data-theme={currentTheme} className={`${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal ${currentTheme === 'dark' ? 'dark' : ''}`}>
       <head></head>
       <body>
         <div className="bg-base-100 mx-auto lg:max-w-7xl max-w-screen font-roboto">
