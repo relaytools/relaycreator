@@ -65,7 +65,7 @@ export default function ShowSmallSession(
     const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#";
 
     return (
-        <div className="mb-4 flex items-center justify-center">
+        <div className="mb-2 flex items-center justify-center">
             {showLoginHelp && (
                 <dialog
                     id="my_modal_5"
@@ -124,7 +124,7 @@ export default function ShowSmallSession(
                     onClick={(e) => doNip07Login(e)}
                     className="btn btn-primary uppercase ml-2"
                 >
-                    sign-in for mod actions
+                    sign-in
                     <Image
                         alt="nostr"
                         src="/nostr_logo_prpl_wht_rnd.svg"

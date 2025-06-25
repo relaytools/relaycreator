@@ -148,14 +148,14 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
 
     if (!myPubkey && !checkedPubkey) {
         return (
-            <div className="card bg-base-100 shadow-xl mb-4">
+            <div className="card bg-base-100 shadow-xl mb-2">
                 <div className="card-body">
-                    <h2 className="card-title">Your Status</h2>
+                    <h2 className="card-title">Your Membership</h2>
                     <div className="divider my-1"></div>
                     
                     <div className="flex flex-col gap-4">
                         <div>
-                            <p className="text-sm mb-3">Sign in to see your status with this relay</p>
+                            <p className="text-sm mb-2">View membership status</p>
                             <ShowSmallSession pubkey="" />
                         </div>
                         
