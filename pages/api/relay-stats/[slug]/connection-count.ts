@@ -25,17 +25,20 @@ export default async function handle(req: any, res: any) {
 
         const fluxQuery = `
       from(bucket: "${process.env.INFLUXDB_BUCKET}")
-        |> range(start: -24h)
+        |> range(start: -1h)
         |> filter(fn: (r) => r["_measurement"] == "haproxy")
         |> filter(fn: (r) => r["_field"] == "h1_open_streams")
         |> filter(fn: (r) => r["proxy"] == "TheForest")
-        |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
-        |> yield(name: "mean")
+        |> last()
+        |> yield(name: "last")
     `;
 
-    // |> filter(fn: (r) => r["proxy"] == "${slug}")
+
         const result = await queryApi.collectRows(fluxQuery);
-        return res.status(200).json({ stats: result });
+        // Return just the latest measurement or null if no results
+        return res.status(200).json({ 
+          stats: result.length > 0 ? result[0] : null 
+        });
     } catch (e) {
         return res.status(200).json({ stats: [] });
     }
