@@ -19,6 +19,7 @@ export default function Nip05Orders(
         myNip05: any[];
         otherNip05: any[];
         domains: string[];
+        autoSelectedDomain?: string | null;
     }>
 ) {
     const [pubkey, setPubkey] = useState("");
@@ -29,7 +30,7 @@ export default function Nip05Orders(
     const [nip05Order, setNip05Order] = useState({} as any);
     const [showSpinner, setShowSpinner] = useState(false);
     const [nip05Name, setNip05Name] = useState("");
-    const [nip05Domain, setNip05Domain] = useState("");
+    const [nip05Domain, setNip05Domain] = useState(props.autoSelectedDomain || "");
     const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
     const [editingRelayUrls, setEditingRelayUrls] = useState<string[]>([]);
     const [newRelayUrl, setNewRelayUrl] = useState("");
@@ -40,6 +41,17 @@ export default function Nip05Orders(
     const router = useRouter();
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+
+    // Initialize domain selection when domains are available
+    useEffect(() => {
+        if (props.autoSelectedDomain) {
+            // Use the auto-selected domain from middleware rewrite
+            setNip05Domain(props.autoSelectedDomain);
+        } else if (props.domains && props.domains.length > 0 && !nip05Domain) {
+            // Fallback to first domain if no auto-selection
+            setNip05Domain(props.domains[0]);
+        }
+    }, [props.domains, props.autoSelectedDomain, nip05Domain]);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -250,7 +262,7 @@ export default function Nip05Orders(
                             </button>
                             {showSpinner && (
                                 <div className="flex items-center text-blue-600 dark:text-blue-400">
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
