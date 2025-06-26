@@ -45,8 +45,32 @@ export default async function ServerStatus(props: {
                 },
             });
 
-            // Get unique relay IDs from the client orders
-            const relayIds = [...new Set(clientOrders.map(order => order.relayId))];
+            // Find relays where the user's pubkey exists in AllowList
+            const allowListRelays = await prisma.relay.findMany({
+                where: {
+                    allow_list: {
+                        list_pubkeys: {
+                            some: {
+                                pubkey: userPubkey
+                            }
+                        }
+                    },
+                    OR: [{ status: "running" }, { status: "paused" }, { status: null}],
+                },
+                include: {
+                    owner: true,
+                    allow_list: {
+                        include: {
+                            list_pubkeys: true
+                        }
+                    }
+                }
+            });
+
+            // Get unique relay IDs from both client orders and allow list entries
+            const clientOrderRelayIds = clientOrders.map(order => order.relayId);
+            const allowListRelayIds = allowListRelays.map(relay => relay.id);
+            const relayIds = [...new Set([...clientOrderRelayIds, ...allowListRelayIds])];
             
             // Fetch those relays
             let relays = await prisma.relay.findMany({
@@ -63,6 +87,11 @@ export default async function ServerStatus(props: {
                         }
                     },
                     owner: true,
+                    allow_list: {
+                        include: {
+                            list_pubkeys: true
+                        }
+                    }
                 },
             });
 
@@ -82,6 +111,11 @@ export default async function ServerStatus(props: {
                     return sum + order.amount;
                 }, 0);
 
+                // Check if user is in allow list
+                const isInAllowList = relay.allow_list?.list_pubkeys?.some(
+                    (entry) => entry.pubkey === userPubkey
+                ) || false;
+
                 return {
                     owner: relay.owner.pubkey,
                     relayName: relay.name,
@@ -92,7 +126,8 @@ export default async function ServerStatus(props: {
                     orders: paidOrders,
                     unpaidOrders: unpaidOrders,
                     paymentAmount: relay.payment_amount || 21,
-                    paymentRequired: relay.payment_required || false
+                    paymentRequired: relay.payment_required || false,
+                    isInAllowList: isInAllowList
                 };
             });
 
