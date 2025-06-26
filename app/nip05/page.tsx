@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth/next";
+import { headers } from "next/headers";
 import prisma from "../../lib/prisma";
 import Nip05Orders from "./nip05Orders";
 import authOptions from "../../pages/api/auth/[...nextauth]";
@@ -6,6 +7,8 @@ import { UserWithNip05s } from "../components/userWithNip05s";
 
 export default async function Nip05Page() {
     const session = await getServerSession(authOptions);
+    const headersList = await headers();
+    const rewritten = headersList.get('middleware-rewritten');
 
     if (!session) {
         return <div>login required</div>;
@@ -127,12 +130,20 @@ export default async function Nip05Page() {
 
     relayDomainNames = Array.from(new Set(relayDomainNames));
 
+    // Determine auto-selected domain from middleware rewrite
+    let autoSelectedDomain = null;
+    if (rewritten) {
+        // The rewritten header contains the subdomain that was rewritten
+        autoSelectedDomain = rewritten;
+    }
+
     return (
         <Nip05Orders
             user={user}
             myNip05={myNip05}
             otherNip05={filteredOther}
             domains={relayDomainNames}
+            autoSelectedDomain={autoSelectedDomain}
         ></Nip05Orders>
     );
 }
