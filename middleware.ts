@@ -73,6 +73,11 @@ export async function middleware(req: NextRequest) {
                 // DONT REWRITE TO RELAYS DOWN BELOW HERE..
                 console.log(`>>> Rewriting for trex: ${url.pathname} to /trex/${subdomain}`);
                 url.pathname = `/trex/${subdomain}`;
+            } else if(url.pathname.includes('/nip05')) {
+                // DONT REWRITE TO RELAYS DOWN BELOW HERE..
+                console.log(`>>> Rewriting for nip05: ${url.pathname} to /nip05`);
+                url.pathname = `/nip05`;
+
             } else {
                 // Subdomain available, rewriting
                 console.log(`>>> Rewriting: ${url.pathname} to /relays/${subdomain}/${url.pathname}`);

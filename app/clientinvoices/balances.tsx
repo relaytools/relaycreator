@@ -5,7 +5,6 @@ import Bolt11Invoice from "../components/invoice";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
-import Nip05Orders from "../nip05/nip05Orders";
 
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();
@@ -27,9 +26,7 @@ export default function ClientBalances(
     props: React.PropsWithChildren<{
         RelayClientOrders: any;
         IsAdmin: boolean;
-        nip05Orders?: any[];
-        otherNip05Orders?: any[];
-        domains?: string[];
+        rewrittenSubdomain?: string | null;
     }>
 ) {
     const router = useRouter();
@@ -95,7 +92,34 @@ export default function ClientBalances(
         return outstandingBalance;
     }
 
-    const sortedRelays = props.RelayClientOrders.sort((a: any, b: any) => {
+    // Filter relays based on rewritten subdomain if present
+    let filteredRelays = props.RelayClientOrders;
+    let isFiltered = false;
+    let subdomainName: string | null = null;
+    
+    if (props.rewrittenSubdomain) {
+        // Extract subdomain from full hostname (e.g., "myrelay.relay.tools" -> "myrelay")
+        subdomainName = props.rewrittenSubdomain.split('.')[0];
+        
+        console.log('Full rewritten hostname:', props.rewrittenSubdomain);
+        console.log('Extracted subdomain:', subdomainName);
+        console.log('Available relays:', props.RelayClientOrders.map((r: any) => r.relayName));
+        
+        const matchingRelays = props.RelayClientOrders.filter((relay: any) => 
+            relay.relayName.toLowerCase() === subdomainName!.toLowerCase()
+        );
+        
+        // Only filter if we found matching relays, otherwise show all
+        if (matchingRelays.length > 0) {
+            filteredRelays = matchingRelays;
+            isFiltered = true;
+            console.log('Found matching relays:', matchingRelays.length);
+        } else {
+            console.log('No matching relays found, showing all');
+        }
+    }
+
+    const sortedRelays = filteredRelays.sort((a: any, b: any) => {
         return a.relayName.localeCompare(b.relayName);
     });
 
@@ -110,169 +134,215 @@ export default function ClientBalances(
                             </svg>
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Relay Subscriptions</h2>
-                            <p className="text-slate-600 dark:text-slate-400">View and manage your subscriptions to Nostr relays.</p>
-                            <p className="text-slate-600 dark:text-slate-400">You can see all your paid and pending relay subscriptions here.</p>
+                            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                                {isFiltered ? `${subdomainName} Relay Subscription` : 'Relay Subscriptions'}
+                            </h2>
+                            {subdomainName && (
+                                <p className="text-slate-600 dark:text-slate-400">
+                                    {isFiltered 
+                                        ? `Showing subscription details for ${subdomainName}`
+                                        : `No subscription found for ${subdomainName}, showing all subscriptions`
+                                    }
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
-                    {sortedRelays.map((relay: any) => (
-                        <div
-                            key={relay.relayId + "rowkey"}
-                            className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                        >
-                            <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 p-6 border-b border-slate-200 dark:border-slate-600">
-                                <h2 className="text-xl font-bold text-blue-600 dark:text-blue-400">{relay.relayName}</h2>
-                            </div>
-                            
-                            <div className="p-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Subscription Amount</div>
-                                        <div className="text-lg font-bold text-slate-800 dark:text-slate-200">{relay.paymentAmount} sats/month</div>
+                    {sortedRelays.map((relay: any) => {
+                        // Check if banner_image exists and is not empty
+                        const bannerImage = relay.banner_image && relay.banner_image.trim() !== '' ? 
+                            relay.banner_image : null;
+                        
+                        // Use profile image if available, otherwise use banner image for the circular display
+                        const profileImage = relay.profile_image && relay.profile_image.trim() !== '' ?
+                            relay.profile_image : (bannerImage || '/green-check.png');
+
+                        return (
+                            <div
+                                key={relay.relayId + "rowkey"}
+                                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                            >
+                                {/* Banner Section */}
+                                <div className="relative h-32 sm:h-40 overflow-hidden">
+                                    {/* Banner image */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-600/20 dark:from-blue-600/30 dark:to-purple-700/30">
+                                        {bannerImage && (
+                                            <img 
+                                                src={bannerImage} 
+                                                alt={`${relay.relayName} banner`}
+                                                className="w-full h-full object-cover opacity-60"
+                                            />
+                                        )}
                                     </div>
                                     
-                                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
-                                        <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                                            {calculateOutstandingBalance(relay) > 0 ? 
-                                                `${calculateOutstandingBalance(relay)} sats due` : 
-                                                calculateOutstandingBalance(relay) < 0 ? 
-                                                    `${Math.abs(calculateOutstandingBalance(relay))} sats credit` : 
-                                                    'Paid in full'}
+                                    {/* Overlay content */}
+                                    <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-900/90 to-transparent">
+                                        <div className="flex items-end gap-4">
+                                            {/* Profile image */}
+                                            <div className="w-16 h-16 border-4 border-white dark:border-slate-800 rounded-full overflow-hidden bg-white dark:bg-slate-800 flex-shrink-0">
+                                                <img 
+                                                    src={profileImage} 
+                                                    alt={`${relay.relayName} profile`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            
+                                            {/* Relay info */}
+                                            <div className="flex-1 min-w-0">
+                                                <h2 className="text-xl font-bold text-white truncate">{relay.relayName}</h2>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div className="flex justify-end mb-4">
-                                    <button
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                                        onClick={() => toggleShowOrders(relay.relayId)}
-                                    >
-                                        {showOrdersFor(relay.relayId) ? "Hide Payment History" : "Show Payment History"}
-                                    </button>
-                                </div>
-
-                                {showOrdersFor(relay.relayId) && relay.orders && relay.orders.length > 0 && (
-                                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
-                                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Payment History</h3>
-                                        <div className="overflow-x-auto">
-                                            <table className="table-auto w-full">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="px-4 py-2">Amount</th>
-                                                        <th className="px-4 py-2">Paid At</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {relay.orders.map((order: any) => (
-                                                        <tr key={order.id + "paid"}>
-                                                            <td className="px-4 py-2">{amountPrecision(order.amount)} sats</td>
-                                                            <td className="px-4 py-2">
-                                                                {order.paid_at != null
-                                                                    ? new Date(order.paid_at).toLocaleString()
-                                                                    : ""}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                <div className="p-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Subscription Amount</div>
+                                            <div className="text-lg font-bold text-slate-800 dark:text-slate-200">{relay.paymentAmount} sats/month</div>
                                         </div>
-                                    </div>
-                                )}
-
-                                {showOrdersFor(relay.relayId) && relay.unpaidOrders && relay.unpaidOrders.length > 0 && (
-                                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
-                                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Pending Payments</h3>
-                                        <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                                            {relay.unpaidOrders.map((order: any) => (
-                                                <div key={order.id + "unpaid"} className="py-3">
-                                                    <div className="flex justify-between items-center">
-                                                        <div>
-                                                            <div className="font-medium">{order.amount} sats</div>
-                                                            <div className="text-sm opacity-70">
-                                                                Expires: {order.expires_at
-                                                                    ? new Date(order.expires_at).toLocaleString()
-                                                                    : "Unknown"}
-                                                            </div>
-                                                        </div>
-                                                        <a
-                                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                                                            href={`/clientinvoices?relayid=${relay.id}&pubkey=${order.pubkey}&order_id=${order.id}`}
-                                                        >
-                                                            Pay Now
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
-                                    <details className="group">
-                                        <summary className="flex justify-between items-center cursor-pointer text-lg font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                                            Renew Subscription
-                                            <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </summary>
-                                        <div className="mt-4">
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                                                    Amount (sats)
-                                                </label>
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        placeholder={relay.paymentAmount.toString()}
-                                                        onChange={(e) => setClientAmount(e.target.value)}
-                                                    />
-                                                    <button
-                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                                                        onClick={() => renewSubscription(relay)}
-                                                    >
-                                                        Renew Subscription
-                                                    </button>
-                                                </div>
+                                        
+                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
+                                            <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                                {calculateOutstandingBalance(relay) > 0 ? 
+                                                    `${calculateOutstandingBalance(relay)} sats due` : 
+                                                    calculateOutstandingBalance(relay) < 0 ? 
+                                                        `${Math.abs(calculateOutstandingBalance(relay))} sats credit` : 
+                                                        'Paid in full'}
                                             </div>
                                         </div>
-                                    </details>
+                                    </div>
+                                    
+                                    <div className="flex justify-end mb-4">
+                                        <button
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                            onClick={() => toggleShowOrders(relay.relayId)}
+                                        >
+                                            {showOrdersFor(relay.relayId) ? "Hide Payment History" : "Show Payment History"}
+                                        </button>
+                                    </div>
+
+                                    {showOrdersFor(relay.relayId) && relay.orders && relay.orders.length > 0 && (
+                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
+                                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Payment History</h3>
+                                            <div className="overflow-x-auto">
+                                                <table className="table-auto w-full">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="px-4 py-2">Amount</th>
+                                                            <th className="px-4 py-2">Paid At</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {relay.orders.map((order: any) => (
+                                                            <tr key={order.id + "paid"}>
+                                                                <td className="px-4 py-2">{amountPrecision(order.amount)} sats</td>
+                                                                <td className="px-4 py-2">
+                                                                    {order.paid_at != null
+                                                                        ? new Date(order.paid_at).toLocaleString()
+                                                                        : ""}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {showOrdersFor(relay.relayId) && relay.unpaidOrders && relay.unpaidOrders.length > 0 && (
+                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
+                                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Pending Payments</h3>
+                                            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                                                {relay.unpaidOrders.map((order: any) => (
+                                                    <div key={order.id + "unpaid"} className="py-3">
+                                                        <div className="flex justify-between items-center">
+                                                            <div>
+                                                                <div className="font-medium">{order.amount} sats</div>
+                                                                <div className="text-sm opacity-70">
+                                                                    Expires: {order.expires_at
+                                                                        ? new Date(order.expires_at).toLocaleString()
+                                                                        : "Unknown"}
+                                                                </div>
+                                                            </div>
+                                                            <a
+                                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                                                href={`/clientinvoices?relayid=${relay.id}&pubkey=${order.pubkey}&order_id=${order.id}`}
+                                                            >
+                                                                Pay Now
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
+                                        <details className="group">
+                                            <summary className="flex justify-between items-center cursor-pointer text-lg font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                                                Renew Subscription
+                                                <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </summary>
+                                            <div className="mt-4">
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                                                        Amount (sats)
+                                                    </label>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            placeholder={relay.paymentAmount.toString()}
+                                                            onChange={(e) => setClientAmount(e.target.value)}
+                                                        />
+                                                        <button
+                                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                                            onClick={() => renewSubscription(relay)}
+                                                        >
+                                                            Renew Subscription
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <details className="group">
-                        <summary className="flex justify-between items-center cursor-pointer p-6 text-lg font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center mr-4">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                                     </svg>
                                 </div>
-                                NIP-05 Orders
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">NIP-05 Identities</h3>
+                                    <p className="text-slate-600 dark:text-slate-400">Manage your Nostr identity verification</p>
+                                </div>
                             </div>
-                            <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </summary>
-                        <div className="p-6">
-                            {props.nip05Orders && props.domains && (
-                                <Nip05Orders 
-                                    user={{} as any}
-                                    myNip05={props.nip05Orders || []} 
-                                    otherNip05={props.otherNip05Orders || []} 
-                                    domains={props.domains || []} 
-                                />
-                            )}
+                            <button
+                                onClick={() => router.push('/nip05')}
+                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                            >
+                                Manage NIP-05
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
                         </div>
-                    </details>
+                    </div>
                 </div>
             </div>
         </div>
