@@ -127,7 +127,9 @@ export default async function ServerStatus(props: {
                     unpaidOrders: unpaidOrders,
                     paymentAmount: relay.payment_amount || 21,
                     paymentRequired: relay.payment_required || false,
-                    isInAllowList: isInAllowList
+                    isInAllowList: isInAllowList,
+                    banner_image: relay.banner_image,
+                    profile_image: relay.profile_image
                 };
             });
 
