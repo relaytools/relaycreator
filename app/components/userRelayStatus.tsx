@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { nip19 } from 'nostr-tools';
 import { FaUser, FaShieldAlt, FaBolt, FaCheck, FaBan, FaSignOutAlt, FaSearch } from 'react-icons/fa';
 import { RelayWithEverything } from './relayWithEverything';
-import ShowSmallSession from '../smallsession';
+import ShowSmallSession from './smallsession';
 import RelayPayment from './relayPayment';
 
 interface UserRelayStatusProps {

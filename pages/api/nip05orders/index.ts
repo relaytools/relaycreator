@@ -88,7 +88,7 @@ export default async function handle(req: any, res: any) {
 
     let authorized = false
     relayDomainNames.forEach(d => {
-        if(domain == d) {
+        if(domain.toLowerCase() == d.toLowerCase()) {
             authorized = true
         }
     })
