@@ -23,7 +23,7 @@ import RelayMenuBar from "../relays/relayMenuBar";
 import RelayPayment from "../components/relayPayment";
 import Terms from "../components/terms";
 import Image from "next/image";
-import ShowSmallSession from "../smallsession";
+import ShowSmallSession from "../components/smallsession";
 import React from "react";
 import {
     LineChart,

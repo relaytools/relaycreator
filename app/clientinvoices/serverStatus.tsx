@@ -6,6 +6,7 @@ import PaymentSuccess from "./paymentSuccess";
 import prisma from "../../lib/prisma";
 import ClientBalances from "./balances";
 import RelayPayment from "../components/relayPayment";
+import ShowSmallSession from "../components/smallsession";
 
 export const dynamic = "force-dynamic";
 
@@ -168,44 +169,116 @@ export default async function ServerStatus(props: {
             });
             
             // Get unique relays from the orders
-            const uniqueRelays = Array.from(
+            let uniqueRelays = Array.from(
                 new Map(clientOrders.map(order => [order.relayId, order.relay])).values()
             );
             
+            // Filter by subdomain if rewritten subdomain is provided
+            if (rewritten) {
+                const subdomainName = rewritten.split('.')[0];
+                const matchingRelays = uniqueRelays.filter((relay: any) => 
+                    relay.name.toLowerCase() === subdomainName.toLowerCase()
+                );
+                
+                // Only filter if we found matching relays, otherwise show all
+                if (matchingRelays.length > 0) {
+                    uniqueRelays = matchingRelays;
+                }
+            }
+            
             if (uniqueRelays.length === 0) {
                 return (
-                    <div className="flow-root">
-                        <h1>No relays found for this pubkey</h1>
+                    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+                        <div className="container mx-auto px-4 py-6">
+                            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
+                                <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">No relays found for this pubkey</h1>
+                            </div>
+                        </div>
                     </div>
                 );
             }
             
             return (
-                <div className="flow-root">
-                    <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                        <div className="mx-auto max-w-2xl lg:text-center">
-                            <h2 className="text-base font-semibold leading-7 text-indigo-600">
-                                Client Subscription Payment Options
-                            </h2>
-                            <p className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-                                Pay for client access to relays
-                            </p>
-                            <p className="mt-6 text-lg leading-8">
-                                Choose a relay below to pay with Lightning
-                            </p>
-                        </div>
-                        <div className="mt-10 space-y-8">
-                            {uniqueRelays.map((relay) => (
-                                <div key={relay.id} className="card bg-base-200 p-6 rounded-lg shadow">
-                                    <h3 className="text-xl font-bold mb-2">{relay.name}</h3>
-                                    <p className="mb-4">Payment amount: <span className="font-semibold text-primary">{relay.payment_amount || 21} sats/month</span></p>
-                                    <RelayPayment relay={relay as any} pubkey={pubkey} />
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+                    <div className="container mx-auto px-4 py-6">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8 border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center">
+                                    <svg className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                                    </svg>
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Client Subscription Payment</h1>
+                                        <p className="text-slate-600 dark:text-slate-400">Pay for client access to relays with Lightning</p>
+                                    </div>
                                 </div>
-                            ))}
+                                <ShowSmallSession pubkey={pubkey} />
+                            </div>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                💡 Hint: You can pay here without logging in. If you do login, you will see additional information about your memberships.
+                            </p>
                         </div>
-                        <p className="mt-6 text-lg leading-8">
-                            Hint: you can pay here without logging in.  If you do login, you will see additional information about your memberships.
-                        </p>
+                        
+                        <div className="grid grid-cols-1 gap-6">
+                            {uniqueRelays.map((relay: any) => {
+                                // Check if banner_image exists and is not empty
+                                const bannerImage = relay.banner_image && relay.banner_image.trim() !== '' ? 
+                                    relay.banner_image : null;
+                                
+                                // Use profile image if available, otherwise use banner image for the circular display
+                                const profileImage = relay.profile_image && relay.profile_image.trim() !== '' ?
+                                    relay.profile_image : (bannerImage || '/green-check.png');
+
+                                return (
+                                    <div
+                                        key={relay.id + "payment"}
+                                        className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                                    >
+                                        {/* Banner Section */}
+                                        <div className="relative h-32 sm:h-40 overflow-hidden">
+                                            {/* Banner image */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-600/20 dark:from-blue-600/30 dark:to-purple-700/30">
+                                                {bannerImage && (
+                                                    <img 
+                                                        src={bannerImage} 
+                                                        alt={`${relay.name} banner`}
+                                                        className="w-full h-full object-cover opacity-60"
+                                                    />
+                                                )}
+                                            </div>
+                                            
+                                            {/* Overlay content */}
+                                            <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-900/90 to-transparent">
+                                                <div className="flex items-end gap-4">
+                                                    {/* Profile image */}
+                                                    <div className="w-16 h-16 border-4 border-white dark:border-slate-800 rounded-full overflow-hidden bg-white dark:bg-slate-800 flex-shrink-0">
+                                                        <img 
+                                                            src={profileImage} 
+                                                            alt={`${relay.name} profile`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    
+                                                    {/* Relay info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <h2 className="text-xl font-bold text-white truncate">{relay.name}</h2>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="p-6">
+                                            <div className="mb-4">
+                                                <p className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                                                    Payment: <span className="text-blue-600 dark:text-blue-400">{relay.payment_amount || 21} sats/month</span>
+                                                </p>
+                                            </div>
+                                            <RelayPayment relay={relay as any} pubkey={pubkey} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             );
