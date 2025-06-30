@@ -204,7 +204,7 @@ export default function ClientBalances(
                                             <div className="text-lg font-bold text-slate-800 dark:text-slate-200">{relay.paymentAmount} sats/month</div>
                                         </div>
                                         
-                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 relative">
                                             <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
                                             <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                                                 {calculateOutstandingBalance(relay) > 0 ? 
@@ -213,17 +213,16 @@ export default function ClientBalances(
                                                         `${Math.abs(calculateOutstandingBalance(relay))} sats credit` : 
                                                         'Paid in full'}
                                             </div>
+                                            <button
+                                                className="btn btn-primary btn-xs absolute top-2 right-2"
+                                                onClick={() => toggleShowOrders(relay.relayId)}
+                                            >
+                                                {showOrdersFor(relay.relayId) ? "Hide" : "History"}
+                                            </button>
                                         </div>
                                     </div>
                                     
-                                    <div className="flex justify-end mb-4">
-                                        <button
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                                            onClick={() => toggleShowOrders(relay.relayId)}
-                                        >
-                                            {showOrdersFor(relay.relayId) ? "Hide Payment History" : "Show Payment History"}
-                                        </button>
-                                    </div>
+
 
                                     {showOrdersFor(relay.relayId) && relay.orders && relay.orders.length > 0 && (
                                         <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
@@ -232,15 +231,15 @@ export default function ClientBalances(
                                                 <table className="table-auto w-full">
                                                     <thead>
                                                         <tr>
-                                                            <th className="px-4 py-2">Amount</th>
-                                                            <th className="px-4 py-2">Paid At</th>
+                                                            <th className="px-4 py-2 text-left">Amount</th>
+                                                            <th className="px-4 py-2 text-left">Paid At</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {relay.orders.map((order: any) => (
                                                             <tr key={order.id + "paid"}>
-                                                                <td className="px-4 py-2">{amountPrecision(order.amount)} sats</td>
-                                                                <td className="px-4 py-2">
+                                                                <td className="px-4 py-2 text-left">{amountPrecision(order.amount)} sats</td>
+                                                                <td className="px-4 py-2 text-left">
                                                                     {order.paid_at != null
                                                                         ? new Date(order.paid_at).toLocaleString()
                                                                         : ""}
@@ -269,7 +268,7 @@ export default function ClientBalances(
                                                                 </div>
                                                             </div>
                                                             <a
-                                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                                                className="btn btn-primary btn-sm"
                                                                 href={`/clientinvoices?relayid=${relay.id}&pubkey=${order.pubkey}&order_id=${order.id}`}
                                                             >
                                                                 Pay Now
@@ -297,12 +296,12 @@ export default function ClientBalances(
                                                     <div className="flex gap-2">
                                                         <input
                                                             type="text"
-                                                            className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            className="input input-bordered flex-1"
                                                             placeholder={relay.paymentAmount.toString()}
                                                             onChange={(e) => setClientAmount(e.target.value)}
                                                         />
                                                         <button
-                                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                                            className="btn btn-primary"
                                                             onClick={() => renewSubscription(relay)}
                                                         >
                                                             Renew Subscription
@@ -334,7 +333,7 @@ export default function ClientBalances(
                             </div>
                             <button
                                 onClick={() => router.push('/nip05')}
-                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                                className="btn btn-primary gap-2"
                             >
                                 Manage NIP-05
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -12,6 +12,8 @@ import {
     ListboxOptions,
 } from "@headlessui/react";
 import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Nip05Orders(
     props: React.PropsWithChildren<{
@@ -40,7 +42,21 @@ export default function Nip05Orders(
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+    const handlePaymentSuccess = () => {
+        // Show success toast
+        toast.success("Payment successful! NIP-05 created.", {
+            position: "bottom-right",
+            autoClose: 4000,
+        });
+        
+        // Refresh the page to show updated NIP-05 orders
+        router.refresh();
+        // Also reset the form state
+        setShowInvoice(false);
+        setShowPubkeyInput(true);
+        setNip05Name("");
+        setNip05Order({});
+    };
 
     // Initialize domain selection when domains are available
     useEffect(() => {
@@ -57,7 +73,7 @@ export default function Nip05Orders(
         event.preventDefault();
         setShowSpinner(true);
         const response = await fetch(
-            `${rootDomain}/api/nip05orders?name=${nip05Name}&domain=${nip05Domain}&pubkey=${props.user.pubkey}`,
+            `/api/nip05orders?name=${nip05Name}&domain=${nip05Domain}&pubkey=${props.user.pubkey}`,
             {
                 method: "GET",
                 headers: {
@@ -132,7 +148,7 @@ export default function Nip05Orders(
 
         try {
             const response = await fetch(
-                `${rootDomain}/api/nip05/${editingOrderId}`,
+                `/api/nip05/${editingOrderId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -148,24 +164,41 @@ export default function Nip05Orders(
             if (response.ok) {
                 setEditingOrderId(null);
                 setEditingPubkey("");
+                toast.success("NIP-05 updated successfully!");
                 
                 // Refresh the data without a full page navigation
                 router.refresh();
             } else {
+                toast.error("Failed to update NIP-05");
                 console.error("Failed to update NIP-05");
             }
         } catch (error) {
+            toast.error("Error updating NIP-05");
             console.error("Error updating NIP-05:", error);
         }
     };
 
     const handleDelete = async (id: string) => {
-        const response = await fetch(`${rootDomain}/api/nip05/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
+        try {
+            const response = await fetch(`/api/nip05/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.ok) {
+                toast.success("NIP-05 deleted successfully!");
+                // Refresh the data without a full page navigation
+                router.refresh();
+            } else {
+                toast.error("Failed to delete NIP-05");
+                console.error("Failed to delete NIP-05");
+            }
+        } catch (error) {
+            toast.error("Error deleting NIP-05");
+            console.error("Error deleting NIP-05:", error);
+        }
     };
 
     return (
@@ -192,7 +225,7 @@ export default function Nip05Orders(
                                     type="text"
                                     value={nip05Name}
                                     onChange={(e) => setNip05Name(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                    className="input input-bordered w-full"
                                     placeholder="Enter your desired name"
                                     required
                                 />
@@ -256,7 +289,7 @@ export default function Nip05Orders(
                             <button 
                                 type="submit" 
                                 disabled={showSpinner}
-                                className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="btn btn-primary w-full sm:w-auto"
                             >
                                 {showSpinner ? "Creating..." : "Create NIP-05"}
                             </button>
@@ -275,7 +308,10 @@ export default function Nip05Orders(
 
                 {showInvoice && (
                     <div className="mb-8">
-                        <ShowNip05Order nip05Order={nip05Order} />
+                        <ShowNip05Order 
+                            nip05Order={nip05Order} 
+                            onPaymentSuccess={handlePaymentSuccess}
+                        />
                     </div>
                 )}
 
@@ -318,11 +354,9 @@ export default function Nip05Orders(
                                                         validatePubkey(value);
                                                     }}
                                                     placeholder="Pubkey hex or npub"
-                                                    className={`w-full px-4 py-3 rounded-lg border ${
-                                                        pubkeyValidationError 
-                                                            ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
-                                                            : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700'
-                                                    } text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+                                                    className={`input input-bordered w-full ${
+                                                        pubkeyValidationError ? 'input-error' : ''
+                                                    }`}
                                                 />
                                                 {pubkeyValidationError && (
                                                     <p className="text-sm text-red-600 dark:text-red-400">
@@ -350,7 +384,7 @@ export default function Nip05Orders(
                                                         </span>
                                                         <button
                                                             onClick={() => handleRemoveRelayUrl(url)}
-                                                            className="px-3 py-2 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors duration-200"
+                                                            className="btn btn-error btn-xs"
                                                         >
                                                             Remove
                                                         </button>
@@ -362,11 +396,11 @@ export default function Nip05Orders(
                                                         value={newRelayUrl}
                                                         onChange={(e) => setNewRelayUrl(e.target.value)}
                                                         placeholder="wss://relay.example.com"
-                                                        className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                        className="input input-bordered flex-1"
                                                     />
                                                     <button
                                                         onClick={handleAddRelayUrl}
-                                                        className="px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors duration-200"
+                                                        className="btn btn-success btn-sm"
                                                     >
                                                         Add
                                                     </button>
@@ -389,14 +423,14 @@ export default function Nip05Orders(
                                         <div className="flex flex-col sm:flex-row gap-3 justify-end">
                                             <button
                                                 onClick={() => setEditingOrderId(null)}
-                                                className="px-4 py-2 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-200"
+                                                className="btn btn-ghost"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 onClick={handleSaveEdit}
                                                 disabled={!!pubkeyValidationError}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                                                className="btn btn-primary"
                                             >
                                                 Save Changes
                                             </button>
@@ -405,13 +439,13 @@ export default function Nip05Orders(
                                         <div className="flex flex-col sm:flex-row gap-3 justify-between">
                                             <button
                                                 onClick={() => handleEdit(nip05.id, nip05.relayUrls.map((o: any) => o.url), nip05.pubkey)}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                                className="btn btn-primary"
                                             >
                                                 Edit
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(nip05.id)}
-                                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+                                                className="btn btn-error"
                                             >
                                                 Delete
                                             </button>
@@ -463,11 +497,9 @@ export default function Nip05Orders(
                                                         validatePubkey(value);
                                                     }}
                                                     placeholder="Pubkey hex or npub"
-                                                    className={`w-full px-4 py-3 rounded-lg border ${
-                                                        pubkeyValidationError 
-                                                            ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
-                                                            : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700'
-                                                    } text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+                                                    className={`input input-bordered w-full ${
+                                                        pubkeyValidationError ? 'input-error' : ''
+                                                    }`}
                                                 />
                                                 {pubkeyValidationError && (
                                                     <p className="text-sm text-red-600 dark:text-red-400">
@@ -495,7 +527,7 @@ export default function Nip05Orders(
                                                         </span>
                                                         <button
                                                             onClick={() => handleRemoveRelayUrl(url)}
-                                                            className="px-3 py-2 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors duration-200"
+                                                            className="btn btn-error btn-xs"
                                                         >
                                                             Remove
                                                         </button>
@@ -507,11 +539,11 @@ export default function Nip05Orders(
                                                         value={newRelayUrl}
                                                         onChange={(e) => setNewRelayUrl(e.target.value)}
                                                         placeholder="wss://relay.example.com"
-                                                        className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                        className="input input-bordered flex-1"
                                                     />
                                                     <button
                                                         onClick={handleAddRelayUrl}
-                                                        className="px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors duration-200"
+                                                        className="btn btn-success btn-sm"
                                                     >
                                                         Add
                                                     </button>
@@ -534,14 +566,14 @@ export default function Nip05Orders(
                                         <div className="flex flex-col sm:flex-row gap-3 justify-end">
                                             <button
                                                 onClick={() => setEditingOrderId(null)}
-                                                className="px-4 py-2 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-200"
+                                                className="btn btn-ghost"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 onClick={handleSaveEdit}
                                                 disabled={!!pubkeyValidationError}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                                                className="btn btn-primary"
                                             >
                                                 Save Changes
                                             </button>
@@ -550,13 +582,13 @@ export default function Nip05Orders(
                                         <div className="flex flex-col sm:flex-row gap-3 justify-between">
                                             <button
                                                 onClick={() => handleEdit(nip05.id, nip05.relayUrls.map((o: any) => o.url), nip05.pubkey)}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                                className="btn btn-primary"
                                             >
                                                 Edit
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(nip05.id)}
-                                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+                                                className="btn btn-error"
                                             >
                                                 Delete
                                             </button>
@@ -569,6 +601,18 @@ export default function Nip05Orders(
                 </div>
                 )}
             </div>
+            <ToastContainer
+                position="bottom-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="auto"
+            />
         </div>
     );
 }
