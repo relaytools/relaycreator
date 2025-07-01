@@ -110,6 +110,7 @@ model Relay {
   listed_in_directory    Boolean       @default(false)
   payment_required       Boolean       @default(false)
   payment_amount         Int           @default(21)
+  nip05_payment_amount   Int           @default(21)
   ip                     String?       @db.VarChar(255)
   capacity               Int?
   port                   Int?
