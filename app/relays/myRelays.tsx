@@ -43,7 +43,7 @@ export default function MyRelays() {
             <div className="collapse collapse-arrow bg-base-200">
                 <input type="checkbox" defaultChecked /> 
                 <div className="collapse-title text-lg font-bold text-center">
-                    Relay Owner/Moderator
+                    Relay Settings
                 </div>
                 <div className="collapse-content">
                     {isLoading ? (
