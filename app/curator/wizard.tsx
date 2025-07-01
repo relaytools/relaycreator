@@ -7,7 +7,8 @@ import { useState, useEffect } from "react";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 import RelaySmall from "../components/relaySmall";
 
 export default function Wizard(
@@ -361,6 +362,12 @@ export default function Wizard(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ payment_amount: satsAmount }),
         });
+        if (response.ok) {
+            toast.success("Payment settings saved");
+        } else {
+            toast.error("error setting payment");
+        }
+
     };
 
     const handlePayChange = async (e: any) => {
@@ -1356,15 +1363,6 @@ export default function Wizard(
                                     </button>
                                 </div>
                             )}
-
-                            <div className="flex justify-center">
-                                <div
-                                    className="btn btn-primary uppercase mt-4"
-                                    onClick={() => setChecked(8)}
-                                >
-                                    DONE
-                                </div>
-                            </div>
                         </div>
                     )}
 
@@ -1596,6 +1594,18 @@ export default function Wizard(
                     )}
                 </div>
             </div>
+            <ToastContainer
+                position="bottom-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="auto"
+            />
         </div>
     );
 }
