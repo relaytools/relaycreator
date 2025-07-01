@@ -20,6 +20,42 @@ export default async function handle(req: any, res: any) {
         },
     })
 
+    // Parse domain to extract subdomain and base domain
+    const domainParts = domain.split('.');
+    let relayName = '';
+    let baseDomain = '';
+    
+    if (domainParts.length >= 2) {
+        relayName = domainParts[0]; // subdomain (relay name)
+        baseDomain = domainParts.slice(1).join('.'); // base domain
+    } else {
+        console.log("Invalid domain format");
+        res.status(400).json({ "error": "Invalid domain format" });
+        return;
+    }
+
+    // Find the specific relay that matches the subdomain and domain
+    const targetRelay = await prisma.relay.findFirst({
+        where: {
+            AND: [
+                { name: relayName },
+                { domain: baseDomain },
+                {
+                    OR: [
+                        { status: "running" },
+                        { status: "provision" },
+                    ]
+                }
+            ]
+        },
+    });
+
+    if (!targetRelay) {
+        console.log("Relay not found for domain:", domain);
+        res.status(404).json({ "error": "Relay not found for this domain" });
+        return;
+    }
+
     const relays = await prisma.relay.findMany({
         where: {
             OR: [
@@ -117,8 +153,12 @@ export default async function handle(req: any, res: any) {
         endpoint: process.env.LNBITS_ENDPOINT,
     });
 
+    
+
+    const nip05Amount = targetRelay.nip05_payment_amount || 21;
+    
     const newInvoice = await wallet.createInvoice({
-        amount: 21,
+        amount: nip05Amount,
         memo: "nip05" + " " + name + " " + domain + " " + pubkey,
         out: false,
     });
@@ -147,7 +187,7 @@ export default async function handle(req: any, res: any) {
         data: {
             userId: user.id,
             nip05Id: newNip05.id,
-            amount: 21,
+            amount: nip05Amount,
             paid: false,
             payment_hash: newInvoice.payment_hash,
             lnurl: newInvoice.payment_request,
