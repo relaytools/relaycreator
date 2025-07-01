@@ -28,8 +28,8 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
 
     return (
         <>
-            {status && props.signed_in && <div>success<ZapAnimation redirect_to={`/`}></ZapAnimation></div>}
-            {status && !props.signed_in && <div>success<ZapAnimation redirect_to={`/}`}></ZapAnimation></div>}
+            {status && props.signed_in && <div>success<ZapAnimation redirect_to={`/clientinvoices`}></ZapAnimation></div>}
+            {status && !props.signed_in && <div>success<ZapAnimation redirect_to={`/clientinvoices}`}></ZapAnimation></div>}
 
             {!status && <div> 
                 <TextStringWaitingForPayment />

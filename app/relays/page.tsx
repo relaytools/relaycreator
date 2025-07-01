@@ -1,11 +1,10 @@
 import { getServerSession } from "next-auth/next";
 import authOptions from "../../pages/api/auth/[...nextauth]";
 import PublicRelays from "./publicRelays";
-import MyRelays from "./myRelays";
 import CreateRelay from "./createRelay";
 import HelpfulInfo from "./helpfulInfo";
-import ClientPaymentPage from "../clientinvoices/page";
-import Nip05Page from "../nip05/page"
+import RelayDashboard from "./relayDashboard";
+import Link from "next/link";
 
 export default async function Relays() {
 
@@ -15,36 +14,39 @@ export default async function Relays() {
 
     if (!session || !(session as any).user.name) {
         return (
-            <div>
-                {showSignup && <CreateRelay />}
-                {!showSignup && <HelpfulInfo />}
-
-                <PublicRelays />
+            <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
+                <div className="container mx-auto px-4 py-8">
+                    {showSignup && (
+                        <div className="card bg-base-200 mb-8">
+                            <div className="card-body">
+                                <CreateRelay />
+                            </div>
+                        </div>
+                    )}
+                    
+                    {!showSignup && (
+                        <div className="card bg-base-200 mb-8">
+                            <div className="card-body">
+                                <HelpfulInfo />
+                            </div>
+                        </div>
+                    )}
+                    
+                    <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                            <h2 className="card-title text-2xl mb-4">🌐 Public Relays</h2>
+                            <PublicRelays />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
 
+    // Pass session data to client component - let it handle component rendering
     return (
-        <div className="">
-            <div className="collapse collapse-arrow bg-base-200 mt-4">
-                <input type="checkbox" /> 
-                <div className="collapse-title text-lg font-medium text-center">
-                    Relay Subscriptions
-                </div>
-                <div className="collapse-content">
-                    <ClientPaymentPage/>
-                </div>
-            </div>
-            <div className="collapse collapse-arrow bg-base-200 mt-4 mb-4">
-                <input type="checkbox" /> 
-                <div className="collapse-title text-lg font-medium text-center">
-                    NIP-05 Subscriptions
-                </div>
-                <div className="collapse-content">
-                    <Nip05Page/>
-                </div>
-            </div>
-            <MyRelays />
-        </div>
+        <RelayDashboard 
+            session={session}
+        />
     );
 }
