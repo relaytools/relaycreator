@@ -45,8 +45,7 @@ export default async function Relays() {
 
     // Pass session data to client component - let it handle component rendering
     return (
-        <RelayDashboard 
-            session={session}
-        />
+        // Show dashboard for logged-in users
+        <RelayDashboard />
     );
 }

@@ -202,7 +202,7 @@ export default function Nip05Orders(
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
             <div className="container mx-auto px-4 py-8 max-w-6xl">
                 {/* Create New NIP05 Section */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8 border border-slate-200 dark:border-slate-700">
