@@ -32,7 +32,7 @@ export default function ShowNip05Order(
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
 
     const getNip05OrderStatus = async (clientOrderId: string) => {
-        const result = await fetch(rootDomain + `/api/nip05orders/${props.nip05Order.id}`)
+        const result = await fetch(`/api/nip05orders/${props.nip05Order.id}`)
         const j = await result.json()
         const wasPaid = status;
         setStatus(j.nip05Order.paid)
