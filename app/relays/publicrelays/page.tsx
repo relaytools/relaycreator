@@ -1,6 +1,4 @@
-import dynamic from "next/dynamic";
-
-const PublicRelays = dynamic(() => import("../publicRelays"), { ssr: false });
+//import PublicRelays from ""
 
 export default function PublicRelaysPage() {
     return (
@@ -16,7 +14,7 @@ export default function PublicRelaysPage() {
                     <h1 className="text-2xl sm:text-3xl font-bold">Public Relays</h1>
                 </div>
                 <div className="w-full">
-                    <PublicRelays />
+ relay dashboard goes here
                 </div>
             </div>
         </div>
