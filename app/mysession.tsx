@@ -316,6 +316,12 @@ export default function ShowSession(
                                 </a>
                             </li>
                             <li>
+                                <a href={rootDomain + "/clientinvoices"}>Subscriptions</a>
+                            </li>
+                            <li>
+                                <a href={rootDomain + "/nip05"}>NIP-05 Identity</a>
+                            </li>
+                            <li>
                                 <a href={rootDomain + "/invoices"}>Invoices</a>
                             </li>
                             <li>
