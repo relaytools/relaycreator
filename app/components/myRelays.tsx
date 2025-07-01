@@ -36,6 +36,19 @@ export default function MyRelays() {
 
     return (
         <div>
+            {/* Relay Invoices Link */}
+            <div className="mb-6">
+                <a 
+                    href="/invoices"
+                    className="card bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer block"
+                >
+                    <div className="card-body text-center py-6">
+                        <div className="text-4xl mb-2">📄</div>
+                        <h3 className="card-title justify-center text-xl font-bold">Relay Invoices</h3>
+                        <p className="text-sm opacity-90">View your relay billing & payment history</p>
+                    </div>
+                </a>
+            </div>
             
             <div className="collapse collapse-arrow bg-base-200">
                 <input type="checkbox" defaultChecked /> 
