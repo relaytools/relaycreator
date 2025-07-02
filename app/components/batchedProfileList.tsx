@@ -60,7 +60,7 @@ export default function BatchedProfileList({
   const [copiedPubkey, setCopiedPubkey] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter entries based on search term (reason and profile name)
+  // Filter entries based on search term (reason, profile name, and pubkey)
   const filteredEntries = entries.filter(entry => {
     if (!searchTerm) return true;
     
@@ -69,7 +69,27 @@ export default function BatchedProfileList({
     const reason = entry.reason?.toLowerCase() || "";
     const searchLower = searchTerm.toLowerCase();
     
-    return reason.includes(searchLower) || profileName.includes(searchLower);
+    // Search in reason and profile name
+    if (reason.includes(searchLower) || profileName.includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in pubkey (hex format)
+    if (entry.pubkey.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in npub format
+    try {
+      const npub = nip19.npubEncode(entry.pubkey);
+      if (npub.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+    } catch (e) {
+      // Ignore encoding errors
+    }
+    
+    return false;
   });
 
   // Calculate pagination based on filtered entries
@@ -202,7 +222,7 @@ export default function BatchedProfileList({
         <div className="flex gap-2 items-center">
           <input
             type="text"
-            placeholder="Search by name or reason..."
+            placeholder="Search by name, reason, or pubkey..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="input input-bordered input-sm flex-1"
