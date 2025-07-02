@@ -5,6 +5,7 @@ import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk";
 import { useSession } from "next-auth/react";
 import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 import { ToastContainer, toast } from "react-toastify";
+import BatchedProfileList from "../components/batchedProfileList";
 
 type ListEntryPubkey = {
     pubkey: string;
@@ -69,7 +70,7 @@ export default function ListEntryPubkeys(
     };
 
     const handleDelete = async (event: any) => {
-        event.preventDefault();
+        //event.preventDefault();
         const deleteThisId = event.currentTarget.id;
         // call to API to delete keyword
         const response = await fetch(
@@ -568,96 +569,30 @@ export default function ListEntryPubkeys(
                                 ))}
                             </div>
                         )}
-                        <div className="mt-4 w-full font-mono flex-wrap">
-                            {showHidePubkeys &&
-                                filteredPubkeys().map((entry: any) => (
-                                    <div
-                                        key={entry.id}
-                                        className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-(--breakpoint-2xl)"
-                                        onClick={() =>
-                                            setShowActionsPubkey(entry.id)
-                                        }
-                                    >
-                                        <div className="overflow-none mr-2">
-                                            {entry.pubkey}
-                                        </div>
-                                        <div className="border-t-2 border-dashed border-neutral overflow-auto">
-                                            reason: {entry.reason}
-                                        </div>
-                                        {showActionsPubkey == entry.id && (
-                                            <div className="flex">
-                                                {!isEditing && (
-                                                    <button
-                                                        onClick={handleDelete}
-                                                        className="btn uppercase btn-secondary p-4"
-                                                        id={entry.id}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                )}
-                                                {isEditing ? (
-                                                    <div className="ml-4 items-center justify-center flex flex-wrap">
-                                                        <div className="font-condensed bold">
-                                                            new reason:
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            value={
-                                                                editingReason
-                                                            }
-                                                            onChange={(e) =>
-                                                                setEditingReason(
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                            onKeyDown={(e) => {
-                                                                if (
-                                                                    e.key ===
-                                                                    "Enter"
-                                                                ) {
-                                                                    handleEdit(
-                                                                        entry
-                                                                    );
-                                                                }
-                                                            }}
-                                                            className="input input-bordered input-primary"
-                                                        />
-                                                        <button
-                                                            className="btn uppercase btn-secondary ml-2"
-                                                            onClick={() =>
-                                                                handleEdit(
-                                                                    entry
-                                                                )
-                                                            }
-                                                        >
-                                                            Save
-                                                        </button>
-                                                        <button
-                                                            className="btn uppercase btn-secondary ml-2"
-                                                            onClick={() =>
-                                                                setIsEditing(
-                                                                    false
-                                                                )
-                                                            }
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        className="btn uppercase btn-secondary ml-4"
-                                                        onClick={() =>
-                                                            handleEdit(entry)
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                        <div className="mt-4 w-full">
+                            {showHidePubkeys && (
+                                <BatchedProfileList
+                                    entries={filteredPubkeys()}
+                                    onEdit={(entry, newReason) => {
+                                        handleEdit({ ...entry, reason: newReason });
+                                    }}
+                                    onDelete={(entryId) => {
+                                        const event = { currentTarget: { id: entryId } };
+                                        handleDelete(event);
+                                    }}
+                                    isEditing={isEditing}
+                                    editingEntryId={showActionsPubkey}
+                                    editingReason={editingReason}
+                                    onStartEdit={(entryId, currentReason) => {
+                                        setShowActionsPubkey(entryId);
+                                        setEditingReason(currentReason);
+                                        setIsEditing(true);
+                                    }}
+                                    onCancelEdit={() => setIsEditing(false)}
+                                    onReasonChange={setEditingReason}
+                                    itemsPerPage={9}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
