@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { nip19 } from "nostr-tools";
 import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
+import ProfileWrapper from "../components/profileWrapper";
+import { FaPlus, FaTrash, FaTimes } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export type User = {
     pubkey: string;
@@ -49,24 +52,31 @@ export default function Moderators(
 
     const handleDelete = async (event: any) => {
         event.preventDefault();
-        console.log(event.currentTarget.id);
         const deleteThisId = event.currentTarget.id;
-        // call to API to delete moderator
-        const response = await fetch(
-            `/api/relay/${props.relay_id}/moderator?moderator_id=${event.currentTarget.id}`,
-            {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
+        
+        try {
+            // call to API to delete moderator
+            const response = await fetch(
+                `/api/relay/${props.relay_id}/moderator?moderator_id=${deleteThisId}`,
+                {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                }
+            );
+            
+            if (response.ok) {
+                // delete the entry from the state
+                const newlist = moderators.filter(entry => entry.id !== deleteThisId);
+                setModerators(newlist);
+                toast.success("Moderator removed successfully!");
+            } else {
+                const errorData = await response.json();
+                toast.error(`Failed to remove moderator: ${errorData.error || 'Unknown error'}`);
             }
-        );
-        // delete the entry from the props
-        let newlist: Moderator[] = [];
-        moderators.forEach((entry) => {
-            if (entry.id != deleteThisId) {
-                newlist.push(entry);
-            }
-        });
-        setModerators(newlist);
+        } catch (error) {
+            console.error("Error removing moderator:", error);
+            toast.error("Error removing moderator");
+        }
     };
 
     const handleSubmit = async (event: any) => {
@@ -77,24 +87,35 @@ export default function Moderators(
             setPubkeyErrorDescription("key must be valid hex or npub");
             return;
         }
-        // call to API to add new keyword
-        const response = await fetch(`/api/relay/${props.relay_id}/moderator`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pubkey: validPubkey }),
-        });
+        
+        try {
+            // call to API to add new moderator
+            const response = await fetch(`/api/relay/${props.relay_id}/moderator`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pubkey: validPubkey }),
+            });
 
-        if (response.ok) {
-            const j = await response.json();
-            setNewPubkey(false);
-            const newMods = moderators;
-            newMods.push({ id: j.id, user: { pubkey: validPubkey } });
-            setModerators(newMods);
-            setPubkey("");
-        } else {
-            const j = await response.json();
+            if (response.ok) {
+                const responseData = await response.json();
+                setNewPubkey(false);
+                const newMods = [...moderators, { id: responseData.id, user: { pubkey: validPubkey } }];
+                setModerators(newMods);
+                setPubkey("");
+                setPubkeyError("");
+                setPubkeyErrorDescription("");
+                toast.success("Moderator added successfully!");
+            } else {
+                const errorData = await response.json();
+                setPubkeyError("❌");
+                setPubkeyErrorDescription(errorData.error || "Failed to add moderator");
+                toast.error(`Failed to add moderator: ${errorData.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error("Error adding moderator:", error);
             setPubkeyError("❌");
-            setPubkeyErrorDescription(j.error);
+            setPubkeyErrorDescription("Network error occurred");
+            toast.error("Error adding moderator");
         }
     };
 
@@ -114,84 +135,122 @@ export default function Moderators(
     }
 
     return (
-        <div className="flex flex-wrap">
-            <div className="mt-4 w-full font-mono">
-                {moderators.map((entry) => (
-                    <div
-                        key={entry.id}
-                        onClick={() => actionsModToggle(entry.id)}
-                        className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-(--breakpoint-2xl)"
+        <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Relay Moderators ({moderators.length})
+                </h3>
+                {!newpubkey && (
+                    <button
+                        onClick={() => setNewPubkey(true)}
+                        className="btn btn-primary btn-sm gap-2"
                     >
-                        <div className="overflow-none mr-2 p-2">
-                            {entry.user.pubkey}
-                        </div>
-                        {showActionsMod == entry.id && (
-                            <div className="flex">
-                                <button
-                                    onClick={handleDelete}
-                                    className="btn uppercase btn-secondary"
-                                    id={entry.id}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                        <FaPlus className="w-3 h-3" />
+                        Add Moderator
+                    </button>
+                )}
+            </div>
 
-                {newpubkey && (
-                    <div className="flex flex-col border-2 border-secondary rounded-lg p-2 mt-2">
-                        <form className="mt-4" action="#" method="POST">
+            {/* Add New Moderator Form */}
+            {newpubkey && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                            Add New Moderator
+                        </h4>
+                        <button
+                            onClick={handleCancel}
+                            className="btn btn-ghost btn-sm btn-circle"
+                        >
+                            <FaTimes className="w-4 h-4" />
+                        </button>
+                    </div>
+                    
+                    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                        <div>
                             <input
                                 type="text"
                                 name="pubkey"
                                 id="newpubkey"
-                                className="input input-bordered input-primary w-full"
-                                placeholder="add pubkey"
+                                className={`input input-bordered w-full ${
+                                    pubkeyError === "❌" ? "input-error" : 
+                                    pubkeyError === "✅" ? "input-success" : ""
+                                }`}
+                                placeholder="Enter pubkey (hex or npub format)"
                                 autoComplete="off"
                                 value={pubkey}
                                 onChange={(event) =>
                                     setAndValidatePubkey(event.target.value)
                                 }
                             />
+                            {pubkeyErrorDescription && (
+                                <p className="text-error text-sm mt-1">
+                                    {pubkeyErrorDescription}
+                                </p>
+                            )}
+                        </div>
+                        
+                        <div className="flex gap-2">
                             <button
                                 disabled={!isValidForm()}
                                 onClick={handleSubmit}
-                                className="btn uppercase btn-primary"
+                                className="btn btn-primary"
                             >
-                                Add
+                                Add Moderator
                             </button>
                             <button
                                 onClick={handleCancel}
-                                className="btn uppercase btn-primary"
+                                className="btn btn-ghost"
                             >
                                 Cancel
                             </button>
-                            <button
-                                type="button"
-                                disabled
-                                className="button btn-primary"
-                            >
-                                {pubkeyError}
-                            </button>
-                        </form>
+                        </div>
+                    </form>
+                </div>
+            )}
 
-                        <span className="flex items-center font-condensed tracking-wide text-red-500 text-xs mt-1 ml-1">
-                            {pubkeyErrorDescription}
-                        </span>
+            {/* Moderators List */}
+            <div className="space-y-3">
+                {moderators.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <p>No moderators added yet.</p>
+                        <p className="text-sm">Add moderators to help manage your relay.</p>
                     </div>
-                )}
-
-                {!newpubkey && (
-                    <div className="">
-                        <button
-                            onClick={() => setNewPubkey(true)}
-                            type="button"
-                            className="btn uppercase btn-primary"
+                ) : (
+                    moderators.map((entry) => (
+                        <div
+                            key={entry.id}
+                            className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow"
                         >
-                            Add pubkey
-                        </button>
-                    </div>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <ProfileWrapper 
+                                        pubkey={entry.user.pubkey} 
+                                        size="medium" 
+                                        showName={true}
+                                        showCopy={true}
+                                        showPubkey={false}
+                                    />
+                                </div>
+                                
+                                <button
+                                    onClick={handleDelete}
+                                    className="btn btn-error btn-sm gap-2"
+                                    id={entry.id}
+                                    title="Remove moderator"
+                                >
+                                    <FaTrash className="w-3 h-3" />
+                                    Remove
+                                </button>
+                            </div>
+                            
+                            {/* Show pubkey in small text for reference */}
+                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                {entry.user.pubkey}
+                            </div>
+                        </div>
+                    ))
                 )}
             </div>
         </div>
