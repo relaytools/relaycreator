@@ -26,6 +26,7 @@ interface BatchedProfileListProps {
   entries: ListEntry[];
   onEdit?: (entry: ListEntry, newReason: string) => void;
   onDelete?: (entryId: string) => void;
+  onDeleteAll?: (entryIds: string[]) => void;
   isEditing?: boolean;
   editingEntryId?: string;
   editingReason?: string;
@@ -34,22 +35,25 @@ interface BatchedProfileListProps {
   onReasonChange?: (reason: string) => void;
   itemsPerPage?: number;
   searchTerm?: string;
-  onSearchChange?: (searchTerm: string) => void;
+  onSearchChange?: (term: string) => void;
+  kind?: string;
 }
 
 export default function BatchedProfileList({ 
   entries, 
   onEdit, 
-  onDelete, 
-  isEditing = false,
+  onDelete,
+  onDeleteAll,
+  isEditing,
   editingEntryId,
-  editingReason = "",
+  editingReason,
   onStartEdit,
   onCancelEdit,
   onReasonChange,
   itemsPerPage = 20,
   searchTerm = "",
-  onSearchChange
+  onSearchChange,
+  kind = "entries"
 }: BatchedProfileListProps) {
   const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -225,6 +229,21 @@ export default function BatchedProfileList({
         <span>Page {currentPage} of {totalPages}</span>
       </div>
 
+      {/* Delete All Button */}
+      {onDeleteAll && filteredEntries.length > 0 && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => {
+              const entryIds = filteredEntries.map(entry => entry.id);
+              onDeleteAll(entryIds);
+            }}
+            className="btn btn-error btn-sm"
+          >
+            Delete All {filteredEntries.length} {searchTerm ? 'Filtered ' : ''}{kind}
+          </button>
+        </div>
+      )}
+
       {/* Profile Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {currentEntries.map((entry) => {
@@ -278,11 +297,11 @@ export default function BatchedProfileList({
                   <div className="space-y-2">
                     <input
                       type="text"
-                      value={editingReason}
+                      value={editingReason || ""}
                       onChange={(e) => onReasonChange?.(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
-                          onEdit?.(entry, editingReason);
+                          onEdit?.(entry, editingReason || "");
                         }
                       }}
                       className="input input-bordered input-sm w-full"
@@ -290,7 +309,7 @@ export default function BatchedProfileList({
                     />
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => onEdit?.(entry, editingReason)}
+                        onClick={() => onEdit?.(entry, editingReason || "")}
                         className="btn btn-success btn-xs"
                       >
                         <FaSave className="w-3 h-3 mr-1" />
