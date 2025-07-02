@@ -19,7 +19,7 @@ interface Profile {
 interface ListEntry {
   id: string;
   pubkey: string;
-  reason?: string;
+  reason?: string | null;
 }
 
 interface BatchedProfileListProps {
@@ -33,6 +33,8 @@ interface BatchedProfileListProps {
   onCancelEdit?: () => void;
   onReasonChange?: (reason: string) => void;
   itemsPerPage?: number;
+  searchTerm?: string;
+  onSearchChange?: (searchTerm: string) => void;
 }
 
 export default function BatchedProfileList({ 
@@ -45,22 +47,36 @@ export default function BatchedProfileList({
   onStartEdit,
   onCancelEdit,
   onReasonChange,
-  itemsPerPage = 20
+  itemsPerPage = 20,
+  searchTerm = "",
+  onSearchChange
 }: BatchedProfileListProps) {
   const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
   const [loading, setLoading] = useState(true);
   const [copiedPubkey, setCopiedPubkey] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Calculate pagination
-  const totalPages = Math.ceil(entries.length / itemsPerPage);
+  // Filter entries based on search term (reason and profile name)
+  const filteredEntries = entries.filter(entry => {
+    if (!searchTerm) return true;
+    
+    const profile = profiles.get(entry.pubkey);
+    const profileName = profile?.content?.name?.toLowerCase() || "";
+    const reason = entry.reason?.toLowerCase() || "";
+    const searchLower = searchTerm.toLowerCase();
+    
+    return reason.includes(searchLower) || profileName.includes(searchLower);
+  });
+
+  // Calculate pagination based on filtered entries
+  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentEntries = entries.slice(startIndex, endIndex);
+  const currentEntries = filteredEntries.slice(startIndex, endIndex);
 
   useEffect(() => {
     const fetchProfiles = async () => {
-      if (currentEntries.length === 0) {
+      if (entries.length === 0) {
         setLoading(false);
         return;
       }
@@ -84,49 +100,44 @@ export default function BatchedProfileList({
         
         await ndk.connect();
 
-        // Only fetch profiles for current page entries
-        const pubkeys = currentEntries.map(entry => entry.pubkey);
-        const profilesMap = new Map<string, Profile>(profiles); // Keep existing profiles
+        // Fetch ALL profiles for search functionality
+        const allPubkeys = entries.map(entry => entry.pubkey);
+        const profilesMap = new Map<string, Profile>();
 
-        // Filter out pubkeys we already have profiles for
-        const newPubkeys = pubkeys.filter(pubkey => !profiles.has(pubkey));
-        
-        if (newPubkeys.length > 0) {
-          // Process new pubkeys in batches of 500 (though for pagination this will be much smaller)
-          const batchSize = 500;
-          for (let i = 0; i < newPubkeys.length; i += batchSize) {
-            const batch = newPubkeys.slice(i, i + batchSize);
-            
-            const profileSub = ndk.subscribe(
-              { kinds: [0], authors: batch },
-              { closeOnEose: true, groupable: true }
-            );
+        // Process all pubkeys in batches of 500
+        const batchSize = 500;
+        for (let i = 0; i < allPubkeys.length; i += batchSize) {
+          const batch = allPubkeys.slice(i, i + batchSize);
+          
+          const profileSub = ndk.subscribe(
+            { kinds: [0], authors: batch },
+            { closeOnEose: true, groupable: true }
+          );
 
-            await new Promise<void>((resolve) => {
-              const timeout = setTimeout(() => {
-                profileSub.stop();
-                resolve();
-              }, 3000); // 3 second timeout per batch (shorter for pagination)
+          await new Promise<void>((resolve) => {
+            const timeout = setTimeout(() => {
+              profileSub.stop();
+              resolve();
+            }, 5000); // 5 second timeout per batch
 
-              profileSub.on("event", (event: NDKEvent) => {
-                try {
-                  const profileContent = JSON.parse(event.content);
-                  profilesMap.set(event.pubkey, {
-                    pubkey: event.pubkey,
-                    content: profileContent
-                  });
-                } catch (e) {
-                  console.error("Error parsing profile content:", e);
-                }
-              });
-
-              profileSub.on("eose", () => {
-                clearTimeout(timeout);
-                profileSub.stop();
-                resolve();
-              });
+            profileSub.on("event", (event: NDKEvent) => {
+              try {
+                const profileContent = JSON.parse(event.content);
+                profilesMap.set(event.pubkey, {
+                  pubkey: event.pubkey,
+                  content: profileContent
+                });
+              } catch (e) {
+                console.error("Error parsing profile content:", e);
+              }
             });
-          }
+
+            profileSub.on("eose", () => {
+              clearTimeout(timeout);
+              profileSub.stop();
+              resolve();
+            });
+          });
         }
 
         setProfiles(profilesMap);
@@ -138,7 +149,7 @@ export default function BatchedProfileList({
     };
 
     fetchProfiles();
-  }, [currentPage, entries, itemsPerPage]);
+  }, [entries]);
 
   // Reset to page 1 when entries change (e.g., filtering)
   useEffect(() => {
@@ -182,10 +193,34 @@ export default function BatchedProfileList({
 
   return (
     <div className="space-y-4">
+      {/* Search Input */}
+      {onSearchChange && (
+        <div className="flex gap-2 items-center">
+          <input
+            type="text"
+            placeholder="Search by name or reason..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="input input-bordered input-sm flex-1"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => onSearchChange("")}
+              className="btn btn-sm btn-ghost"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Pagination Info */}
       <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
         <span>
-          Showing {startIndex + 1}-{Math.min(endIndex, entries.length)} of {entries.length} entries
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredEntries.length)} of {filteredEntries.length} entries
+          {searchTerm && filteredEntries.length !== entries.length && (
+            <span className="ml-1 text-primary">(filtered from {entries.length})</span>
+          )}
         </span>
         <span>Page {currentPage} of {totalPages}</span>
       </div>

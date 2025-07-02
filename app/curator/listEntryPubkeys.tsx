@@ -424,21 +424,6 @@ export default function ListEntryPubkeys(
                             )}
                             {showHidePubkeys && !newpubkey && (
                                 <div className="mt-4">
-                                    <input
-                                        type="text"
-                                        placeholder="search/filter by reason"
-                                        value={filter}
-                                        onChange={(e) =>
-                                            setFilter(e.target.value)
-                                        }
-                                        className="input input-primary input-bordered"
-                                    ></input>
-                                    <button
-                                        className="btn btn-secondary"
-                                        onClick={() => setFilter("")}
-                                    >
-                                        clear
-                                    </button>
                                     <div className="font-condensed">
                                         These are the included nostr lists:
                                     </div>
@@ -462,40 +447,19 @@ export default function ListEntryPubkeys(
                                     </div>
                                     <button
                                         className="btn btn-secondary uppercase grow w-full mt-4 mb-4"
-                                        onClick={() =>
-                                            setShowHidePubkeys(false)
-                                        }
+                                        onClick={() => {
+                                            setShowHidePubkeys(false);
+                                            setFilter(""); // Clear search when hiding
+                                        }}
                                     >
-                                        hide
-                                        {filter == "" &&
-                                            " " +
-                                                pubkeys.length.toString() +
-                                                " "}
-                                        {filter != "" &&
-                                            " " +
-                                                filteredPubkeys().length.toString() +
-                                                " of (" +
-                                                pubkeys.length.toString() +
-                                                ") "}
-                                        {props.kind}
+                                        hide {pubkeys.length} {props.kind}
                                     </button>
                                     <button
                                         onClick={handleDeleteAll}
-                                        className="btn uppercase btn-warning grow w-full mt-4"
+                                        className="btn btn-error uppercase grow w-full mt-4"
                                         id="all"
                                     >
-                                        Delete
-                                        {filter == "" &&
-                                            " " +
-                                                pubkeys.length.toString() +
-                                                " "}
-                                        {filter != "" &&
-                                            " " +
-                                                filteredPubkeys().length.toString() +
-                                                " of (" +
-                                                pubkeys.length.toString() +
-                                                ") "}
-                                        Pubkeys
+                                        Delete All {pubkeys.length} {props.kind}
                                     </button>
                                 </div>
                             )}
@@ -572,7 +536,7 @@ export default function ListEntryPubkeys(
                         <div className="mt-4 w-full">
                             {showHidePubkeys && (
                                 <BatchedProfileList
-                                    entries={filteredPubkeys()}
+                                    entries={pubkeys}
                                     onEdit={(entry, newReason) => {
                                         handleEdit({ ...entry, reason: newReason });
                                     }}
@@ -591,6 +555,8 @@ export default function ListEntryPubkeys(
                                     onCancelEdit={() => setIsEditing(false)}
                                     onReasonChange={setEditingReason}
                                     itemsPerPage={9}
+                                    searchTerm={filter}
+                                    onSearchChange={setFilter}
                                 />
                             )}
                         </div>
