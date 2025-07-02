@@ -386,10 +386,10 @@ export default function ListEntryPubkeys(
 
     // Add handleEdit function
     const handleEdit = async (entry: ListEntryPubkey) => {
-        if (isEditing) {
-            // Save the edited reason
+        if (isEditing && showActionsPubkey === entry.id) {
+            // Save the edit
             const response = await fetch(
-                `/api/relay/${props.relay_id}/${idkind}pubkey?entry_id=${entry.id}`,
+                `/api/relay/${props.relay_id}/${idkind}pubkeys/${entry.id}`,
                 {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -417,24 +417,57 @@ export default function ListEntryPubkeys(
         }
     };
 
+    const downloadCSV = () => {
+        // Create CSV content
+        const csvHeader = "pubkey,reason\n";
+        const csvContent = pubkeys
+            .map(entry => {
+                const pubkey = entry.pubkey || "";
+                const reason = (entry.reason || "").replace(/"/g, '""'); // Escape quotes
+                return `"${pubkey}","${reason}"`;
+            })
+            .join("\n");
+        
+        const fullCSV = csvHeader + csvContent;
+        
+        // Create and download file
+        const blob = new Blob([fullCSV], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${props.kind}_pubkeys.csv`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success(`Downloaded ${pubkeys.length} entries as CSV`, toastOptions);
+    };
+
     return (
         <div className="flex flex-wrap">
             <div className="">
                 <div className="">
                     <div className="flex flex-wrap">
                         <div className="w-full">
-                            {!newpubkey && (
-                                <div className="mt-4">
-                                    <button
-                                        onClick={() => setNewPubkeyHandler()}
-                                        type="button"
-                                        className="btn uppercase btn-primary mr-2 grow w-full mt-4"
-                                    >
-                                        Add pubkey(s)
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        {!newpubkey && (
+                            <div className="mt-4 flex gap-2">
+                                <button
+                                    onClick={() => setNewPubkeyHandler()}
+                                    type="button"
+                                    className="btn uppercase btn-primary grow"
+                                >
+                                    Add pubkey(s)
+                                </button>
+                                <button
+                                    onClick={downloadCSV}
+                                    type="button"
+                                    className="btn uppercase btn-accent"
+                                >
+                                    Download CSV
+                                </button>
+                            </div>
+                        )}
                         <div className="w-full grow">
                             {!showHidePubkeys && !newpubkey && (
                                 <button
@@ -585,6 +618,7 @@ export default function ListEntryPubkeys(
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }
