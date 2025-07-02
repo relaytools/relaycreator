@@ -90,25 +90,41 @@ export default async function handle(req: any, res: any) {
             return;
         }
 
-        const listId = req.query.list_id;
-        if (listId == null) {
-            res.status(500).json({ error: "no list_id" });
-            return;
-        }
-        // delete all lists with this reason..
-        if (listId != "" && listId != "all") {
+        // Check if we have entry IDs in the request body for batch deletion
+        const { entryIds } = req.body || {};
+        
+        if (entryIds && Array.isArray(entryIds) && entryIds.length > 0) {
+            // Batch delete by specific entry IDs
             await prisma.listEntryPubkey.deleteMany({
                 where: {
-                    AND: [{ AllowListId: allow_list.id }, { reason: { contains: listId }}],
+                    AND: [
+                        { AllowListId: allow_list.id },
+                        { id: { in: entryIds } }
+                    ],
                 },
             });
-            // delete all
-        } else if (listId == "all") {
-            await prisma.listEntryPubkey.deleteMany({
-                where: {
-                    AllowListId: allow_list.id,
-                },
-            });
+        } else {
+            // Original logic for deleting by list_id/reason
+            const listId = req.query.list_id;
+            if (listId == null) {
+                res.status(500).json({ error: "no list_id" });
+                return;
+            }
+            // delete all lists with this reason..
+            if (listId != "" && listId != "all") {
+                await prisma.listEntryPubkey.deleteMany({
+                    where: {
+                        AND: [{ AllowListId: allow_list.id }, { reason: { contains: listId }}],
+                    },
+                });
+                // delete all
+            } else if (listId == "all") {
+                await prisma.listEntryPubkey.deleteMany({
+                    where: {
+                        AllowListId: allow_list.id,
+                    },
+                });
+            }
         }
 
         res.status(200).json({});

@@ -126,10 +126,33 @@ export default function ListEntryPubkeys(
         );
     };
 
-    const handleDeleteAll = async (event: any) => {
-        event.preventDefault();
+    const handleDeleteAll = async (event: any, entryIds?: string[]) => {
+        //event.preventDefault();
         const deleteThis = event.currentTarget.id;
-        // call to API to delete keyword
+        
+        // If entryIds are provided, delete specific entries using batch API
+        if (entryIds && entryIds.length > 0) {
+            const response = await fetch(
+                `/api/relay/${props.relay_id}/${idkind}pubkeys`,
+                {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ entryIds })
+                }
+            );
+            
+            if (response.ok) {
+                // Remove the deleted entries from the local state
+                const updatedPubkeys = pubkeys.filter(pubkey => !entryIds.includes(pubkey.id));
+                setPubkeys(updatedPubkeys);
+                toast.success(`Deleted ${entryIds.length} entries successfully`);
+            } else {
+                toast.error("Failed to delete entries");
+            }
+            return;
+        }
+        
+        // Original logic for deleting by filter
         let allOrFilter = filter;
         if (filter == "") {
             allOrFilter = "all";
@@ -454,13 +477,7 @@ export default function ListEntryPubkeys(
                                     >
                                         hide {pubkeys.length} {props.kind}
                                     </button>
-                                    <button
-                                        onClick={handleDeleteAll}
-                                        className="btn btn-error uppercase grow w-full mt-4"
-                                        id="all"
-                                    >
-                                        Delete All {pubkeys.length} {props.kind}
-                                    </button>
+
                                 </div>
                             )}
                         </div>
@@ -544,6 +561,10 @@ export default function ListEntryPubkeys(
                                         const event = { currentTarget: { id: entryId } };
                                         handleDelete(event);
                                     }}
+                                    onDeleteAll={(entryIds) => {
+                                        const event = { currentTarget: { id: "all" } };
+                                        handleDeleteAll(event, entryIds);
+                                    }}
                                     isEditing={isEditing}
                                     editingEntryId={showActionsPubkey}
                                     editingReason={editingReason}
@@ -557,6 +578,7 @@ export default function ListEntryPubkeys(
                                     itemsPerPage={9}
                                     searchTerm={filter}
                                     onSearchChange={setFilter}
+                                    kind={props.kind}
                                 />
                             )}
                         </div>
