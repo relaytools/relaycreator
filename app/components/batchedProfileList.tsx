@@ -186,17 +186,17 @@ export default function BatchedProfileList({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="loading loading-spinner loading-lg"></div>
-        <span className="ml-2">Loading profiles...</span>
-      </div>
-    );
-  }
+  // Show placeholders immediately instead of full loading screen
 
   return (
     <div className="space-y-4">
+      {/* Subtle loading indicator */}
+      {loading && (
+        <div className="flex items-center justify-center py-2 text-sm text-gray-500 dark:text-gray-400">
+          <div className="loading loading-spinner loading-sm mr-2"></div>
+          Loading profile metadata...
+        </div>
+      )}
       {/* Search Input */}
       {onSearchChange && (
         <div className="flex gap-2 items-center">
@@ -249,6 +249,7 @@ export default function BatchedProfileList({
         {currentEntries.map((entry) => {
         const profile = profiles.get(entry.pubkey);
         const npub = getNpub(entry.pubkey);
+        const isLoading = !profile && loading;
         
         return (
           <div
@@ -258,15 +259,23 @@ export default function BatchedProfileList({
             {/* Profile Section */}
             <div className="flex items-start space-x-3 mb-3">
               <div className="flex-shrink-0">
-                <ProfileImage
-                  imageUrl={profile?.content?.picture || '/green-check.png'}
-                  altText={profile?.content?.name || "Profile"}
-                  className="w-10 h-10"
-                />
+                {isLoading ? (
+                  <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse" />
+                ) : (
+                  <ProfileImage
+                    imageUrl={profile?.content?.picture || '/green-check.png'}
+                    altText={profile?.content?.name || "Profile"}
+                    className="w-10 h-10"
+                  />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900 dark:text-white truncate">
-                  {getDisplayName(entry.pubkey)}
+                  {isLoading ? (
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded animate-pulse w-24" />
+                  ) : (
+                    getDisplayName(entry.pubkey)
+                  )}
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
