@@ -38,6 +38,7 @@ model Order {
   expires_at   DateTime?
   paid_at      DateTime?
   amount       Int       @default(21000)
+  order_type   String    @default("standard") @db.VarChar(50)
 
   @@index([userId])
 }
@@ -53,6 +54,7 @@ model ClientOrder {
   expires_at   DateTime?
   paid_at      DateTime?
   amount       Int       @default(21)
+  order_type   String    @default("standard") @db.VarChar(50)
 
   @@index([relayId])
 }
@@ -110,6 +112,7 @@ model Relay {
   listed_in_directory    Boolean       @default(false)
   payment_required       Boolean       @default(false)
   payment_amount         Int           @default(21)
+  payment_premium_amount Int           @default(2100)
   nip05_payment_amount   Int           @default(21)
   ip                     String?       @db.VarChar(255)
   capacity               Int?

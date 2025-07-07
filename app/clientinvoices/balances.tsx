@@ -35,13 +35,29 @@ export default function ClientBalances(
     const [showNip05, setShowNip05] = useState(false);
     const { data: session } = useSession();
 
-    async function renewSubscription(relay: any) {
+    // Function to get user's most recent plan type for a relay
+    function getUserMostRecentPlan(relay: any): string {
+        if (!relay.orders || relay.orders.length === 0) {
+            return 'standard'; // Default to standard if no orders
+        }
+        
+        // Sort orders by paid_at date (most recent first)
+        const sortedOrders = [...relay.orders].sort((a, b) => {
+            if (!a.paid_at) return 1;
+            if (!b.paid_at) return -1;
+            return new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime();
+        });
+        
+        return sortedOrders[0]?.order_type || 'standard';
+    }
+
+    async function renewSubscription(relay: any, overrideAmount?: string) {
         if (!session || !session.user?.name) {
             alert("Please login to renew your subscription");
             return;
         }
 
-        let useAmount = clientAmount;
+        let useAmount = overrideAmount || clientAmount;
         if (!useAmount || useAmount === "") {
             useAmount = relay.paymentAmount.toString();
         }
@@ -198,12 +214,7 @@ export default function ClientBalances(
                                 </div>
                                 
                                 <div className="p-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Subscription Amount</div>
-                                            <div className="text-lg font-bold text-slate-800 dark:text-slate-200">{relay.paymentAmount} sats/month</div>
-                                        </div>
-                                        
+                                    <div className="mb-6">
                                         <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 relative">
                                             <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
                                             <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
@@ -231,21 +242,32 @@ export default function ClientBalances(
                                                 <table className="table-auto w-full">
                                                     <thead>
                                                         <tr>
+                                                            <th className="px-4 py-2 text-left">Plan</th>
                                                             <th className="px-4 py-2 text-left">Amount</th>
                                                             <th className="px-4 py-2 text-left">Paid At</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {relay.orders.map((order: any) => (
-                                                            <tr key={order.id + "paid"}>
-                                                                <td className="px-4 py-2 text-left">{amountPrecision(order.amount)} sats</td>
-                                                                <td className="px-4 py-2 text-left">
-                                                                    {order.paid_at != null
-                                                                        ? new Date(order.paid_at).toLocaleString()
-                                                                        : ""}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
+                                                        {relay.orders.map((order: any) => {
+                                                            const planType = order.order_type || 'standard';
+                                                            const planDisplay = planType.charAt(0).toUpperCase() + planType.slice(1);
+                                                            const planColor = planType === 'premium' ? 'text-purple-600 dark:text-purple-400' : 
+                                                                            planType === 'custom' ? 'text-orange-600 dark:text-orange-400' : 
+                                                                            'text-blue-600 dark:text-blue-400';
+                                                            return (
+                                                                <tr key={order.id + "paid"}>
+                                                                    <td className="px-4 py-2 text-left">
+                                                                        <span className={`font-medium ${planColor}`}>{planDisplay}</span>
+                                                                    </td>
+                                                                    <td className="px-4 py-2 text-left">{amountPrecision(order.amount)} sats</td>
+                                                                    <td className="px-4 py-2 text-left">
+                                                                        {order.paid_at != null
+                                                                            ? new Date(order.paid_at).toLocaleString()
+                                                                            : ""}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -290,22 +312,70 @@ export default function ClientBalances(
                                             </summary>
                                             <div className="mt-4">
                                                 <div className="mb-4">
-                                                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                                                        Amount (sats)
+                                                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">
+                                                        Choose Your Plan
                                                     </label>
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            type="text"
-                                                            className="input input-bordered flex-1"
-                                                            placeholder={relay.paymentAmount.toString()}
-                                                            onChange={(e) => setClientAmount(e.target.value)}
-                                                        />
-                                                        <button
-                                                            className="btn btn-primary"
-                                                            onClick={() => renewSubscription(relay)}
-                                                        >
-                                                            Renew Subscription
-                                                        </button>
+                                                    {(() => {
+                                                        const currentPlan = getUserMostRecentPlan(relay);
+                                                        return (
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                                                <button
+                                                                    className={`btn flex-col h-auto py-4 relative ${
+                                                                        currentPlan === 'standard' 
+                                                                            ? 'btn-primary' 
+                                                                            : 'btn-outline btn-primary'
+                                                                    }`}
+                                                                    onClick={() => {
+                                                                        renewSubscription(relay, relay.paymentAmount.toString());
+                                                                    }}
+                                                                >
+                                                                    {currentPlan === 'standard' && (
+                                                                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                                                            Current
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="font-bold">Standard Plan</div>
+                                                                    <div className="text-sm opacity-70">Basic relay access</div>
+                                                                    <div className="font-bold text-lg">{relay.paymentAmount} sats/month</div>
+                                                                </button>
+                                                                <button
+                                                                    className={`btn flex-col h-auto py-4 relative ${
+                                                                        currentPlan === 'premium' 
+                                                                            ? 'btn-secondary' 
+                                                                            : 'btn-outline btn-secondary'
+                                                                    }`}
+                                                                    onClick={() => {
+                                                                        renewSubscription(relay, relay.paymentPremiumAmount.toString());
+                                                                    }}
+                                                                >
+                                                                    {currentPlan === 'premium' && (
+                                                                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                                                            Current
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="font-bold">Premium Plan</div>
+                                                                    <div className="text-sm opacity-70">Enhanced features & Benefits</div>
+                                                                    <div className="font-bold text-lg">{relay.paymentPremiumAmount} sats/month</div>
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                    <div className="text-center">
+                                                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">Or enter custom amount:</div>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                className="input input-bordered flex-1"
+                                                                placeholder="Custom amount in sats"
+                                                                onChange={(e) => setClientAmount(e.target.value)}
+                                                            />
+                                                            <button
+                                                                className="btn btn-primary"
+                                                                onClick={() => renewSubscription(relay)}
+                                                            >
+                                                                Renew
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
