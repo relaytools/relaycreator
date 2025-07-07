@@ -52,6 +52,7 @@ export default async function RelayPage({
                     list_kinds: true,
                 },
             },
+            acl_sources: true,
         },
     }) as RelayWithEverything | null;
 
@@ -77,6 +78,10 @@ export default async function RelayPage({
     const authBadge = relay.auth_required ? 
         <span className="badge badge-secondary gap-1"><FaLock size={12} /> Auth required</span> : 
         <span className="badge badge-outline gap-1"><FaUnlock size={12} /> No auth</span>;
+    
+    // WOT badge - show if acl_sources is not empty
+    const wotBadge = relay.acl_sources && relay.acl_sources.length > 0 ? 
+        <span className="badge badge-accent gap-1"><FaShieldAlt size={12} /> WOT</span> : null;
     
 
     // Check if banner_image exists and is not empty
@@ -131,6 +136,7 @@ export default async function RelayPage({
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-end mt-3 sm:mt-0">
                                     {authBadge}
+                                    {wotBadge}
                                     <span className="badge badge-neutral gap-1">
                                         <FaCalendarAlt size={12} />est. {createdAt}
                                     </span>

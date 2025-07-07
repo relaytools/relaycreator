@@ -30,6 +30,7 @@ export const relayWithEverything = Prisma.validator<Prisma.RelayArgs>()({
                 list_kinds: true,
             },
         },
+        acl_sources: true,
     },
 });
 
