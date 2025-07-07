@@ -347,6 +347,9 @@ export default function Wizard(
     const [satsAmount, setSatsAmount] = useState(
         props.relay.payment_amount.toString()
     );
+    const [premiumSatsAmount, setPremiumSatsAmount] = useState(
+        props.relay.payment_premium_amount.toString()
+    );
 
     const isPay = () => {
         if (pay) {
@@ -355,19 +358,21 @@ export default function Wizard(
             return "swap";
         }
     };
-    const handleSaveSats = async (e: any) => {
+    const handleSavePaymentSettings = async (e: any) => {
         e.preventDefault();
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payment_amount: satsAmount }),
+            body: JSON.stringify({ 
+                payment_amount: satsAmount,
+                payment_premium_amount: premiumSatsAmount 
+            }),
         });
         if (response.ok) {
             toast.success("Payment settings saved");
         } else {
-            toast.error("error setting payment");
+            toast.error("Error saving payment settings");
         }
-
     };
 
     const handlePayChange = async (e: any) => {
@@ -1342,24 +1347,46 @@ export default function Wizard(
                                 </label>
                             </div>
                             {pay && (
-                                <div className="mt-4">
-                                    <label className="label">
-                                        Set payment amount (sats)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="satsamount"
-                                        className="input input-bordered input-primary w-full max-w-xs"
-                                        placeholder={props.relay.payment_amount.toString()}
-                                        onChange={(event) =>
-                                            setSatsAmount(event.target.value)
-                                        }
-                                    />
+                                <div className="mt-4 space-y-4">
+                                    <div>
+                                        <label className="label">
+                                            Set payment amount (sats)
+                                        </label>
+                                        <div className="text-sm text-gray-600 mb-2">
+                                            Standard relay access 
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="satsamount"
+                                            className="input input-bordered input-secondary w-full max-w-xs"
+                                            placeholder={props.relay.payment_amount.toString()}
+                                            onChange={(event) =>
+                                                setSatsAmount(event.target.value)
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="label">
+                                            Set premium payment amount (sats)
+                                        </label>
+                                        <div className="text-sm text-gray-600 mb-2">
+                                            Higher amount for premium access or special features
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="premiumsatsamount"
+                                            className="input input-bordered input-secondary w-full max-w-xs"
+                                            placeholder={props.relay.payment_premium_amount.toString()}
+                                            onChange={(event) =>
+                                                setPremiumSatsAmount(event.target.value)
+                                            }
+                                        />
+                                    </div>
                                     <button
-                                        onClick={handleSaveSats}
+                                        onClick={handleSavePaymentSettings}
                                         className="btn uppercase btn-primary"
                                     >
-                                        save
+                                        Save Payment Settings
                                     </button>
                                 </div>
                             )}

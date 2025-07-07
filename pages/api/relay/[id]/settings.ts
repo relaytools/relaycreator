@@ -14,7 +14,7 @@ export default async function handle(req: any, res: any) {
         const updateFields: { [key: string]: any } = {};
         for (let key in req.body) {
             if (req.body[key] !== undefined) {
-                if(key == "payment_amount") {
+                if(key == "payment_amount" || key == "payment_premium_amount") {
                     updateFields[key] = parseInt(req.body[key]);
                 } else if(key == "status") {
                     // update status only if superadmin
