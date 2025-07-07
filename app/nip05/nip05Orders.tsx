@@ -87,7 +87,18 @@ export default function Nip05Orders(
             setNip05Order(nip05OrderResponse.nip05Order);
             setShowPubkeyInput(false);
             setShowSpinner(false);
-            setShowInvoice(true);
+            
+            // Check if it's a free NIP-05 (premium user)
+            if (nip05OrderResponse.nip05Order.amount === 0) {
+                // Free for premium users - show success message and refresh
+                handlePaymentSuccess();
+                setTimeout(() => {
+                    router.refresh();
+                }, 2000);
+            } else {
+                // Regular paid NIP-05 - show invoice
+                setShowInvoice(true);
+            }
         } else {
             if (nip05OrderResponse["error"]) setPubkeyError("error: ");
             setPubkeyErrorDescription(nip05OrderResponse.error);
@@ -204,6 +215,7 @@ export default function Nip05Orders(
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
             <div className="container mx-auto px-4 py-8 max-w-6xl">
+
                 {/* Create New NIP05 Section */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8 border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center mb-6">

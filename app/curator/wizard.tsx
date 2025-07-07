@@ -350,6 +350,9 @@ export default function Wizard(
     const [premiumSatsAmount, setPremiumSatsAmount] = useState(
         props.relay.payment_premium_amount.toString()
     );
+    const [nip05SatsAmount, setNip05SatsAmount] = useState(
+        (props.relay.nip05_payment_amount || 21).toString()
+    );
 
     const isPay = () => {
         if (pay) {
@@ -365,7 +368,8 @@ export default function Wizard(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 payment_amount: satsAmount,
-                payment_premium_amount: premiumSatsAmount 
+                payment_premium_amount: premiumSatsAmount,
+                nip05_payment_amount: nip05SatsAmount
             }),
         });
         if (response.ok) {
@@ -1379,6 +1383,23 @@ export default function Wizard(
                                             placeholder={props.relay.payment_premium_amount.toString()}
                                             onChange={(event) =>
                                                 setPremiumSatsAmount(event.target.value)
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="label">
+                                            Set NIP-05 payment amount (sats)
+                                        </label>
+                                        <div className="text-sm text-gray-600 mb-2">
+                                            Amount users pay to create NIP-05 identities on your relay
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="nip05satsamount"
+                                            className="input input-bordered input-secondary w-full max-w-xs"
+                                            placeholder={(props.relay.nip05_payment_amount || 21).toString()}
+                                            onChange={(event) =>
+                                                setNip05SatsAmount(event.target.value)
                                             }
                                         />
                                     </div>
