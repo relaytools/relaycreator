@@ -36,6 +36,17 @@ export default async function handle(req: any, res: any) {
         useamount = parseInt(sats)
     }
 
+    // Determine order type based on amount
+    let orderType = "standard";
+    if (useamount >= relay.payment_premium_amount) {
+        orderType = "premium";
+    } else if (useamount === relay.payment_amount) {
+        orderType = "standard";
+    } else {
+        // Custom amount less than premium price defaults to standard
+        orderType = "standard";
+    }
+
     const newInvoice = await wallet.createInvoice({
         amount: useamount,
         memo: relay.name + " " + pubkey,
@@ -50,6 +61,7 @@ export default async function handle(req: any, res: any) {
             paid: false,
             payment_hash: newInvoice.payment_hash,
             lnurl: newInvoice.payment_request,
+            order_type: orderType,
         }
     })
 
