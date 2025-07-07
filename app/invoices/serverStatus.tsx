@@ -90,58 +90,71 @@ export default async function ServerStatus(props: {
             const paymentAmount = Number(process.env.INVOICE_AMOUNT);
 
             const relayBalances = relays.map((relay) => {
-                const totalAmount = relay.Order.reduce((sum, order) => {
-                    if (order.paid) {
-                        return sum + order.amount;
-                    } else {
-                        return sum + 0;
-                    }
-                }, 0);
-
-                const clientOrderAmount = relay.ClientOrder.reduce(
-                    (sum, order) => {
-                        if (order.paid) {
-                            return sum + order.amount;
-                        } else {
-                            return sum + 0;
-                        }
-                    },
-                    0
-                );
-
+                // Filter paid and unpaid relay orders
                 const paidOrders = relay.Order.filter(
-                    (order) => order.paid !== false
+                    (order) => order.paid === true
                 );
 
                 const unpaidOrders = relay.Order.filter(
                     (order) => order.expires_at &&
-                    order.expires_at >
-                        new Date() &&
-                    !order.paid
-                )
+                    order.expires_at > new Date() &&
+                    order.paid === false
+                );
+
+                // Calculate total amount from paid relay orders
+                const totalAmount = paidOrders.reduce((sum, order) => {
+                    return sum + order.amount;
+                }, 0);
+
+                // Filter paid and unpaid client orders
+                const paidClientOrders = relay.ClientOrder.filter(
+                    (order) => order.paid === true
+                );
+
+                const unpaidClientOrders = relay.ClientOrder.filter(
+                    (order) => order.expires_at &&
+                    order.expires_at > new Date() &&
+                    order.paid === false
+                );
+
+                // Calculate total amount from paid client orders
+                const clientOrderAmount = paidClientOrders.reduce(
+                    (sum, order) => {
+                        return sum + order.amount;
+                    },
+                    0
+                );
 
                 const now = new Date();
                 const nowTime = now.getTime();
 
-                const firstOrderDate = new Date(
-                    Math.min(
-                        ...paidOrders.map((order) =>
-                            order.paid && order.paid_at
-                                ? new Date(order.paid_at).getTime()
-                                : nowTime
+                // Calculate balance based on paid orders and time elapsed
+                let balance = totalAmount + clientOrderAmount;
+                
+                if (paidOrders.length > 0) {
+                    // Find the earliest payment date
+                    const firstOrderDate = new Date(
+                        Math.min(
+                            ...paidOrders.map((order) =>
+                                order.paid && order.paid_at
+                                    ? new Date(order.paid_at).getTime()
+                                    : nowTime
+                            )
                         )
-                    )
-                );
+                    );
 
-                const timeInDays =
-                    (nowTime - firstOrderDate.getTime()) / 1000 / 60 / 60 / 24;
+                    const timeInDays =
+                        (nowTime - firstOrderDate.getTime()) / 1000 / 60 / 60 / 24;
 
-                // cost per day, paymentAmount / 30
-                const costPerDay = paymentAmount / 30;
+                    // cost per day, paymentAmount / 30
+                    const costPerDay = paymentAmount / 30;
 
-                // Divide the total amount by the amount of time to get the balance
-                const balance =
-                    totalAmount + clientOrderAmount - timeInDays * costPerDay;
+                    // Subtract the cost over time from the balance
+                    balance = totalAmount + clientOrderAmount - timeInDays * costPerDay;
+                } else {
+                    // If no paid orders, balance is just client revenue (no relay costs deducted yet)
+                    balance = clientOrderAmount;
+                }
 
                 return {
                     owner: relay.owner.pubkey,
@@ -154,6 +167,10 @@ export default async function ServerStatus(props: {
                     orders: paidOrders,
                     unpaidOrders: unpaidOrders,
                     clientOrderAmount: clientOrderAmount,
+                    clientOrders: paidClientOrders,
+                    unpaidClientOrders: unpaidClientOrders,
+                    banner_image: relay.banner_image,
+                    profile_image: relay.profile_image,
                 };
             });
 
