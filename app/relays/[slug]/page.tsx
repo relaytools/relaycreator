@@ -257,20 +257,12 @@ export default async function RelayPage({
                                 <h3 className="text-sm font-medium mb-2">Recommended clients:</h3>
                                 <div className="flex flex-wrap gap-2">
                                     <a 
-                                        href={`https://jumble.social/relay/${encodeURIComponent('wss://' + relay.name + '.' + relay.domain)}`}
+                                        href={`https://jumble.social/?r=${encodeURIComponent('wss://' + relay.name + '.' + relay.domain)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="btn btn-xs btn-outline"
                                     >
                                         jumble.social
-                                    </a>
-                                    <a 
-                                        href={`https://alexandria.nostr.wine/relay/${encodeURIComponent('wss://' + relay.name + '.' + relay.domain)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-xs btn-outline"
-                                    >
-                                        alexandria
                                     </a>
                                 </div>
                             </div>
