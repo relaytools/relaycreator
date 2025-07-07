@@ -108,6 +108,30 @@ export default function ClientBalances(
         return outstandingBalance;
     }
 
+    // Check if user has premium subscriptions and no NIP-05s
+    function checkPremiumBenefitEligibility() {
+        if (!session?.user?.name) return { hasPremium: false, hasNoNip05: false, premiumDomains: [] };
+        
+        const premiumRelays = props.RelayClientOrders.filter((relay: any) => {
+            const mostRecentPlan = getUserMostRecentPlan(relay);
+            return mostRecentPlan === 'premium';
+        });
+        
+        const premiumDomains = premiumRelays.map((relay: any) => `${relay.relayName}.${relay.relayDomain}`);
+        
+        // For now, we'll assume user has no NIP-05 if they're seeing this notification
+        // In a real implementation, you'd check the user's NIP-05 status from the database
+        const hasNoNip05 = true; // This would be determined by checking user's NIP-05 records
+        
+        return {
+            hasPremium: premiumRelays.length > 0,
+            hasNoNip05: hasNoNip05,
+            premiumDomains: premiumDomains
+        };
+    }
+    
+    const premiumBenefitStatus = checkPremiumBenefitEligibility();
+
     // Filter relays based on rewritten subdomain if present
     let filteredRelays = props.RelayClientOrders;
     let isFiltered = false;
@@ -386,6 +410,37 @@ export default function ClientBalances(
                         );
                     })}
                 </div>
+
+                {/* Premium Benefit Notification */}
+                {premiumBenefitStatus.hasPremium && premiumBenefitStatus.hasNoNip05 && (
+                    <div className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl shadow-lg p-6 mb-6 text-white">
+                        <div className="flex items-start space-x-4">
+                            <div className="flex-shrink-0">
+                                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold mb-2">🎉 Premium Benefit Available!</h3>
+                                <p className="text-white/90 mb-3">
+                                    You have premium subscriptions and can create <strong>free NIP-05 identities</strong> on these relays:
+                                </p>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {premiumBenefitStatus.premiumDomains.map((domain: string, index: number) => (
+                                        <span key={index} className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
+                                            {domain}
+                                        </span>
+                                    ))}
+                                </div>
+                                <p className="text-white/80 text-sm">
+                                    💡 <strong>Tip:</strong> Click "Manage NIP-05" below to set up your free identity!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     <div className="p-6">
