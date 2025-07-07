@@ -155,13 +155,36 @@ export default async function handle(req: any, res: any) {
 
     
 
-    const nip05Amount = targetRelay.nip05_payment_amount || 21;
-    
-    const newInvoice = await wallet.createInvoice({
-        amount: nip05Amount,
-        memo: "nip05" + " " + name + " " + domain + " " + pubkey,
-        out: false,
+    // Check if user has premium subscription to this relay
+    const userClientOrders = await prisma.clientOrder.findMany({
+        where: {
+            pubkey: pubkey,
+            relayId: targetRelay.id,
+            paid: true,
+        },
+        orderBy: {
+            paid_at: 'desc'
+        },
+        take: 1
     });
+
+    // Determine if user has premium plan (free NIP-05) or needs to pay
+    let nip05Amount = targetRelay.nip05_payment_amount || 21;
+    const hasPremiumPlan = userClientOrders.length > 0 && userClientOrders[0].order_type === 'premium';
+    
+    if (hasPremiumPlan) {
+        nip05Amount = 0; // Free for premium subscribers
+    }
+    
+    let newInvoice = null;
+    if (nip05Amount > 0) {
+        // Create invoice only if payment is required
+        newInvoice = await wallet.createInvoice({
+            amount: nip05Amount,
+            memo: "nip05" + " " + name + " " + domain + " " + pubkey,
+            out: false,
+        });
+    }
 
     const newNip05 = await prisma.nip05.create({
         data: {
@@ -188,10 +211,10 @@ export default async function handle(req: any, res: any) {
             userId: user.id,
             nip05Id: newNip05.id,
             amount: nip05Amount,
-            paid: false,
-            payment_hash: newInvoice.payment_hash,
-            lnurl: newInvoice.payment_request,
-            status: "pending",
+            paid: nip05Amount === 0, // Mark as paid if free (premium user)
+            payment_hash: newInvoice?.payment_hash || "free-premium-nip05",
+            lnurl: newInvoice?.payment_request || "free-premium-nip05",
+            status: nip05Amount === 0 ? "completed" : "pending",
         }
     })
 
