@@ -127,6 +127,7 @@ export default async function ServerStatus(props: {
                     orders: paidOrders,
                     unpaidOrders: unpaidOrders,
                     paymentAmount: relay.payment_amount || 21,
+                    paymentPremiumAmount: relay.payment_premium_amount || 2100,
                     paymentRequired: relay.payment_required || false,
                     isInAllowList: isInAllowList,
                     banner_image: relay.banner_image,
