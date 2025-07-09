@@ -16,7 +16,7 @@ export default async function Curator({
     if (!session || !(session as any).user.name) {
         return (
             <article className="prose">
-                <h1>Your relay is being created.  Please Sign-in to manage your relay.</h1>
+                <h1>Your relay has been created.  Please Sign-in to manage your relay.</h1>
             </article>
         )
     }
@@ -70,6 +70,7 @@ export default async function Curator({
                     list_kinds: true,
                 },
             },
+            acl_sources: true,
         }
     })
 

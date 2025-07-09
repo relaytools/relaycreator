@@ -70,6 +70,7 @@ export const modWithRelays = Prisma.validator<Prisma.ModeratorArgs>()({
                         list_kinds: true,
                     },
                 },
+                acl_sources: true,
             },
         },
     },
