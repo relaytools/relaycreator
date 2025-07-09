@@ -311,7 +311,7 @@ export default function ShowSession(
                             className="menu menu-lg dropdown-content mt-3 p-2 shadow-lg bg-base-100 font-bold rounded-box w-52 z-50"
                         >
                             <li>
-                                <a href={rootDomain + "/?myrelays=true"}>
+                                <a href={rootDomain + "/relays/myrelays"}>
                                     My Relays
                                 </a>
                             </li>

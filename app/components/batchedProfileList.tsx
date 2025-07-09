@@ -59,6 +59,8 @@ export default function BatchedProfileList({
   const [loading, setLoading] = useState(true);
   const [copiedPubkey, setCopiedPubkey] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [entriesToDelete, setEntriesToDelete] = useState<string[]>([]);
 
   // Filter entries based on search term (reason, profile name, and pubkey)
   const filteredEntries = entries.filter(entry => {
@@ -250,19 +252,20 @@ export default function BatchedProfileList({
       </div>
 
       {/* Delete All Button */}
-      {onDeleteAll && filteredEntries.length > 0 && (
+        {onDeleteAll && filteredEntries.length > 0 && (
         <div className="flex justify-center">
-          <button
+            <button
             onClick={() => {
-              const entryIds = filteredEntries.map(entry => entry.id);
-              onDeleteAll(entryIds);
+                setEntriesToDelete(filteredEntries.map(entry => entry.id));
+                setShowConfirmModal(true);
             }}
             className="btn btn-error btn-sm"
-          >
+            >
             Delete All {filteredEntries.length} {searchTerm ? 'Filtered ' : ''}{kind}
-          </button>
+            </button>
         </div>
-      )}
+        )}
+
 
       {/* Profile Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -435,6 +438,41 @@ export default function BatchedProfileList({
           </button>
         </div>
       )}
+      {/* Confirmation Modal */}
+{showConfirmModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+      <h3 className="text-lg font-bold mb-4">Confirm Deletion</h3>
+      <p className="mb-6">
+        Are you sure you want to delete {entriesToDelete.length} {searchTerm ? 'filtered ' : ''}{kind}?
+        This action cannot be undone.
+      </p>
+      <div className="flex justify-end space-x-3">
+        <button
+          onClick={() => {
+            setShowConfirmModal(false);
+            setEntriesToDelete([]);
+          }}
+          className="btn btn-ghost"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            setShowConfirmModal(false);
+            if(onDeleteAll) {
+                await onDeleteAll(entriesToDelete);
+            }
+            setEntriesToDelete([]);
+          }}
+          className="btn btn-error"
+        >
+          Delete {entriesToDelete.length} {kind}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
