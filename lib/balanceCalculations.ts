@@ -11,7 +11,7 @@ export async function calculateBalance(relay: any) {
     });
 
     // calculate relay's outstanding balance
-    const paymentAmount = Number(process.env.INVOICE_AMOUNT);
+    const paymentAmount = Number(process.env.NEXT_PUBLIC_INVOICE_AMOUNT);
 
     const totalAmount = orders.reduce((sum, order) => {
         if (order.paid) {
