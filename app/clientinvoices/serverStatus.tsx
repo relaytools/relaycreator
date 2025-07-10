@@ -8,6 +8,25 @@ import ClientBalances from "./balances";
 import RelayPayment from "../components/relayPayment";
 import ShowSmallSession from "../components/smallsession";
 
+// Define a type for relay client order data structure
+type RelayClientOrderData = {
+    owner: string;
+    relayName: string;
+    relayStatus: string | null;
+    relayId: string;
+    relayDomain: string | null;
+    totalClientPayments: number;
+    orders: Array<any>; // Using any to accommodate different date formats
+    unpaidOrders: Array<any>;
+    paymentAmount: number;
+    paymentPremiumAmount: number | undefined;
+    paymentRequired: boolean;
+    isInAllowList: boolean;
+    banner_image: string | null;
+    profile_image: string | null;
+    needsInitialSubscription?: boolean;
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function ServerStatus(props: {
@@ -97,9 +116,16 @@ export default async function ServerStatus(props: {
             });
 
             // Group client orders by relay
-            const relayClientOrders = relays.map((relay) => {
+
+            let foundOrderForSpecificRelay = false
+
+            const relayClientOrders: RelayClientOrderData[] = relays.map((relay) => {
+                if(relay.name == rewritten) {
+                    foundOrderForSpecificRelay = true
+                }
+
                 const paidOrders = relay.ClientOrder.filter(
-                    (order) => order.paid !== false
+                    (order) => order.paid === true
                 );
 
                 const unpaidOrders = relay.ClientOrder.filter(
@@ -126,20 +152,76 @@ export default async function ServerStatus(props: {
                     totalClientPayments: totalAmount,
                     orders: paidOrders,
                     unpaidOrders: unpaidOrders,
-                    paymentAmount: relay.payment_amount || 21,
-                    paymentPremiumAmount: relay.payment_premium_amount || 2100,
+                    paymentAmount: relay.payment_amount || 0,
+                    paymentPremiumAmount: relay.payment_premium_amount,
                     paymentRequired: relay.payment_required || false,
                     isInAllowList: isInAllowList,
                     banner_image: relay.banner_image,
                     profile_image: relay.profile_image
-                };
+                } as RelayClientOrderData;
             });
+
+            // If a specific relay was requested via subdomain but not found in user's orders
+            if(rewritten && !foundOrderForSpecificRelay) {
+                console.log("adding additional order for " + rewritten)
+                // Extract the subdomain from the full domain
+                let subdomain = rewritten;
+                
+                // If it contains dots, it's likely a full domain - extract the subdomain part
+                if (rewritten.includes('.')) {
+                    // Split by dots and take the first part as the subdomain
+                    subdomain = rewritten.split('.')[0];
+                }
+                
+                // Find the relay by name (case-insensitive) to get its details
+                // Use startsWith instead of contains for better matching
+                const requestedRelay = await prisma.relay.findFirst({
+                    where: {
+                        // Use case-insensitive search with startsWith
+                        // We need to use a raw SQL query for case insensitive search
+                        name: {
+                            startsWith: subdomain
+                        },
+                        OR: [{ status: "running" }, { status: "paused" }, { status: null}],
+                    },
+                    include: {
+                        // Include the User relation
+                        owner: true
+                    }
+                });
+                
+                if (requestedRelay) {
+                    // Get the owner information
+                    const ownerPubkey = requestedRelay.owner?.pubkey || userPubkey || "";
+                    
+                    // Add the relay to the list with no orders
+                    relayClientOrders.push({
+                        owner: ownerPubkey,
+                        relayName: requestedRelay.name,
+                        relayStatus: requestedRelay.status,
+                        relayId: requestedRelay.id,
+                        relayDomain: requestedRelay.domain,
+                        totalClientPayments: 0,
+                        orders: [],
+                        unpaidOrders: [],
+                        paymentAmount: requestedRelay.payment_amount || 0,
+                        paymentPremiumAmount: requestedRelay.payment_premium_amount,
+                        paymentRequired: requestedRelay.payment_required || false,
+                        isInAllowList: false,
+                        banner_image: requestedRelay.banner_image,
+                        profile_image: requestedRelay.profile_image,
+                        needsInitialSubscription: true // Flag to indicate this is a new subscription
+                    } as RelayClientOrderData);
+                }
+            }
+
+            console.log(relayClientOrders)
 
             return (
                 <div>
                     <ClientBalances 
                         IsAdmin={false} 
-                        RelayClientOrders={relayClientOrders}
+                        RelayClientOrders={relayClientOrders as any}
                         rewrittenSubdomain={rewritten}
                     />
                 </div>
@@ -187,6 +269,53 @@ export default async function ServerStatus(props: {
                 }
             }
             
+            // If we have a rewritten subdomain but no matching relays in orders,
+            // try to find the relay directly and show the initial subscription form
+            if (uniqueRelays.length === 0 && rewritten) {
+                const subdomainName = rewritten.split('.')[0];
+                
+                // Find the relay by name (case-insensitive)
+                const requestedRelay = await prisma.relay.findFirst({
+                    where: {
+                        name: { startsWith: subdomainName } as any, // Type assertion for Prisma filter
+                        OR: [{status: "running"}, {status: "paused"}, {status: null}]
+                    },
+                    include: { owner: true }
+                });
+                
+                if (requestedRelay) {
+                    // Create a relay client order with the needsInitialSubscription flag
+                    const relayClientOrders = [{
+                        owner: (requestedRelay as any).owner?.pubkey || "",
+                        relayName: requestedRelay.name,
+                        relayStatus: requestedRelay.status,
+                        relayId: requestedRelay.id,
+                        relayDomain: requestedRelay.domain,
+                        totalClientPayments: 0,
+                        orders: [],
+                        unpaidOrders: [],
+                        paymentAmount: requestedRelay.payment_amount || 0,
+                        paymentPremiumAmount: requestedRelay.payment_premium_amount,
+                        paymentRequired: requestedRelay.payment_required || false,
+                        isInAllowList: false,
+                        banner_image: requestedRelay.banner_image,
+                        profile_image: requestedRelay.profile_image,
+                        needsInitialSubscription: true // Flag to indicate this is a new subscription
+                    }];
+                    
+                    return (
+                        <div>
+                            <ClientBalances 
+                                IsAdmin={false} 
+                                RelayClientOrders={relayClientOrders as any}
+                                rewrittenSubdomain={rewritten}
+                            />
+                        </div>
+                    );
+                }
+            }
+            
+            // If no relays found at all, show the no relays message
             if (uniqueRelays.length === 0) {
                 return (
                     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -285,10 +414,65 @@ export default async function ServerStatus(props: {
             );
         }
         
-        // Case 1c: Not logged in and missing required parameters
+        // Case 1c: Not logged in but might have a subdomain from rewritten URL
+        if (rewritten) {
+            // Extract subdomain from the rewritten URL
+            let subdomain = rewritten;
+            if (rewritten.includes('.')) {
+                subdomain = rewritten.split('.')[0];
+            }
+            
+            // Find the relay by name (case-insensitive)
+            const requestedRelay = await prisma.relay.findFirst({
+                where: {
+                    name: { startsWith: subdomain } as any, // Type assertion for Prisma filter
+                    OR: [{status: "running"}, {status: "paused"}, {status: null}]
+                },
+                include: { owner: true }
+            });
+            
+            if (requestedRelay) {
+                // Create a relay client order with the needsInitialSubscription flag
+                // Use the pubkey from the URL parameter if available
+                const relayClientOrders = [{
+                    owner: pubkey || (requestedRelay as any).owner?.pubkey || "", // Use URL pubkey if available
+                    relayName: requestedRelay.name,
+                    relayStatus: requestedRelay.status,
+                    relayId: requestedRelay.id,
+                    relayDomain: requestedRelay.domain,
+                    totalClientPayments: 0,
+                    orders: [],
+                    unpaidOrders: [],
+                    paymentAmount: requestedRelay.payment_amount || 0,
+                    paymentPremiumAmount: requestedRelay.payment_premium_amount,
+                    paymentRequired: requestedRelay.payment_required || false,
+                    isInAllowList: false,
+                    banner_image: requestedRelay.banner_image,
+                    profile_image: requestedRelay.profile_image,
+                    needsInitialSubscription: true // Flag to indicate this is a new subscription
+                }];
+                
+                return (
+                    <div>
+                        <ClientBalances 
+                            IsAdmin={false} 
+                            RelayClientOrders={relayClientOrders as any}
+                            rewrittenSubdomain={rewritten}
+                        />
+                    </div>
+                );
+            }
+        }
+        
+        // If no subdomain or relay not found
         return (
-            <div className="flow-root">
-                <h1>Please login to view client invoices</h1>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+                <div className="container mx-auto px-4 py-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Please login to view your subscriptions</h1>
+                        <p className="mt-2 text-slate-600 dark:text-slate-400">Or visit a specific relay subdomain to subscribe</p>
+                    </div>
+                </div>
             </div>
         );
     }

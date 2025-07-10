@@ -1,10 +1,8 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import Bolt11Invoice from "../components/invoice";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { nip19 } from "nostr-tools";
 
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();
@@ -22,18 +20,54 @@ export async function alby(lnurl: string) {
     }
 }
 
+// Define a type for relay client orders
+interface RelayClientOrder {
+    owner: string;
+    relayName: string;
+    relayStatus: string | null;
+    relayId: string;
+    relayDomain: string | null;
+    totalClientPayments: number;
+    orders: Array<{
+        id: string;
+        relayId: string;
+        pubkey: string;
+        amount: number;
+        paid: boolean;
+        paid_at: string | null;
+        payment_hash: string;
+        lnurl: string;
+        expires_at: string | null;
+        order_type: string;
+    }>;
+    unpaidOrders: Array<any>;
+    paymentAmount: number;
+    paymentPremiumAmount: number;
+    paymentRequired: boolean;
+    isInAllowList: boolean;
+    banner_image: string | null;
+    profile_image: string | null;
+    needsInitialSubscription?: boolean; // Optional flag for relays that need initial subscription
+}
+
 export default function ClientBalances(
     props: React.PropsWithChildren<{
-        RelayClientOrders: any;
+        RelayClientOrders: RelayClientOrder[];
         IsAdmin: boolean;
         rewrittenSubdomain?: string | null;
     }>
 ) {
     const router = useRouter();
-    const [showOrders, setShowOrders] = useState("");
+    const [showOrders, setShowOrders] = useState<Record<string, boolean>>({});
+    const [showNewOrder, setShowNewOrder] = useState<boolean>(false);
+    const [newOrderRelay, setNewOrderRelay] = useState<any>(null);
     const [clientAmount, setClientAmount] = useState("");
     const [showNip05, setShowNip05] = useState(false);
     const { data: session } = useSession();
+    const searchParams = useSearchParams();
+    
+    // Get pubkey from URL parameters if available
+    const urlPubkey = searchParams?.get('pubkey') || null;
 
     // Function to get user's most recent plan type for a relay
     function getUserMostRecentPlan(relay: any): string {
@@ -75,15 +109,51 @@ export default function ClientBalances(
         }
     }
 
+    // Function to handle new subscription
+    async function createNewSubscription(relay: any, planType: 'standard' | 'premium' | 'custom', amount?: string) {
+        // Get amount based on plan type
+        let useAmount = amount;
+        if (!useAmount || useAmount === "") {
+            useAmount = planType === 'premium' ? relay.paymentPremiumAmount.toString() : relay.paymentAmount.toString();
+        }
+        
+        // Get the pubkey from URL parameters first, then session, then relay owner as fallback
+        let userPubkey = urlPubkey || session?.user?.name || relay.owner;
+        
+        if (!userPubkey) {
+            alert("Error: Missing pubkey for subscription");
+            return;
+        }
+        
+        try {
+            const response = await fetch(
+                `/api/clientorders?relayid=${relay.relayId}&pubkey=${userPubkey}&sats=${useAmount}`
+            );
+            const responseJson = await response.json();
+            console.log(responseJson);
+            
+            if (response.ok) {
+                router.push(
+                    `/clientinvoices?relayid=${relay.relayId}&order_id=${responseJson.clientOrder.id}&pubkey=${userPubkey}&sats=${useAmount}`
+                );
+            } else {
+                alert("Error creating subscription: " + (responseJson.error || "Unknown error"));
+            }
+        } catch (error) {
+            console.error("Error creating subscription:", error);
+            alert("Error creating subscription. Please try again.");
+        }
+    }
+
     function showOrdersFor(relayId: string) {
-        return showOrders === relayId;
+        return showOrders[relayId] === true;
     }
     
     function toggleShowOrders(relayId: string) {
-        if (showOrders === relayId) {
-            setShowOrders(""); // Hide if currently showing
+        if (showOrdersFor(relayId)) {
+            setShowOrders((prevShowOrders) => ({ ...prevShowOrders, [relayId]: false }));
         } else {
-            setShowOrders(relayId); // Show if currently hidden
+            setShowOrders((prevShowOrders) => ({ ...prevShowOrders, [relayId]: true }));
         }
     }
 
@@ -132,10 +202,80 @@ export default function ClientBalances(
     
     const premiumBenefitStatus = checkPremiumBenefitEligibility();
 
+    // Function to render the first-time subscription form
+    const renderFirstTimeSubscription = (relay: any) => {
+        return (
+            <div key="firsttimeSub" className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
+                <div className="p-6">
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">
+                        Subscribe to {relay.relayName}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-300 mb-6">
+                        Get started with your subscription to {relay.relayName}. Choose your plan below.
+                    </p>
+                    
+                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-6 border border-slate-200 dark:border-slate-600 mb-6">
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
+                            Select Your Plan
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="border rounded-lg p-6 hover:border-primary hover:shadow-lg transition-all">
+                                <h4 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Standard Plan</h4>
+                                <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">Basic relay access with standard features</p>
+                                <div className="text-2xl font-bold text-primary mb-4">{relay.paymentAmount} sats/month</div>
+                                <button
+                                    className="btn btn-primary w-full"
+                                    onClick={() => createNewSubscription(relay, 'standard')}
+                                >
+                                    Select Standard
+                                </button>
+                            </div>
+                            
+                            <div className="border rounded-lg p-6 hover:border-secondary hover:shadow-lg transition-all">
+                                <h4 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Premium Plan</h4>
+                                <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">Enhanced features and priority access</p>
+                                <div className="text-2xl font-bold text-secondary mb-4">{relay.paymentPremiumAmount} sats/month</div>
+                                <button
+                                    className="btn btn-secondary w-full"
+                                    onClick={() => createNewSubscription(relay, 'premium')}
+                                >
+                                    Select Premium
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div className="mt-6">
+                            <h4 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-3">
+                                Or enter a custom amount:
+                            </h4>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <input
+                                    type="number"
+                                    className="input input-bordered flex-1"
+                                    placeholder="Amount in sats"
+                                    value={clientAmount}
+                                    onChange={(e) => setClientAmount(e.target.value)}
+                                />
+                                <button 
+                                    className="btn btn-primary whitespace-nowrap"
+                                    onClick={() => createNewSubscription(relay, 'custom', clientAmount)}
+                                >
+                                    Pay Custom Amount
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     // Filter relays based on rewritten subdomain if present
     let filteredRelays = props.RelayClientOrders;
     let isFiltered = false;
     let subdomainName: string | null = null;
+    let matchingRelays: any[] = [];
     
     if (props.rewrittenSubdomain) {
         // Extract subdomain from full hostname (e.g., "myrelay.relay.tools" -> "myrelay")
@@ -145,28 +285,30 @@ export default function ClientBalances(
         console.log('Extracted subdomain:', subdomainName);
         console.log('Available relays:', props.RelayClientOrders.map((r: any) => r.relayName));
         
-        const matchingRelays = props.RelayClientOrders.filter((relay: any) => 
+        matchingRelays = props.RelayClientOrders.filter((relay: any) => 
             relay.relayName.toLowerCase() === subdomainName!.toLowerCase()
         );
         
-        // Only filter if we found matching relays, otherwise show all
+        // Set isFiltered based on whether we're filtering by subdomain
+        isFiltered = true;
+        
+        // Only filter if we found matching relays, otherwise show all (but keep isFiltered = true)
         if (matchingRelays.length > 0) {
             filteredRelays = matchingRelays;
-            isFiltered = true;
-            console.log('Found matching relays:', matchingRelays.length);
         } else {
-            console.log('No matching relays found, showing all');
+            console.log('No matching relays found for subdomain:', subdomainName);
         }
     }
 
     const sortedRelays = filteredRelays.sort((a: any, b: any) => {
         return a.relayName.localeCompare(b.relayName);
     });
+     console.log(props.RelayClientOrders)
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
             <div className="container mx-auto px-4 py-6">
-<div className="flex items-center gap-4 mb-6 px-2">
+                <div className="flex items-center gap-4 mb-6 px-2">
                     <a 
                         href="/#"
                         className="btn btn-ghost btn-sm"
@@ -199,6 +341,8 @@ export default function ClientBalances(
                     </div>
                 </div>
 
+                {showNewOrder && newOrderRelay && renderFirstTimeSubscription(newOrderRelay)}
+
                 <div className="grid grid-cols-1 gap-6">
                     {sortedRelays.map((relay: any) => {
                         // Check if banner_image exists and is not empty
@@ -208,6 +352,11 @@ export default function ClientBalances(
                         // Use profile image if available, otherwise use banner image for the circular display
                         const profileImage = relay.profile_image && relay.profile_image.trim() !== '' ?
                             relay.profile_image : (bannerImage || '/green-check.png');
+                            
+                        // If this is a relay that needs initial subscription, render the first-time subscription form
+                        if (relay.needsInitialSubscription) {
+                            return renderFirstTimeSubscription(relay);
+                        }
 
                         return (
                             <div
@@ -420,6 +569,7 @@ export default function ClientBalances(
                         );
                     })}
                 </div>
+
 
                 {/* Premium Benefit Notification */}
                 {premiumBenefitStatus.hasPremium && premiumBenefitStatus.hasNoNip05 && (
