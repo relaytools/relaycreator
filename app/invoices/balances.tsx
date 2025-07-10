@@ -87,7 +87,7 @@ export default function Balances(
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                                {props.IsAdmin ? 'Admin - All Relay Finances' : 'My Relay Finances'}
+                                {props.IsAdmin ? 'Admin - All Relay Finances' : 'Billing and Invoices'}
                             </h2>
                             <p className="text-slate-600 dark:text-slate-400">
                                 Overview of relay payments, client subscriptions, and balances

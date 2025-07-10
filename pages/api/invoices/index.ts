@@ -35,8 +35,8 @@ export default async function handle(req: any, res: any) {
 
             let useAmount = 21
             // allow custom amount for topup
-            if (process.env.INVOICE_AMOUNT != null) {
-                useAmount = parseInt(process.env.INVOICE_AMOUNT)
+            if (process.env.NEXT_PUBLIC_INVOICE_AMOUNT != null) {
+                useAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT)
             }
 
             // make sure the relay is active
@@ -117,8 +117,8 @@ export default async function handle(req: any, res: any) {
     }
 
     let useAmount = 21
-    if (process.env.INVOICE_AMOUNT != null) {
-        useAmount = parseInt(process.env.INVOICE_AMOUNT)
+    if (process.env.NEXT_PUBLIC_INVOICE_AMOUNT != null) {
+        useAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT)
     }
 
     let usethisdomain = "nostr1.com"
