@@ -295,7 +295,7 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                 
                 <div className="mt-4">
                     <div className="card bg-base-200 p-3">
-                        {(isMember || isModOrOwner) && acceptsLightning && <a
+                        { acceptsLightning && <a
                                             className="btn btn-primary uppercase mt-2 mb-2"
                                             href={session ? `/clientinvoices` : `/clientinvoices?pubkey=${checkedPubkey || myPubkey || ''}`}
                                         >
@@ -304,7 +304,7 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                                         </a>
                         }
 
-                        {(!isMember && !isModOrOwner) && acceptsLightning && <RelayPayment relay={relay} pubkey={myPubkey || checkedPubkey || ''} />}
+                        {(!session) && acceptsLightning && <RelayPayment relay={relay} pubkey={myPubkey || checkedPubkey || ''} />}
                     </div>
                 </div>
             </div>
