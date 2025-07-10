@@ -87,7 +87,7 @@ export default async function ServerStatus(props: {
             // for each relay
             // add up all order amounts, and divide by amount of time to show remaining balance
 
-            const paymentAmount = Number(process.env.INVOICE_AMOUNT);
+            const paymentAmount = Number(process.env.NEXT_PUBLIC_INVOICE_AMOUNT);
 
             const relayBalances = relays.map((relay) => {
                 // Filter paid and unpaid relay orders
