@@ -7,13 +7,15 @@ interface SubscriptionMenuProps {
   renewSubscription: (relay: any, amount?: string) => void;
   createNewSubscription?: (relay: any, planType: string, customAmount?: string) => void;
   isFirstTimeSubscription?: boolean;
+  isSubdomainView?: boolean;
 }
 
 export default function SubscriptionMenu({ 
   relay, 
   renewSubscription, 
   createNewSubscription,
-  isFirstTimeSubscription = false 
+  isFirstTimeSubscription = false,
+  isSubdomainView = false
 }: SubscriptionMenuProps) {
   const { data: session } = useSession();
   const [clientAmount, setClientAmount] = useState("");
@@ -47,14 +49,10 @@ export default function SubscriptionMenu({
   
   return (
     <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
-      <details className="group" open={!session || isFirstTimeSubscription}>
-        <summary className="flex justify-between items-center cursor-pointer text-lg font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-          {title}
-          <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div className="mt-4">
+      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4">
+        {title}
+      </h3>
+      <div>
           <div className="mb-4">
             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">
               Choose Your Plan
@@ -114,7 +112,6 @@ export default function SubscriptionMenu({
             </div>
           </div>
         </div>
-      </details>
     </div>
   );
 }
