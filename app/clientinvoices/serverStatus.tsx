@@ -437,7 +437,7 @@ export default async function ServerStatus(props: {
                                                     Subscription Options
                                                 </p>
                                             </div>
-                                            <SubscriptionHandler relay={relay as any} pubkey={pubkey} />
+                                            <SubscriptionHandler relay={relay as any} pubkey={pubkey} isSubdomainView={!!rewritten} />
                                         </div>
                                     </div>
                                 );

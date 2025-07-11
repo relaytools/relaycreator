@@ -6,9 +6,10 @@ import SubscriptionMenu from "../components/subscriptionMenu";
 interface SubscriptionHandlerProps {
   relay: any;
   pubkey: string;
+  isSubdomainView?: boolean;
 }
 
-export default function SubscriptionHandler({ relay, pubkey }: SubscriptionHandlerProps) {
+export default function SubscriptionHandler({ relay, pubkey, isSubdomainView = false }: SubscriptionHandlerProps) {
   const router = useRouter();
   const [clientAmount, setClientAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -75,6 +76,7 @@ export default function SubscriptionHandler({ relay, pubkey }: SubscriptionHandl
         relay={relay} 
         renewSubscription={handleRenewSubscription}
         isFirstTimeSubscription={true}
+        isSubdomainView={isSubdomainView}
       />
     </div>
   );

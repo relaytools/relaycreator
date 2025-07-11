@@ -482,7 +482,7 @@ export default function ClientBalances(
                                     )}
 
                                     <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
-                                        <details className="group" open={!session}>
+                                        <details className="group" open={!session || isFiltered}>
                                             <summary className="flex justify-between items-center cursor-pointer text-lg font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                                                 {session ? "Renew Subscription" : "Subscription Options"}
                                                 <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
