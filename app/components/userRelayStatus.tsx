@@ -6,7 +6,6 @@ import { nip19 } from 'nostr-tools';
 import { FaUser, FaShieldAlt, FaBolt, FaCheck, FaBan, FaSignOutAlt, FaSearch } from 'react-icons/fa';
 import { RelayWithEverything } from './relayWithEverything';
 import ShowSmallSession from './smallsession';
-import RelayPayment from './relayPayment';
 
 interface UserRelayStatusProps {
     relay: RelayWithEverything;
@@ -303,8 +302,6 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                                             manage subscription
                                         </a>
                         }
-
-                        {(!session) && acceptsLightning && <RelayPayment relay={relay} pubkey={myPubkey || checkedPubkey || ''} />}
                     </div>
                 </div>
             </div>
