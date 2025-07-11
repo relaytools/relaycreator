@@ -4,13 +4,6 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-function copyToClipboard(e: any, bolt: string) {
-    e.preventDefault();
-    navigator.clipboard.writeText(bolt).then(() => {
-        console.log("Copied to clipboard!");
-    });
-}
-
 export async function alby(lnurl: string) {
     try {
         await (window as any).webln.enable();
