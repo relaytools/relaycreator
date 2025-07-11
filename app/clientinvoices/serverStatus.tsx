@@ -3,10 +3,11 @@ import { headers } from "next/headers";
 import authOptions from "../../pages/api/auth/[...nextauth]";
 import PaymentStatus from "./paymentStatus";
 import PaymentSuccess from "./paymentSuccess";
-import prisma from "../../lib/prisma";
+import SubscriptionMenu from "../components/subscriptionMenu";
 import ClientBalances from "./balances";
-import RelayPayment from "../components/relayPayment";
+import prisma from "../../lib/prisma";
 import ShowSmallSession from "../components/smallsession";
+import SubscriptionHandler from "./subscriptionHandler";
 
 // Define a type for relay client order data structure
 type RelayClientOrderData = {
@@ -433,10 +434,10 @@ export default async function ServerStatus(props: {
                                         <div className="p-6">
                                             <div className="mb-4">
                                                 <p className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-                                                    Payment: <span className="text-blue-600 dark:text-blue-400">{relay.payment_amount || 21} sats/month</span>
+                                                    Subscription Options
                                                 </p>
                                             </div>
-                                            <RelayPayment relay={relay as any} pubkey={pubkey} />
+                                            <SubscriptionHandler relay={relay as any} pubkey={pubkey} />
                                         </div>
                                     </div>
                                 );
