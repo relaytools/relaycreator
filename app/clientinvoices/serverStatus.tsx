@@ -120,8 +120,17 @@ export default async function ServerStatus(props: {
             let foundOrderForSpecificRelay = false
 
             const relayClientOrders: RelayClientOrderData[] = relays.map((relay) => {
-                if(relay.name == rewritten) {
-                    foundOrderForSpecificRelay = true
+                // Extract subdomain from rewritten for proper comparison
+                if (rewritten) {
+                    let subdomainToMatch = rewritten;
+                    if (rewritten.includes('.')) {
+                        subdomainToMatch = rewritten.split('.')[0];
+                    }
+                    
+                    // Check if this relay matches the subdomain (case-insensitive)
+                    if (relay.name.toLowerCase() === subdomainToMatch.toLowerCase()) {
+                        foundOrderForSpecificRelay = true;
+                    }
                 }
 
                 const paidOrders = relay.ClientOrder.filter(
@@ -194,6 +203,18 @@ export default async function ServerStatus(props: {
                     // Get the owner information
                     const ownerPubkey = requestedRelay.owner?.pubkey || userPubkey || "";
                     
+                    // Check if the user already has paid orders for this relay
+                    const existingPaidOrders = await prisma.clientOrder.findMany({
+                        where: {
+                            relayId: requestedRelay.id,
+                            pubkey: userPubkey,
+                            paid: true
+                        }
+                    });
+                    
+                    // Only set needsInitialSubscription to true if the user has no paid orders
+                    const needsInitial = existingPaidOrders.length === 0;
+                    
                     // Add the relay to the list with no orders
                     relayClientOrders.push({
                         owner: ownerPubkey,
@@ -201,8 +222,8 @@ export default async function ServerStatus(props: {
                         relayStatus: requestedRelay.status,
                         relayId: requestedRelay.id,
                         relayDomain: requestedRelay.domain,
-                        totalClientPayments: 0,
-                        orders: [],
+                        totalClientPayments: existingPaidOrders.reduce((sum, order) => sum + order.amount, 0),
+                        orders: existingPaidOrders,
                         unpaidOrders: [],
                         paymentAmount: requestedRelay.payment_amount || 0,
                         paymentPremiumAmount: requestedRelay.payment_premium_amount,
@@ -210,7 +231,7 @@ export default async function ServerStatus(props: {
                         isInAllowList: false,
                         banner_image: requestedRelay.banner_image,
                         profile_image: requestedRelay.profile_image,
-                        needsInitialSubscription: true // Flag to indicate this is a new subscription
+                        needsInitialSubscription: needsInitial // Only true if user has no paid orders
                     } as RelayClientOrderData);
                 }
             }
@@ -284,6 +305,18 @@ export default async function ServerStatus(props: {
                 });
                 
                 if (requestedRelay) {
+                    // Check if the user already has paid orders for this relay
+                    const existingPaidOrders = await prisma.clientOrder.findMany({
+                        where: {
+                            relayId: requestedRelay.id,
+                            pubkey: pubkey,
+                            paid: true
+                        }
+                    });
+                    
+                    // Only set needsInitialSubscription to true if the user has no paid orders
+                    const needsInitial = existingPaidOrders.length === 0;
+                    
                     // Create a relay client order with the needsInitialSubscription flag
                     const relayClientOrders = [{
                         owner: (requestedRelay as any).owner?.pubkey || "",
@@ -291,8 +324,8 @@ export default async function ServerStatus(props: {
                         relayStatus: requestedRelay.status,
                         relayId: requestedRelay.id,
                         relayDomain: requestedRelay.domain,
-                        totalClientPayments: 0,
-                        orders: [],
+                        totalClientPayments: existingPaidOrders.reduce((sum, order) => sum + order.amount, 0),
+                        orders: existingPaidOrders,
                         unpaidOrders: [],
                         paymentAmount: requestedRelay.payment_amount || 0,
                         paymentPremiumAmount: requestedRelay.payment_premium_amount,
@@ -300,7 +333,7 @@ export default async function ServerStatus(props: {
                         isInAllowList: false,
                         banner_image: requestedRelay.banner_image,
                         profile_image: requestedRelay.profile_image,
-                        needsInitialSubscription: true // Flag to indicate this is a new subscription
+                        needsInitialSubscription: needsInitial // Only true if user has no paid orders
                     }];
                     
                     return (
@@ -432,24 +465,32 @@ export default async function ServerStatus(props: {
             });
             
             if (requestedRelay) {
+                // Check if the user already has paid orders for this relay
+                const existingPaidOrders = await prisma.clientOrder.findMany({
+                    where: {
+                        relayId: requestedRelay.id,
+                        pubkey: pubkey,
+                        paid: true
+                    }
+                });
+                
+                // Only set needsInitialSubscription to true if the user has no paid orders
+                const needsInitial = existingPaidOrders.length === 0;
+                
                 // Create a relay client order with the needsInitialSubscription flag
                 // Use the pubkey from the URL parameter if available
                 const relayClientOrders = [{
-                    owner: pubkey || (requestedRelay as any).owner?.pubkey || "", // Use URL pubkey if available
                     relayName: requestedRelay.name,
                     relayStatus: requestedRelay.status,
                     relayId: requestedRelay.id,
                     relayDomain: requestedRelay.domain,
-                    totalClientPayments: 0,
-                    orders: [],
-                    unpaidOrders: [],
                     paymentAmount: requestedRelay.payment_amount || 0,
                     paymentPremiumAmount: requestedRelay.payment_premium_amount,
                     paymentRequired: requestedRelay.payment_required || false,
                     isInAllowList: false,
                     banner_image: requestedRelay.banner_image,
                     profile_image: requestedRelay.profile_image,
-                    needsInitialSubscription: true // Flag to indicate this is a new subscription
+                    needsInitialSubscription: needsInitial // Only true if user has no paid orders
                 }];
                 
                 return (
