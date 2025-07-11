@@ -372,7 +372,7 @@ export default async function ServerStatus(props: {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
                                     </svg>
                                     <div>
-                                        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Client Subscription Payment</h1>
+                                        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Subscription Payment</h1>
                                         <p className="text-slate-600 dark:text-slate-400">Pay for client access to relays with Lightning</p>
                                     </div>
                                 </div>
@@ -580,7 +580,7 @@ export default async function ServerStatus(props: {
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-2xl lg:text-center">
                     <h2 className="text-base font-semibold leading-7 text-indigo-600">
-                        Client Subscription Payment
+                        Subscription Payment
                     </h2>
                     <p className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
                         Pay for client access to {o.relay.name}
