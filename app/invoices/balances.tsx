@@ -169,7 +169,7 @@ export default function Balances(
                                         </div>
                                         
                                         <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Client Revenue</div>
+                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Member subscriptions</div>
                                             <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                                                 {relay.clientOrderAmount} sats
                                             </div>
@@ -214,7 +214,7 @@ export default function Balances(
                                                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                                                 }`}
                                             >
-                                                Client Subscriptions
+                                                Member Subscriptions
                                             </button>
                                         </nav>
                                     </div>
@@ -322,7 +322,7 @@ export default function Balances(
                                     {activeTabForRelay === 'client-orders' && (
                                         <div className="space-y-4">
                                             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                                                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">Client Revenue Summary</h3>
+                                                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">Subscription Payments</h3>
                                                 <p className="text-green-700 dark:text-green-300 text-sm">
                                                     Total revenue from client subscriptions: <strong>{relay.clientOrderAmount} sats</strong>
                                                 </p>
