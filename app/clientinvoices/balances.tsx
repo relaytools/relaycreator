@@ -334,8 +334,6 @@ export default function ClientBalances(
                     </div>
                 </div>
 
-                {showNewOrder && newOrderRelay && renderFirstTimeSubscription(newOrderRelay)}
-
                 <div className="grid grid-cols-1 gap-6">
                     {sortedRelays.map((relay: any) => {
                         // Check if banner_image exists and is not empty
@@ -346,8 +344,9 @@ export default function ClientBalances(
                         const profileImage = relay.profile_image && relay.profile_image.trim() !== '' ?
                             relay.profile_image : (bannerImage || '/green-check.png');
                             
-                        // If this is a relay that needs initial subscription, render the first-time subscription form
-                        if (relay.needsInitialSubscription) {
+                        // Only show first-time subscription form for logged-in users who need initial subscription
+                        // For non-logged-in users, always show the regular subscription form
+                        if (session && relay.needsInitialSubscription) {
                             return renderFirstTimeSubscription(relay);
                         }
 
@@ -390,28 +389,32 @@ export default function ClientBalances(
                                 </div>
                                 
                                 <div className="p-6">
-                                    <div className="mb-6">
-                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 relative">
-                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
-                                            <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                                                {calculateOutstandingBalance(relay) > 0 ? 
-                                                    `${calculateOutstandingBalance(relay)} sats due` : 
-                                                    calculateOutstandingBalance(relay) < 0 ? 
-                                                        `${Math.abs(calculateOutstandingBalance(relay))} sats credit` : 
-                                                        'Paid in full'}
+                                    {/* Only show balance and history button for logged-in users */}
+                                    {session && (
+                                        <div className="mb-6">
+                                            <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 relative">
+                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
+                                                <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                                    {calculateOutstandingBalance(relay) > 0 ? 
+                                                        `${calculateOutstandingBalance(relay)} sats due` : 
+                                                        calculateOutstandingBalance(relay) < 0 ? 
+                                                            `${Math.abs(calculateOutstandingBalance(relay))} sats credit` : 
+                                                            'Paid in full'}
+                                                </div>
+                                                <button
+                                                    className="btn btn-primary btn-xs absolute top-2 right-2"
+                                                    onClick={() => toggleShowOrders(relay.relayId)}
+                                                >
+                                                    {showOrdersFor(relay.relayId) ? "Hide" : "History"}
+                                                </button>
                                             </div>
-                                            <button
-                                                className="btn btn-primary btn-xs absolute top-2 right-2"
-                                                onClick={() => toggleShowOrders(relay.relayId)}
-                                            >
-                                                {showOrdersFor(relay.relayId) ? "Hide" : "History"}
-                                            </button>
                                         </div>
-                                    </div>
+                                    )}
                                     
 
 
-                                    {showOrdersFor(relay.relayId) && relay.orders && relay.orders.length > 0 && (
+                                    {/* Only show payment history for logged-in users */}
+                                    {session && showOrdersFor(relay.relayId) && relay.orders && relay.orders.length > 0 && (
                                         <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
                                             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Payment History</h3>
                                             <div className="overflow-x-auto">
@@ -479,9 +482,9 @@ export default function ClientBalances(
                                     )}
 
                                     <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
-                                        <details className="group">
+                                        <details className="group" open={!session}>
                                             <summary className="flex justify-between items-center cursor-pointer text-lg font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                                                Renew Subscription
+                                                {session ? "Renew Subscription" : "Subscription Options"}
                                                 <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                 </svg>
@@ -492,7 +495,7 @@ export default function ClientBalances(
                                                         Choose Your Plan
                                                     </label>
                                                     {(() => {
-                                                        const currentPlan = getUserMostRecentPlan(relay);
+                                                        const currentPlan = session ? getUserMostRecentPlan(relay) : 'standard';
                                                         return (
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                                                 <button
@@ -501,11 +504,9 @@ export default function ClientBalances(
                                                                             ? 'btn-primary' 
                                                                             : 'btn-outline btn-primary'
                                                                     }`}
-                                                                    onClick={() => {
-                                                                        renewSubscription(relay, relay.paymentAmount.toString());
-                                                                    }}
+                                                                    onClick={() => renewSubscription(relay, relay.paymentAmount.toString())}
                                                                 >
-                                                                    {currentPlan === 'standard' && (
+                                                                    {session && currentPlan === 'standard' && (
                                                                         <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                                                                             Current
                                                                         </div>
@@ -520,11 +521,9 @@ export default function ClientBalances(
                                                                             ? 'btn-secondary' 
                                                                             : 'btn-outline btn-secondary'
                                                                     }`}
-                                                                    onClick={() => {
-                                                                        renewSubscription(relay, relay.paymentPremiumAmount.toString());
-                                                                    }}
+                                                                    onClick={() => renewSubscription(relay, relay.paymentPremiumAmount.toString())}
                                                                 >
-                                                                    {currentPlan === 'premium' && (
+                                                                    {session && currentPlan === 'premium' && (
                                                                         <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                                                                             Current
                                                                         </div>
@@ -549,7 +548,7 @@ export default function ClientBalances(
                                                                 className="btn btn-primary"
                                                                 onClick={() => renewSubscription(relay)}
                                                             >
-                                                                Renew
+                                                                Pay Custom Amount
                                                             </button>
                                                         </div>
                                                     </div>
