@@ -40,12 +40,12 @@ export default function RelayDashboard() {
                             </div>
                         </Link>
                         <Link 
-                            href="/relays/publicrelays"
+                            href="/directory"
                             className="card bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
                         >
                             <div className="card-body text-center">
                                 <div className="text-5xl mb-3">🌐</div>
-                                <h3 className="card-title justify-center text-xl font-bold">Public Relays</h3>
+                                <h3 className="card-title justify-center text-xl font-bold">Browse Relays</h3>
                                 <p className="text-sm opacity-90">Discover & browse relays</p>
                             </div>
                         </Link>

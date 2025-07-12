@@ -33,10 +33,7 @@ export default async function Relays() {
                     )}
                     
                     <div className="card bg-base-100 shadow-lg">
-                        <div className="card-body">
-                            <h2 className="card-title text-2xl mb-4">🌐 Public Relays</h2>
-                            <PublicRelays />
-                        </div>
+                        <PublicRelays />
                     </div>
                 </div>
             </div>
@@ -46,6 +43,8 @@ export default async function Relays() {
     // Pass session data to client component - let it handle component rendering
     return (
         // Show dashboard for logged-in users
-        <RelayDashboard />
+        <div>
+            <RelayDashboard />
+        </div>
     );
 }
