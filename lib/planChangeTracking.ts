@@ -19,9 +19,10 @@ export async function recordPlanChange(
   pubkey: string,
   newPlanType: string,
   amountPaid: number,
-  clientOrderId?: string
+  clientOrderId?: string,
+  startedAt?: Date
 ) {
-  const now = new Date();
+  const now = startedAt || new Date();
   
   // End the current plan period (if any)
   await prisma.planChange.updateMany({
@@ -87,22 +88,104 @@ export async function getUserPlanHistory(relayId: string, pubkey: string): Promi
  * Calculates accurate balance based on plan changes over time
  */
 export async function calculateTimeBasedBalance(relayId: string, pubkey: string): Promise<number> {
+  console.log('calculateTimeBasedBalance called with:', { relayId, pubkey });
+  
   const planHistory = await getUserPlanHistory(relayId, pubkey);
+  console.log('Plan history found:', planHistory.length, 'periods');
   
   if (planHistory.length === 0) {
-    return 0; // No subscription history
+    console.log('No plan history found, trying fallback calculation');
+    
+    // Fallback: Use client orders to estimate balance for users without plan change history
+    const clientOrders = await prisma.clientOrder.findMany({
+      where: {
+        relayId,
+        pubkey,
+        paid: true
+      },
+      orderBy: {
+        paid_at: 'asc'
+      }
+    });
+    
+    if (clientOrders.length === 0) {
+      console.log('No client orders found either, returning 0');
+      return 0;
+    }
+    
+    // Get relay payment amounts for calculation
+    const relay = await prisma.relay.findUnique({
+      where: { id: relayId },
+      select: { 
+        payment_amount: true, 
+        payment_premium_amount: true 
+      }
+    });
+    
+    if (!relay) {
+      console.log('Relay not found, returning 0');
+      return 0;
+    }
+    
+    let totalPaid = 0;
+    let totalCostAccrued = 0;
+    const now = new Date();
+    
+    for (const order of clientOrders) {
+      totalPaid += order.amount;
+      
+      // Estimate daily cost based on order type and amount
+      let dailyCost = 0;
+      if (order.order_type === 'premium') {
+        dailyCost = (relay.payment_premium_amount || 2100) / 30;
+      } else if (order.order_type === 'standard') {
+        dailyCost = (relay.payment_amount || 21) / 30;
+      } else {
+        // Custom amount - estimate based on payment
+        dailyCost = order.amount / 30;
+      }
+      
+      // Calculate days since this payment
+      const daysSincePayment = Math.max(1, (now.getTime() - new Date(order.paid_at!).getTime()) / (1000 * 60 * 60 * 24));
+      totalCostAccrued += daysSincePayment * dailyCost;
+    }
+    
+    const fallbackBalance = totalPaid - totalCostAccrued;
+    console.log('Fallback balance calculation:', {
+      totalPaid,
+      totalCostAccrued,
+      fallbackBalance,
+      ordersCount: clientOrders.length
+    });
+    
+    return fallbackBalance;
   }
   
   let totalPaid = 0;
   let totalCostAccrued = 0;
   
   for (const period of planHistory) {
+    console.log('Processing period:', {
+      plan_type: period.plan_type,
+      amount_paid: period.amount_paid,
+      days_in_period: period.days_in_period,
+      daily_cost: period.daily_cost,
+      cost_for_period: period.days_in_period * period.daily_cost
+    });
+    
     totalPaid += period.amount_paid;
     totalCostAccrued += period.days_in_period * period.daily_cost;
   }
   
+  const balance = totalPaid - totalCostAccrued;
+  console.log('Balance calculation result:', {
+    totalPaid,
+    totalCostAccrued,
+    balance
+  });
+  
   // Balance = Total Paid - Total Cost Accrued Over Time
-  return totalPaid - totalCostAccrued;
+  return balance;
 }
 
 /**

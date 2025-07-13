@@ -8,6 +8,7 @@ import ClientBalances from "./balances";
 import prisma from "../../lib/prisma";
 import ShowSmallSession from "../components/smallsession";
 import SubscriptionHandler from "./subscriptionHandler";
+import { calculateTimeBasedBalance } from "../../lib/planChangeTracking";
 
 // Define a type for relay client order data structure
 type RelayClientOrderData = {
@@ -26,6 +27,7 @@ type RelayClientOrderData = {
     banner_image: string | null;
     profile_image: string | null;
     needsInitialSubscription?: boolean;
+    calculatedBalance: number; 
 }
 
 export const dynamic = "force-dynamic";
@@ -120,7 +122,7 @@ export default async function ServerStatus(props: {
 
             let foundOrderForSpecificRelay = false
 
-            const relayClientOrders: RelayClientOrderData[] = relays.map((relay) => {
+            const relayClientOrders: RelayClientOrderData[] = await Promise.all(relays.map(async (relay) => {
                 // Extract subdomain from rewritten for proper comparison
                 if (rewritten) {
                     let subdomainToMatch = rewritten;
@@ -153,6 +155,8 @@ export default async function ServerStatus(props: {
                     (entry) => entry.pubkey === userPubkey
                 ) || false;
 
+                const calculatedBalance = await calculateTimeBasedBalance(relay.id, userPubkey);
+
                 return {
                     owner: relay.owner.pubkey,
                     relayName: relay.name,
@@ -167,9 +171,10 @@ export default async function ServerStatus(props: {
                     paymentRequired: relay.payment_required || false,
                     isInAllowList: isInAllowList,
                     banner_image: relay.banner_image,
-                    profile_image: relay.profile_image
+                    profile_image: relay.profile_image,
+                    calculatedBalance: calculatedBalance,
                 } as RelayClientOrderData;
-            });
+            }));
 
             // If a specific relay was requested via subdomain but not found in user's orders
             if(rewritten && !foundOrderForSpecificRelay) {
@@ -216,6 +221,17 @@ export default async function ServerStatus(props: {
                     // Only set needsInitialSubscription to true if the user has no paid orders
                     const needsInitial = existingPaidOrders.length === 0;
                     
+                    // Calculate the time-based balance for this user and relay
+                    let calculatedBalance = 0;
+                    try {
+                        if (userPubkey && requestedRelay.payment_required) {
+                            calculatedBalance = await calculateTimeBasedBalance(requestedRelay.id, userPubkey);
+                        }
+                    } catch (error) {
+                        console.error('Error calculating balance for relay', requestedRelay.id, ':', error);
+                        calculatedBalance = 0; // Fall back to 0 if calculation fails
+                    }
+                    
                     // Add the relay to the list with no orders
                     relayClientOrders.push({
                         owner: ownerPubkey,
@@ -232,7 +248,8 @@ export default async function ServerStatus(props: {
                         isInAllowList: false,
                         banner_image: requestedRelay.banner_image,
                         profile_image: requestedRelay.profile_image,
-                        needsInitialSubscription: needsInitial // Only true if user has no paid orders
+                        needsInitialSubscription: needsInitial, // Only true if user has no paid orders
+                        calculatedBalance: calculatedBalance // Add the calculated balance
                     } as RelayClientOrderData);
                 }
             }
@@ -318,6 +335,17 @@ export default async function ServerStatus(props: {
                     // Only set needsInitialSubscription to true if the user has no paid orders
                     const needsInitial = existingPaidOrders.length === 0;
                     
+                    // Calculate the time-based balance for this user and relay
+                    let calculatedBalance = 0;
+                    try {
+                        if (pubkey && requestedRelay.payment_required) {
+                            calculatedBalance = await calculateTimeBasedBalance(requestedRelay.id, pubkey);
+                        }
+                    } catch (error) {
+                        console.error('Error calculating balance for relay', requestedRelay.id, ':', error);
+                        calculatedBalance = 0; // Fall back to 0 if calculation fails
+                    }
+                    
                     // Create a relay client order with the needsInitialSubscription flag
                     const relayClientOrders = [{
                         owner: (requestedRelay as any).owner?.pubkey || "",
@@ -334,7 +362,8 @@ export default async function ServerStatus(props: {
                         isInAllowList: false,
                         banner_image: requestedRelay.banner_image,
                         profile_image: requestedRelay.profile_image,
-                        needsInitialSubscription: needsInitial // Only true if user has no paid orders
+                        needsInitialSubscription: needsInitial, // Only true if user has no paid orders
+                        calculatedBalance: calculatedBalance // Add the calculated balance
                     }];
                     
                     return (
@@ -478,6 +507,17 @@ export default async function ServerStatus(props: {
                 // Only set needsInitialSubscription to true if the user has no paid orders
                 const needsInitial = existingPaidOrders.length === 0;
                 
+                // Calculate the time-based balance for this user and relay
+                let calculatedBalance = 0;
+                try {
+                    if (pubkey && requestedRelay.payment_required) {
+                        calculatedBalance = await calculateTimeBasedBalance(requestedRelay.id, pubkey);
+                    }
+                } catch (error) {
+                    console.error('Error calculating balance for relay', requestedRelay.id, ':', error);
+                    calculatedBalance = 0; // Fall back to 0 if calculation fails
+                }
+                
                 // Create a relay client order with the needsInitialSubscription flag
                 // Use the pubkey from the URL parameter if available
                 const relayClientOrders = [{
@@ -491,7 +531,8 @@ export default async function ServerStatus(props: {
                     isInAllowList: false,
                     banner_image: requestedRelay.banner_image,
                     profile_image: requestedRelay.profile_image,
-                    needsInitialSubscription: needsInitial // Only true if user has no paid orders
+                    needsInitialSubscription: needsInitial, // Only true if user has no paid orders
+                    calculatedBalance: calculatedBalance // Add the calculated balance
                 }];
                 
                 return (
