@@ -1,5 +1,6 @@
 import LNBits from 'lnbits'
 import prisma from '../../../lib/prisma'
+import { recordRelayPlanChange } from '../../../lib/relayPlanChangeTracking'
 
 export default async function handle(req: any, res: any) {
 

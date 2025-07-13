@@ -78,6 +78,24 @@ model PlanChange {
   @@index([pubkey, started_at])
 }
 
+// Track relay owner plan changes over time for accurate billing calculations
+model RelayPlanChange {
+  id           String    @id @default(cuid())
+  relay        Relay     @relation(fields: [relayId], references: [id])
+  relayId      String
+  plan_type    String    @db.VarChar(50) // "standard", "premium", "custom"
+  amount_paid  Int       // Amount paid for this plan period
+  started_at   DateTime  // When this plan period started
+  ended_at     DateTime? // When this plan period ended (null for current plan)
+  created_at   DateTime  @default(now())
+  
+  // Reference to the Order that triggered this plan change
+  orderId      String?
+  
+  @@index([relayId])
+  @@index([relayId, started_at])
+}
+
 model Nip05 {
     id  String  @id @default(cuid())
     pubkey String
@@ -122,6 +140,7 @@ model Relay {
   Order                  Order[]
   ClientOrder            ClientOrder[]
   PlanChange             PlanChange[]
+  RelayPlanChange        RelayPlanChange[]
   streams                Stream[]
   acl_sources            AclSource[]
   allow_list             AllowList?

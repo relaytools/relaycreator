@@ -36,6 +36,7 @@ export default async function ServerStatus(props: {
                     Order: true,
                     ClientOrder: true,
                     owner: true,
+                    RelayPlanChange: true,
                 },
             });
 
@@ -74,6 +75,7 @@ export default async function ServerStatus(props: {
                         Order: true,
                         ClientOrder: true,
                         owner: true,
+                        RelayPlanChange: true,
                     },
                 });
 
@@ -88,6 +90,7 @@ export default async function ServerStatus(props: {
             // add up all order amounts, and divide by amount of time to show remaining balance
 
             const paymentAmount = Number(process.env.NEXT_PUBLIC_INVOICE_AMOUNT);
+            const paymentPremiumAmount = Number(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT);
 
             const relayBalances = relays.map((relay) => {
                 // Filter paid and unpaid relay orders
@@ -125,35 +128,55 @@ export default async function ServerStatus(props: {
                     0
                 );
 
-                const now = new Date();
-                const nowTime = now.getTime();
-
-                // Calculate balance based on paid orders and time elapsed
                 let balance = totalAmount + clientOrderAmount;
                 
-                if (paidOrders.length > 0) {
-                    // Find the earliest payment date
-                    const firstOrderDate = new Date(
-                        Math.min(
-                            ...paidOrders.map((order) =>
-                                order.paid && order.paid_at
-                                    ? new Date(order.paid_at).getTime()
-                                    : nowTime
-                            )
-                        )
-                    );
+                // Check if relay has plan change tracking data
+                const relayPlanChanges = relay.RelayPlanChange || [];
+                
+                if (relayPlanChanges.length > 0) {
+                    // Use plan change tracking for accurate billing
+                    const now = new Date();
+                    let totalCostAccrued = 0;
+                    
+                    for (const planPeriod of relayPlanChanges) {
+                        const periodStart = new Date(planPeriod.started_at);
+                        const periodEnd = planPeriod.ended_at ? new Date(planPeriod.ended_at) : now;
+                        
+                        // Calculate days in this plan period
+                        const daysInPeriod = (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
+                        
+                        // Each payment gives 30 days of service at the rate paid
+                        const dailyCostForPeriod = planPeriod.amount_paid / 30;
+                        const costForPeriod = Math.min(daysInPeriod * dailyCostForPeriod, planPeriod.amount_paid);
+                        
+                        totalCostAccrued += costForPeriod;
+                    }
+                    
+                    balance = totalAmount + clientOrderAmount - totalCostAccrued;
+                } else if (paidOrders.length > 0) {
+                    // Fallback to old method if no plan change tracking
+                    const now = new Date();
+                    const nowTime = now.getTime();
+                    
+                    // Calculate cost based on actual payments made
+                    // Each payment gives 30 days of service at the rate they paid
+                    let totalCostAccrued = 0;
+                    
+                    for (const order of paidOrders) {
+                        if (order.paid && order.paid_at) {
+                            const orderDate = new Date(order.paid_at);
+                            const daysSincePayment = (nowTime - orderDate.getTime()) / 1000 / 60 / 60 / 24;
+                            
+                            // Each payment covers 30 days of service
+                            const dailyCostForThisPayment = order.amount / 30;
+                            const costAccruedForThisPayment = Math.min(daysSincePayment * dailyCostForThisPayment, order.amount);
+                            
+                            totalCostAccrued += costAccruedForThisPayment;
+                        }
+                    }
 
-                    const timeInDays =
-                        (nowTime - firstOrderDate.getTime()) / 1000 / 60 / 60 / 24;
-
-                    // cost per day, paymentAmount / 30
-                    const costPerDay = paymentAmount / 30;
-
-                    // Subtract the cost over time from the balance
-                    balance = totalAmount + clientOrderAmount - timeInDays * costPerDay;
-                } else {
-                    // If no paid orders, balance is just client revenue (no relay costs deducted yet)
-                    balance = clientOrderAmount;
+                    // Balance = Total paid + client revenue - accrued costs
+                    balance = totalAmount + clientOrderAmount - totalCostAccrued;
                 }
 
                 return {
@@ -171,13 +194,14 @@ export default async function ServerStatus(props: {
                     unpaidClientOrders: unpaidClientOrders,
                     banner_image: relay.banner_image,
                     profile_image: relay.profile_image,
+                    RelayPlanChange: relay.RelayPlanChange,
                 };
             });
 
             return (
                 <div>
-                    { isAdmin && <AdminInvoices RelayPaymentAmount={paymentAmount} IsAdmin={isAdmin} RelayBalances={relayBalances} /> }
-                    { !isAdmin && <Balances RelayPaymentAmount={paymentAmount} IsAdmin={isAdmin} RelayBalances={relayBalances} /> }
+                    { isAdmin && <AdminInvoices RelayPaymentAmount={{standard: paymentAmount, premium: paymentPremiumAmount}} IsAdmin={isAdmin} RelayBalances={relayBalances} /> }
+                    { !isAdmin && <Balances RelayPaymentAmount={{standard: paymentAmount, premium: paymentPremiumAmount}} IsAdmin={isAdmin} RelayBalances={relayBalances} /> }
                 </div>
             );
         }
@@ -223,6 +247,7 @@ export default async function ServerStatus(props: {
                     amount={o.amount}
                     payment_hash={o.payment_hash}
                     payment_request={o.lnurl}
+                    plan_type={o.order_type || "standard"}
                 />
                 <PaymentSuccess
                     signed_in={session && (session as any).user.name}
