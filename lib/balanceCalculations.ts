@@ -1,56 +1,63 @@
 import prisma from "./prisma";
 import LNBits from "lnbits";
+import { calculateTimeBasedBalance, getUserPlanHistory } from './planChangeTracking';
 
 export async function calculateBalance(relay: any) {
-    const orders = await prisma.order.findMany({
-        where: { relayId: relay.id },
-    });
-
-    const clientOrders = await prisma.clientOrder.findMany({
-        where: { relayId: relay.id },
-    });
-
-    // calculate relay's outstanding balance
     const paymentAmount = Number(process.env.NEXT_PUBLIC_INVOICE_AMOUNT);
+    const now = new Date();
 
-    const totalAmount = orders.reduce((sum, order) => {
-        if (order.paid) {
-            return sum + order.amount;
-        } else {
-            return sum + 0;
+    // Get all paid orders for relay hosting
+    const paidOrders = relay.Order.filter((order: any) => order.paid === true);
+    
+    // Get all paid client orders for subscription revenue
+    const paidClientOrders = relay.ClientOrder.filter((order: any) => order.paid === true);
+
+    // Calculate total relay hosting payments
+    const totalAmount = paidOrders.reduce((sum: number, order: any) => sum + order.amount, 0);
+
+    // For client subscriptions, use the new time-based calculation system
+    let clientBalanceTotal = 0;
+    
+    // Group client orders by pubkey to calculate individual balances
+    const clientGroups = new Map<string, any[]>();
+    for (const order of paidClientOrders) {
+        if (!clientGroups.has(order.pubkey)) {
+            clientGroups.set(order.pubkey, []);
         }
-    }, 0);
-
-    const clientOrderAmount = clientOrders.reduce((sum, clientOrder) => {
-        if (clientOrder.paid) {
-            return sum + clientOrder.amount;
-        } else {
-            return sum + 0;
+        clientGroups.get(order.pubkey)!.push(order);
+    }
+    
+    // Calculate balance for each client using plan change tracking
+    for (const [pubkey, orders] of clientGroups) {
+        try {
+            const clientBalance = await calculateTimeBasedBalance(relay.id, pubkey);
+            clientBalanceTotal += clientBalance;
+        } catch (error) {
+            console.error(`Failed to calculate balance for client ${pubkey}:`, error);
+            // Fallback to old calculation method
+            const clientOrderAmount = orders.reduce((sum: number, order: any) => sum + order.amount, 0);
+            const firstOrderDate = new Date(Math.min(...orders.map((order: any) => 
+                order.paid_at ? new Date(order.paid_at).getTime() : now.getTime()
+            )));
+            const timeInDays = (now.getTime() - firstOrderDate.getTime()) / (1000 * 60 * 60 * 24);
+            const costPerDay = paymentAmount / 30;
+            clientBalanceTotal += clientOrderAmount - (timeInDays * costPerDay);
         }
-    }, 0);
+    }
 
-    const paidOrders = orders.filter((order) => order.paid_at !== null);
+    // Calculate relay operational balance
+    let relayBalance = totalAmount;
+    if (paidOrders.length > 0) {
+        const firstOrderDate = new Date(Math.min(...paidOrders.map((order: any) => 
+            order.paid_at ? new Date(order.paid_at).getTime() : now.getTime()
+        )));
+        const timeInDays = (now.getTime() - firstOrderDate.getTime()) / (1000 * 60 * 60 * 24);
+        const costPerDay = paymentAmount / 30;
+        relayBalance = totalAmount - (timeInDays * costPerDay);
+    }
 
-    const now: any = new Date().getTime();
-
-    const firstOrderDate: any = new Date(
-        Math.min(
-            ...paidOrders.map((order) =>
-                order.paid && order.paid_at
-                    ? new Date(order.paid_at).getTime()
-                    : now.getTime()
-            )
-        )
-    );
-
-    const timeInDays: any = (now - firstOrderDate) / 1000 / 60 / 60 / 24;
-
-    // cost per day, paymentAmount / 30
-    const costPerDay = paymentAmount / 30;
-
-    // Divide the total amount by the amount of time to get the balance
-    const balance = totalAmount + clientOrderAmount - timeInDays * costPerDay;
-    return balance;
+    // Total balance = Relay operational balance + Client subscription balances
+    return relayBalance + clientBalanceTotal;
 }
 
 export async function createOrGetDonationInvoice(relay: any) {
