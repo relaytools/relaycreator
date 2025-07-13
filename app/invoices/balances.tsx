@@ -35,7 +35,7 @@ export default function Balances(
     const router = useRouter();
     const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<{[key: string]: string}>({});
-    const [selectedPlan, setSelectedPlan] = useState("standard");
+    const [selectedPlanByRelay, setSelectedPlanByRelay] = useState<{[key: string]: string}>({});
     let useAmount = "";
 
     // Function to get current plan from relay data
@@ -69,12 +69,12 @@ export default function Balances(
             
             const currentPlan = getCurrentPlan(firstRelay);
             console.log('Debug - Current plan detected:', currentPlan);
-            setSelectedPlan(currentPlan);
+            setSelectedPlanByRelay(prev => ({ ...prev, [firstRelay.relayId]: currentPlan }));
         }
     }, [props.RelayBalances]);
 
     async function getTopUpInvoice(b: any, planType?: string) {
-        const plan = planType || selectedPlan;
+        const plan = planType || getSelectedPlan(b);
         let amount = useAmount;
         
         // If no custom amount specified, use plan defaults
@@ -125,6 +125,24 @@ export default function Balances(
     const sortedRelays = props.RelayBalances.sort((a: any, b: any) => {
         return a.relayName.localeCompare(b.relayName);
     });
+
+    // Helper function to get selected plan for a relay
+    const getSelectedPlan = (relay: any) => {
+        if (selectedPlanByRelay[relay.relayId]) {
+            return selectedPlanByRelay[relay.relayId];
+        }
+        // Default to current plan if available, otherwise "standard"
+        const currentPlan = relay.RelayPlanChange?.find((pc: any) => !pc.ended_at);
+        return currentPlan ? currentPlan.plan_type : "standard";
+    };
+
+    // Helper function to set selected plan for a relay
+    const setSelectedPlan = (relayId: string, plan: string) => {
+        setSelectedPlanByRelay(prev => ({
+            ...prev,
+            [relayId]: plan
+        }));
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
@@ -227,9 +245,18 @@ export default function Balances(
                                         </div>
                                         
                                         <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Monthly Cost</div>
+                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Current Plan</div>
                                             <div className="text-lg font-bold text-slate-600 dark:text-slate-400">
-                                                {props.RelayPaymentAmount.standard} sats/mo
+                                                {(() => {
+                                                    // Get current plan from RelayPlanChange data
+                                                    const currentPlan = relay.RelayPlanChange?.find((pc: any) => !pc.ended_at);
+                                                    if (currentPlan) {
+                                                        const planType = currentPlan.plan_type.charAt(0).toUpperCase() + currentPlan.plan_type.slice(1);
+                                                        return `${planType} - ${currentPlan.amount_paid} sats/mo`;
+                                                    }
+                                                    // Fallback to standard plan
+                                                    return `Standard - ${props.RelayPaymentAmount.standard} sats/mo`;
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
@@ -273,90 +300,57 @@ export default function Balances(
                                     {/* Tab Content */}
                                     {activeTabForRelay === 'overview' && (
                                         <div className="space-y-6">
-                                            {/* Plan History Section */}
-                                            {relay.RelayPlanChange && relay.RelayPlanChange.length > 0 && (
-                                                <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                                                        Plan History
-                                                    </h3>
-                                                    <div className="space-y-2">
-                                                        {relay.RelayPlanChange
-                                                            .sort((a: any, b: any) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
-                                                            .map((planChange: any, index: number) => {
-                                                                const isCurrentPlan = !planChange.ended_at;
-                                                                const startDate = new Date(planChange.started_at).toLocaleDateString();
-                                                                const endDate = planChange.ended_at ? new Date(planChange.ended_at).toLocaleDateString() : 'Current';
-                                                                
-                                                                return (
-                                                                    <div key={planChange.id} className={`flex items-center justify-between p-3 rounded-lg ${
-                                                                        isCurrentPlan 
-                                                                            ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' 
-                                                                            : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600'
-                                                                    }`}>
-                                                                        <div className="flex items-center gap-3">
-                                                                            {isCurrentPlan && (
-                                                                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                                            )}
-                                                                            <div>
-                                                                                <div className="font-medium text-slate-800 dark:text-slate-200">
-                                                                                    {planChange.plan_type.charAt(0).toUpperCase() + planChange.plan_type.slice(1)} Plan
-                                                                                    {isCurrentPlan && <span className="ml-2 text-sm text-green-600 dark:text-green-400">(Current)</span>}
-                                                                                </div>
-                                                                                <div className="text-sm text-slate-600 dark:text-slate-400">
-                                                                                    {startDate} - {endDate}
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="text-right">
-                                                                            <div className="font-medium text-slate-800 dark:text-slate-200">
-                                                                                {planChange.amount_paid} sats
-                                                                            </div>
-                                                                            <div className="text-sm text-slate-600 dark:text-slate-400">
-                                                                                {(planChange.amount_paid / 30).toFixed(1)} sats/day
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Top Up Section */}
-                                                <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
-                                                        Add Funds
-                                                    </h3>
-                                                    <p className="text-slate-600 dark:text-slate-400 mb-4">
-                                                        Create an invoice to add funds to your relay balance
-                                                    </p>
-                                                    <div className="flex gap-2">
-                                                        <select
-                                                            className="select select-primary"
-                                                            value={selectedPlan}
-                                                            onChange={event => setSelectedPlan(event.target.value)}
-                                                        >
-                                                            <option value="standard">Standard</option>
-                                                            <option value="premium">Premium</option>
-                                                        </select>
-                                                        <input
-                                                            type="text"
-                                                            name="satsamount"
-                                                            className="input input-primary flex-1"
-                                                            placeholder={selectedPlan === "premium" ? props.RelayPaymentAmount.premium?.toString() || "2100" : Math.abs(showBalance(relay.balance)).toString()}
-                                                            onChange={event => {useAmount = event.target.value}}
-                                                        />
-                                                        <span className="flex items-center text-sm text-slate-600 dark:text-slate-400 px-2">sats</span>
-                                                        <button
-                                                            className="btn btn-primary"
-                                                            onClick={() => getTopUpInvoice(relay, selectedPlan)}
-                                                        >
-                                                            Create Invoice
-                                                        </button>
-                                                    </div>
+                                            {/* Top Up Section */}
+                                            <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                                                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
+                                                    Add Funds
+                                                </h3>
+                                                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                                                    Create an invoice to add funds to your relay balance
+                                                </p>
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        className="select select-primary"
+                                                        value={getSelectedPlan(relay)}
+                                                        onChange={event => setSelectedPlan(relay.relayId, event.target.value)}
+                                                    >
+                                                        <option value="standard">Standard</option>
+                                                        <option value="premium">Premium</option>
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        name="satsamount"
+                                                        className="input input-primary flex-1"
+                                                        placeholder={(() => {
+                                                            // Get current plan and its cost
+                                                            const currentPlan = relay.RelayPlanChange?.find((pc: any) => !pc.ended_at);
+                                                            const currentPlanCost = currentPlan ? currentPlan.amount_paid : 
+                                                                (getSelectedPlan(relay) === "premium" ? (props.RelayPaymentAmount.premium || 2100) : props.RelayPaymentAmount.standard);
+                                                            
+                                                            const currentBalance = showBalance(calculateOutstandingBalance(relay));
+                                                            
+                                                            // If balance is negative (debt), suggest debt + monthly plan cost
+                                                            if (currentBalance < 0) {
+                                                                return (Math.abs(currentBalance) + currentPlanCost).toString();
+                                                            }
+                                                            // If balance is positive or zero, suggest monthly plan cost
+                                                            else {
+                                                                return currentPlanCost.toString();
+                                                            }
+                                                        })()}
+                                                        onChange={event => {useAmount = event.target.value}}
+                                                    />
+                                                    <span className="flex items-center text-sm text-slate-600 dark:text-slate-400 px-2">sats</span>
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        onClick={() => getTopUpInvoice(relay, getSelectedPlan(relay))}
+                                                    >
+                                                        Create Invoice
+                                                    </button>
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
+                                    )}
                                     {activeTabForRelay === 'relay-payments' && (
                                         <div className="space-y-4">
                                             {relay.unpaidOrders && relay.unpaidOrders.length > 0 && (
