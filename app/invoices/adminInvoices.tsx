@@ -34,7 +34,10 @@ export default function AdminInvoices(
     props: React.PropsWithChildren<{
         RelayBalances: any;
         IsAdmin: boolean;
-        RelayPaymentAmount: number;
+        RelayPaymentAmount: {
+            standard: number;
+            premium: number;
+        };
     }>
 ) {
     const router = useRouter();
@@ -46,7 +49,7 @@ export default function AdminInvoices(
 
     // Helper function to check if balance is in range
     const isBalanceInRange = (balance: number, range: string) => {
-        const payment = props.RelayPaymentAmount;
+        const payment = props.RelayPaymentAmount.standard;
         switch(range) {
             case "good":
                 return balance > payment * -1;

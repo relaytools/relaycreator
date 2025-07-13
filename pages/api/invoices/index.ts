@@ -15,7 +15,7 @@ export default async function handle(req: any, res: any) {
         //return
     }
 
-    const { relayname, pubkey, topup, sats, referrer } = req.query as { relayname: string, pubkey: string, topup: string, sats: string, referrer: string };
+    const { relayname, pubkey, topup, sats, referrer, plan } = req.query as { relayname: string, pubkey: string, topup: string, sats: string, referrer: string, plan: string };
 
     if(topup != null && relayname != null && topup == "true") {
         console.log('topping up')
@@ -34,16 +34,37 @@ export default async function handle(req: any, res: any) {
         if (process.env.PAYMENTS_ENABLED == "true" && process.env.LNBITS_ADMIN_KEY && process.env.LNBITS_INVOICE_READ_KEY && process.env.LNBITS_ENDPOINT) {
 
             let useAmount = 21
-            // allow custom amount for topup
-            if (process.env.NEXT_PUBLIC_INVOICE_AMOUNT != null) {
-                useAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT)
+            let orderType = "standard"
+            
+            // Determine plan type and amount
+            if (plan === "premium") {
+                orderType = "premium"
+                if (process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT != null) {
+                    useAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT)
+                } else {
+                    useAmount = 2100 // Default premium amount
+                }
+            } else {
+                // Standard plan
+                if (process.env.NEXT_PUBLIC_INVOICE_AMOUNT != null) {
+                    useAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT)
+                }
             }
 
             // make sure the relay is active
             if (r.status != null) {
-                // allow top up of any amount
+                // allow top up of any amount (custom amount overrides plan selection)
                 if(sats != null) {
                     useAmount = parseInt(sats)
+                    // For custom amounts, determine plan type based on amount
+                    const standardAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || "21")
+                    const premiumAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || "2100")
+                    
+                    if (useAmount >= premiumAmount) {
+                        orderType = "premium"
+                    } else {
+                        orderType = "standard"
+                    }
                 }
             }
 
@@ -68,6 +89,7 @@ export default async function handle(req: any, res: any) {
                     payment_hash: newInvoice.payment_hash,
                     lnurl: newInvoice.payment_request,
                     amount: useAmount,
+                    order_type: orderType,
                 }
             })
             return res.status(200).json({ order_id: orderCreated.id });
@@ -199,6 +221,16 @@ export default async function handle(req: any, res: any) {
             endpoint: process.env.LNBITS_ENDPOINT,
         });
 
+        let orderType = "standard"
+        if (plan === "premium") {
+            orderType = "premium"
+            if (process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT != null) {
+                useAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT)
+            } else {
+                useAmount = 2100 // Default premium amount
+            }
+        }
+
         const newInvoice = await wallet.createInvoice({
             amount: useAmount,
             memo: relayname + " " + pubkey,
@@ -214,6 +246,7 @@ export default async function handle(req: any, res: any) {
                 payment_hash: newInvoice.payment_hash,
                 lnurl: newInvoice.payment_request,
                 amount: useAmount,
+                order_type: orderType,
             }
         })
         res.status(200).json({ order_id: orderCreated.id });
@@ -232,6 +265,4 @@ export default async function handle(req: any, res: any) {
         res.status(200).json({ order_id: orderCreated.id });
 
     }
-
-
 }

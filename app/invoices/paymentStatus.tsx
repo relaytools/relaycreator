@@ -46,6 +46,7 @@ export default function PaymentStatus(
         amount: number;
         payment_hash: string;
         payment_request: string;
+        plan_type?: string;
     }>
 ) {
     const { data: session, status } = useSession();
@@ -60,6 +61,9 @@ export default function PaymentStatus(
     if (!relayname) {
         relayname = "";
     }
+
+    // Get plan type from props first, then URL parameters, then default to standard
+    let planType = props.plan_type || p.get("plan") || "standard";
 
     let useAmount = props.amount;
 
@@ -79,7 +83,12 @@ export default function PaymentStatus(
     return (
         <div className="card w-96 bg-base-100 border-2">
             <div className="card-body">
-                <span className="badge badge-xs badge-warning">invoice</span>
+                <div className="flex justify-between items-center mb-2">
+                    <span className="badge badge-xs badge-warning">invoice</span>
+                    <span className={`badge ${planType === 'premium' ? 'badge-secondary' : 'badge-primary'}`}>
+                        {planType.charAt(0).toUpperCase() + planType.slice(1)} Plan
+                    </span>
+                </div>
                 <div className="flex justify-between">
                     <h2 className="text-3xl font-bold"></h2>
                     <span className="text-xl">{props.amount} sats</span>
