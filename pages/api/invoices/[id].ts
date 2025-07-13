@@ -31,6 +31,8 @@ export default async function handle(req: any, res: any) {
             lnurl: true,
             payment_hash: true,
             expires_at: true,
+            order_type: true,
+            amount: true,
 
             relay: {
                 select: {
@@ -39,6 +41,11 @@ export default async function handle(req: any, res: any) {
                     name: true,
                     domain: true,
                     created_at: true,
+                    owner: {
+                        select: {
+                            pubkey: true,
+                        }
+                    }
                 },
             }
         }
@@ -100,6 +107,7 @@ export default async function handle(req: any, res: any) {
                 }
             })
         }
+        await recordRelayPlanChange(findOrder.relay.id, findOrder.order_type, findOrder.amount);
         res.status(200).json({ order: findOrder });
     } else {
         res.status(200).json({ order: findOrder });

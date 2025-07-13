@@ -9,9 +9,10 @@ export async function recordRelayPlanChange(
   relayId: string,
   newPlanType: string,
   amountPaid: number,
-  orderId?: string
+  orderId?: string,
+  startedAt?: Date
 ) {
-  const now = new Date();
+  const now = startedAt || new Date();
   
   // End the current plan period (if any)
   await prisma.relayPlanChange.updateMany({
@@ -93,7 +94,8 @@ export async function calculateRelayTimeBasedBalance(relayId: string, clientOrde
     
     // Each payment gives 30 days of service at the rate paid
     const dailyCostForPeriod = planPeriod.amount_paid / 30;
-    const costForPeriod = Math.min(daysInPeriod * dailyCostForPeriod, planPeriod.amount_paid);
+    // Remove Math.min cap - allow cost to exceed payment if service time exceeds paid period
+    const costForPeriod = daysInPeriod * dailyCostForPeriod;
     
     totalCostAccrued += costForPeriod;
   }
