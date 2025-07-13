@@ -411,11 +411,11 @@ export default function ClientBalances(
                                         <div className="mb-6">
                                             <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 relative">
                                                 <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
-                                                <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                                                    {calculateOutstandingBalance(relay) > 0 ? 
-                                                        `${calculateOutstandingBalance(relay)} sats due` : 
-                                                        calculateOutstandingBalance(relay) < 0 ? 
-                                                            `${Math.abs(calculateOutstandingBalance(relay))} sats credit` : 
+                                                <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                                    {calculateOutstandingBalance(relay) < 0 ? 
+                                                        `${Math.round(calculateOutstandingBalance(relay))} sats due` : 
+                                                        calculateOutstandingBalance(relay) > 0 ? 
+                                                            `${Math.round(Math.abs(calculateOutstandingBalance(relay)))} sats credit` : 
                                                             'Paid in full'}
                                                 </div>
                                                 <button
