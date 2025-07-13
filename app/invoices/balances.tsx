@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Bolt11Invoice from "../components/invoice";
-import { use, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 
@@ -26,27 +26,78 @@ export default function Balances(
     props: React.PropsWithChildren<{
         RelayBalances: any;
         IsAdmin: boolean;
-        RelayPaymentAmount: any;
+        RelayPaymentAmount: {
+            standard: number;
+            premium: number;
+        };
     }>
 ) {
     const router = useRouter();
+    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<{[key: string]: string}>({});
-
+    const [selectedPlan, setSelectedPlan] = useState("standard");
     let useAmount = "";
 
-    async function getTopUpInvoice(b: any) {
-        if(useAmount == "") {
-          useAmount = Math.abs(amountPrecision(b.balance)).toString()
+    // Function to get current plan from relay data
+    function getCurrentPlan(relay: any): string {
+        if (relay.RelayPlanChange && relay.RelayPlanChange.length > 0) {
+            // Find the current active plan (no ended_at date)
+            const currentPlan = relay.RelayPlanChange.find((plan: any) => !plan.ended_at);
+            if (currentPlan) {
+                return currentPlan.plan_type;
+            }
         }
+        return "standard"; // Default fallback
+    }
+
+    // Set default plan selection based on current plan for each relay
+    useEffect(() => {
+        if (props.RelayBalances && props.RelayBalances.length > 0) {
+            const firstRelay = props.RelayBalances[0];
+            console.log('Debug - Full relay object:', firstRelay);
+            console.log('Debug - RelayPlanChange data:', firstRelay.RelayPlanChange);
+            
+            if (firstRelay.RelayPlanChange && firstRelay.RelayPlanChange.length > 0) {
+                console.log('Debug - Plan change entries:', firstRelay.RelayPlanChange.map((p: any) => ({
+                    plan_type: p.plan_type,
+                    ended_at: p.ended_at,
+                    started_at: p.started_at
+                })));
+            } else {
+                console.log('Debug - No RelayPlanChange data found');
+            }
+            
+            const currentPlan = getCurrentPlan(firstRelay);
+            console.log('Debug - Current plan detected:', currentPlan);
+            setSelectedPlan(currentPlan);
+        }
+    }, [props.RelayBalances]);
+
+    async function getTopUpInvoice(b: any, planType?: string) {
+        const plan = planType || selectedPlan;
+        let amount = useAmount;
+        
+        // If no custom amount specified, use plan defaults
+        if (!amount || amount === "") {
+            if (plan === "premium") {
+                amount = props.RelayPaymentAmount.premium?.toString() || "2100";
+            } else {
+                amount = Math.abs(amountPrecision(b.balance)).toString();
+            }
+        }
+        
         const response = await fetch(
-            `/api/invoices?relayname=${b.relayName}&topup=true&sats=${useAmount}`
+            `/api/invoices?relayname=${b.relayName}&topup=true&sats=${amount}&plan=${plan}`
         );
         const responseJson = await response.json();
         console.log(responseJson);
 
         if (response.ok) {
+            // Get the actual pubkey from session instead of hardcoding "unknown"
+            const userPubkey = (session as any)?.user?.name || "unknown";
+            
             router.push(
-                `/invoices?relayname=${b.relayName}&order_id=${responseJson.order_id}&pubkey=unknown&sats=${useAmount}`
+                `/invoices?relayname=${b.relayName}&order_id=${responseJson.order_id}&pubkey=${userPubkey}&sats=${amount}&plan=${plan}`
             );
         }
     }
@@ -178,7 +229,7 @@ export default function Balances(
                                         <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
                                             <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Monthly Cost</div>
                                             <div className="text-lg font-bold text-slate-600 dark:text-slate-400">
-                                                {props.RelayPaymentAmount} sats/mo
+                                                {props.RelayPaymentAmount.standard} sats/mo
                                             </div>
                                         </div>
                                     </div>
@@ -221,32 +272,91 @@ export default function Balances(
 
                                     {/* Tab Content */}
                                     {activeTabForRelay === 'overview' && (
-                                        <div className="space-y-4">
-                                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                                                <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Top Up Relay Balance</h3>
-                                                <p className="text-blue-700 dark:text-blue-300 text-sm mb-3">
-                                                    Create an invoice to add funds to your relay balance
-                                                </p>
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        name="satsamount"
-                                                        className="input input-bordered input-primary flex-1 max-w-xs"
-                                                        placeholder={Math.abs(showBalance(relay.balance)).toString()}
-                                                        onChange={event => {useAmount = event.target.value}}
-                                                    />
-                                                    <span className="flex items-center text-sm text-slate-600 dark:text-slate-400 px-2">sats</span>
-                                                    <button
-                                                        className="btn btn-primary"
-                                                        onClick={() => getTopUpInvoice(relay)}
-                                                    >
-                                                        Create Invoice
-                                                    </button>
+                                        <div className="space-y-6">
+                                            {/* Plan History Section */}
+                                            {relay.RelayPlanChange && relay.RelayPlanChange.length > 0 && (
+                                                <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-3">
+                                                        Plan History
+                                                    </h3>
+                                                    <div className="space-y-2">
+                                                        {relay.RelayPlanChange
+                                                            .sort((a: any, b: any) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+                                                            .map((planChange: any, index: number) => {
+                                                                const isCurrentPlan = !planChange.ended_at;
+                                                                const startDate = new Date(planChange.started_at).toLocaleDateString();
+                                                                const endDate = planChange.ended_at ? new Date(planChange.ended_at).toLocaleDateString() : 'Current';
+                                                                
+                                                                return (
+                                                                    <div key={planChange.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                                                                        isCurrentPlan 
+                                                                            ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' 
+                                                                            : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600'
+                                                                    }`}>
+                                                                        <div className="flex items-center gap-3">
+                                                                            {isCurrentPlan && (
+                                                                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                                            )}
+                                                                            <div>
+                                                                                <div className="font-medium text-slate-800 dark:text-slate-200">
+                                                                                    {planChange.plan_type.charAt(0).toUpperCase() + planChange.plan_type.slice(1)} Plan
+                                                                                    {isCurrentPlan && <span className="ml-2 text-sm text-green-600 dark:text-green-400">(Current)</span>}
+                                                                                </div>
+                                                                                <div className="text-sm text-slate-600 dark:text-slate-400">
+                                                                                    {startDate} - {endDate}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <div className="font-medium text-slate-800 dark:text-slate-200">
+                                                                                {planChange.amount_paid} sats
+                                                                            </div>
+                                                                            <div className="text-sm text-slate-600 dark:text-slate-400">
+                                                                                {(planChange.amount_paid / 30).toFixed(1)} sats/day
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Top Up Section */}
+                                                <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
+                                                        Add Funds
+                                                    </h3>
+                                                    <p className="text-slate-600 dark:text-slate-400 mb-4">
+                                                        Create an invoice to add funds to your relay balance
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        <select
+                                                            className="select select-primary"
+                                                            value={selectedPlan}
+                                                            onChange={event => setSelectedPlan(event.target.value)}
+                                                        >
+                                                            <option value="standard">Standard</option>
+                                                            <option value="premium">Premium</option>
+                                                        </select>
+                                                        <input
+                                                            type="text"
+                                                            name="satsamount"
+                                                            className="input input-primary flex-1"
+                                                            placeholder={selectedPlan === "premium" ? props.RelayPaymentAmount.premium?.toString() || "2100" : Math.abs(showBalance(relay.balance)).toString()}
+                                                            onChange={event => {useAmount = event.target.value}}
+                                                        />
+                                                        <span className="flex items-center text-sm text-slate-600 dark:text-slate-400 px-2">sats</span>
+                                                        <button
+                                                            className="btn btn-primary"
+                                                            onClick={() => getTopUpInvoice(relay, selectedPlan)}
+                                                        >
+                                                            Create Invoice
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-
+                                        )}
                                     {activeTabForRelay === 'relay-payments' && (
                                         <div className="space-y-4">
                                             {relay.unpaidOrders && relay.unpaidOrders.length > 0 && (
