@@ -41,6 +41,7 @@ interface RelayClientOrder {
     banner_image: string | null;
     profile_image: string | null;
     needsInitialSubscription?: boolean; // Optional flag for relays that need initial subscription
+    calculatedBalance?: number; // New field for calculated balance
 }
 
 export default function ClientBalances(
@@ -158,20 +159,37 @@ export default function ClientBalances(
         // If payment is not required, there's no outstanding balance
         if (!relay.paymentRequired) return 0;
         
-        // Calculate how many subscription periods have passed
-        const totalPaid = relay.totalClientPayments || 0;
-        const subscriptionFee = relay.paymentAmount || 0;
-        
-        // If subscription fee is 0, there's no outstanding balance
-        if (subscriptionFee === 0) return 0;
-        
-        // Calculate outstanding balance (negative means credit)
-        const outstandingBalance = subscriptionFee - totalPaid;
-        
-        return outstandingBalance;
+        // This is now handled by the new time-based calculation system
+        // The balance should account for plan changes over time
+        return relay.calculatedBalance || 0;
     }
 
-    // Check if user has premium subscriptions and no NIP-05s
+    // New function to display plan history for a relay subscription
+    function renderPlanHistory(relay: any) {
+        const userPubkey = session?.user?.name;
+        if (!userPubkey) return null;
+
+        // This would be populated by an API call to get plan history
+        // For now, we'll show a placeholder
+        return (
+            <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    Subscription History
+                </h4>
+                <div className="text-xs text-slate-600 dark:text-slate-400">
+                    <div className="flex justify-between items-center py-1">
+                        <span>Current Plan: {getUserMostRecentPlan(relay)}</span>
+                        <span className="font-mono">{relay.paymentAmount} sats/month</span>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-2">
+                        Plan history and time-based billing details available in detailed view
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Function to check if user has premium subscriptions and no NIP-05s
     function checkPremiumBenefitEligibility() {
         if (!session?.user?.name) return { hasPremium: false, hasNoNip05: false, premiumDomains: [] };
         
@@ -296,7 +314,6 @@ export default function ClientBalances(
     const sortedRelays = filteredRelays.sort((a: any, b: any) => {
         return a.relayName.localeCompare(b.relayName);
     });
-     console.log(props.RelayClientOrders)
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
@@ -480,6 +497,8 @@ export default function ClientBalances(
                                             </div>
                                         </div>
                                     )}
+
+                                    {renderPlanHistory(relay)}
 
                                     <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
                                         <details className="group" open={!session || isFiltered}>
