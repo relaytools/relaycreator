@@ -17,8 +17,6 @@ export default async function handle(req: any, res: any) {
         return Response.json({ stats: null });
     }
 
-    console.log(slug)
-
     try {
         const influxDB = getInfluxDBClient();
         const queryApi = influxDB.getQueryApi(process.env.INFLUXDB_ORG);
@@ -28,7 +26,7 @@ export default async function handle(req: any, res: any) {
         |> range(start: -1h)
         |> filter(fn: (r) => r["_measurement"] == "haproxy")
         |> filter(fn: (r) => r["_field"] == "h1_open_streams")
-        |> filter(fn: (r) => r["proxy"] == "TheForest")
+        |> filter(fn: (r) => r["proxy"] == "${slug}")
         |> last()
         |> yield(name: "last")
     `;
