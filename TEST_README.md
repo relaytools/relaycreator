@@ -49,6 +49,47 @@ yarn add --dev @types/jest jest-environment-node ts-jest
 - Migration of existing client orders to plan tracking
 - Edge cases (unpaid orders, no subscription history)
 
+### 3. Pricing Changes Test (`__tests__/pricing-changes.test.ts`)
+
+**Purpose**: Tests system behavior when environment variable pricing changes, ensuring historical rates are preserved while new payments use updated pricing.
+
+**Coverage**: 8 comprehensive tests covering:
+
+#### Relay Invoice Pricing Changes:
+- **Historical Rate Preservation**: When prices increase, existing plan periods maintain their original billing rates
+- **New Payment Pricing**: New relay plans use current environment variable values
+- **Time-Based Billing**: Accurate calculations across multiple plan periods with different rates
+- **Plan Change Tracking**: Proper recording of plan changes with actual amounts paid
+
+#### Client Subscription Pricing Changes:
+- **Historical Rate Preservation**: Client subscriptions maintain original rates for paid periods
+- **New Subscription Pricing**: New client orders use current environment variable values
+- **Balance Calculations**: Accurate time-based billing across price changes
+- **Plan History Tracking**: Complete audit trail of subscription changes
+
+#### Environment Variable Integration:
+- **Dynamic Pricing**: System respects environment variable changes for new payments
+- **Fallback Behavior**: Proper defaults when environment variables are missing
+- **Testing Infrastructure**: Environment variable mocking and restoration
+
+**Key Test Scenarios:**
+```typescript
+// Example: Price increase scenario
+Initial: STANDARD=21, PREMIUM=2100
+User pays 21 sats for standard → billed at 0.7 sats/day
+
+Price Change: STANDARD=30, PREMIUM=3000  
+User upgrades to premium → pays 3000 sats → billed at 100 sats/day
+
+Result: Historical period (21 sats) billed at old rate, new period (3000 sats) billed at new rate
+```
+
+**Business Logic Validation:**
+- **Grandfathered Pricing**: Existing users keep historical rates for paid periods
+- **Current Pricing**: New payments always use current environment variable values
+- **No Retroactive Changes**: Price changes never affect already-paid periods
+- **Accurate Billing**: Each plan period billed at the rate that was active when paid
+
 ## Test Scenarios
 
 ### Balance Calculation Tests
