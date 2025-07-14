@@ -174,7 +174,33 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
     });
     
     totalPaid += period.amount_paid;
-    totalCostAccrued += period.days_in_period * period.daily_cost;
+    
+    // Apply the same logic as serverStatus and balanceCalculations:
+    // Use historical rate for first 30 days, current pricing for excess days
+    const paidCoverageDays = 30;
+    const dailyCostForPaidPeriod = period.amount_paid / 30;
+    
+    if (period.days_in_period <= paidCoverageDays) {
+      // Still within paid coverage period - use historical rate
+      const costForPeriod = period.days_in_period * dailyCostForPaidPeriod;
+      totalCostAccrued += costForPeriod;
+    } else {
+      // Beyond paid coverage - use historical rate for paid period, current rate for excess
+      const paidPeriodCost = paidCoverageDays * dailyCostForPaidPeriod;
+      const excessDays = period.days_in_period - paidCoverageDays;
+      
+      // Get current pricing from environment variables
+      const currentStandardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '21');
+      const currentPremiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+      
+      // Use current pricing for excess days
+      const currentDailyRate = period.plan_type === 'premium' 
+        ? currentPremiumPrice / 30 
+        : currentStandardPrice / 30;
+      const excessCost = excessDays * currentDailyRate;
+      
+      totalCostAccrued += paidPeriodCost + excessCost;
+    }
   }
   
   const balance = totalPaid - totalCostAccrued;

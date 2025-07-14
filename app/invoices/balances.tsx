@@ -322,10 +322,13 @@ export default function Balances(
                                                         name="satsamount"
                                                         className="input input-primary flex-1"
                                                         placeholder={(() => {
-                                                            // Get current plan and its cost
-                                                            const currentPlan = relay.RelayPlanChange?.find((pc: any) => !pc.ended_at);
-                                                            const currentPlanCost = currentPlan ? currentPlan.amount_paid : 
-                                                                (getSelectedPlan(relay) === "premium" ? (props.RelayPaymentAmount.premium || 2100) : props.RelayPaymentAmount.standard);
+                                                            // Get selected plan from dropdown (reactive to changes)
+                                                            const selectedPlan = getSelectedPlan(relay);
+                                                            
+                                                            // Use current environment variable pricing, not historical amounts
+                                                            const currentPlanCost = selectedPlan === "premium" 
+                                                                ? props.RelayPaymentAmount.premium 
+                                                                : props.RelayPaymentAmount.standard;
                                                             
                                                             const currentBalance = showBalance(calculateOutstandingBalance(relay));
                                                             
