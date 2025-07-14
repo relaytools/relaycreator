@@ -231,7 +231,7 @@ export default async function RelayPage({
                             </h2>
                             <div className="divider my-1"></div>
                             <div>
-                                <ConnectionStats relayName={slug} />
+                                <ConnectionStats relayName={relay.name} />
                             </div>
                         </div>
                     </div>
