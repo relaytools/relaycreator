@@ -349,4 +349,43 @@ describe('Pricing Changes - Client Subscriptions', () => {
     expect(planHistory).toHaveLength(1);
     expect(planHistory[0].amount_paid).toBe(5000);
   });
+
+  test('should use current pricing for ongoing costs beyond paid coverage period', async () => {
+    // Set initial pricing
+    process.env.NEXT_PUBLIC_INVOICE_AMOUNT = '21';
+    process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT = '2100';
+
+    // User pays at old pricing 45 days ago (beyond 30-day coverage)
+    const fortyFiveDaysAgo = new Date();
+    fortyFiveDaysAgo.setDate(fortyFiveDaysAgo.getDate() - 45);
+
+    const oldOrder = await prisma.clientOrder.create({
+      data: {
+        relayId: testRelayId,
+        pubkey: testPubkey,
+        order_type: 'standard',
+        amount: 21,
+        paid: true,
+        paid_at: fortyFiveDaysAgo,
+        payment_hash: 'hash-old',
+        lnurl: 'lnurl-old'
+      }
+    });
+
+    await recordPlanChange(testRelayId, testPubkey, 'standard', 21, oldOrder.id, fortyFiveDaysAgo);
+
+    // Change pricing to new rates
+    process.env.NEXT_PUBLIC_INVOICE_AMOUNT = '50';
+    process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT = '5000';
+
+    // Calculate balance - should use old rate for first 30 days, new rate for remaining 15 days
+    const balance = await calculateTimeBasedBalance(testRelayId, testPubkey);
+    
+    // Expected calculation:
+    // - First 30 days: 30 * (21/30) = 21 sats cost (at old rate)
+    // - Next 15 days: 15 * (50/30) = 25 sats cost (at new rate)
+    // - Total cost: 21 + 25 = 46 sats
+    // - Balance: 21 - 46 = -25 sats (negative balance due to higher new pricing)
+    expect(balance).toBeCloseTo(-25, 1);
+  });
 });

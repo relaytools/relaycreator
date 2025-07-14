@@ -48,12 +48,42 @@ export async function calculateBalance(relay: any) {
     // Calculate relay operational balance
     let relayBalance = totalAmount;
     if (paidOrders.length > 0) {
-        const firstOrderDate = new Date(Math.min(...paidOrders.map((order: any) => 
-            order.paid_at ? new Date(order.paid_at).getTime() : now.getTime()
-        )));
-        const timeInDays = (now.getTime() - firstOrderDate.getTime()) / (1000 * 60 * 60 * 24);
-        const costPerDay = paymentAmount / 30;
-        relayBalance = totalAmount - (timeInDays * costPerDay);
+        // Get current pricing from environment variables
+        const currentStandardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '21');
+        const currentPremiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+        
+        let totalCostAccrued = 0;
+        
+        for (const order of paidOrders) {
+            if (order.paid && order.paid_at) {
+                const orderDate = new Date(order.paid_at);
+                const daysSincePayment = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24);
+                
+                // Each payment covers exactly 30 days at the rate paid
+                const paidCoverageDays = 30;
+                const dailyCostForPaidPeriod = order.amount / 30;
+                
+                if (daysSincePayment <= paidCoverageDays) {
+                    // Still within paid coverage period - use historical rate
+                    const costAccruedForThisPayment = daysSincePayment * dailyCostForPaidPeriod;
+                    totalCostAccrued += costAccruedForThisPayment;
+                } else {
+                    // Beyond paid coverage - use historical rate for paid period, current rate for excess
+                    const paidPeriodCost = paidCoverageDays * dailyCostForPaidPeriod;
+                    const excessDays = daysSincePayment - paidCoverageDays;
+                    
+                    // Use current pricing for excess days (assume standard if not specified)
+                    const currentDailyRate = order.order_type === 'premium' 
+                        ? currentPremiumPrice / 30 
+                        : currentStandardPrice / 30;
+                    const excessCost = excessDays * currentDailyRate;
+                    
+                    totalCostAccrued += paidPeriodCost + excessCost;
+                }
+            }
+        }
+        
+        relayBalance = totalAmount - totalCostAccrued;
     }
 
     // Total balance = Relay operational balance + Client subscription balances
