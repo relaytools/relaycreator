@@ -4,6 +4,8 @@ import ListEntryPubkeys from "./listEntryPubkeys";
 import ListEntryKinds from "./listEntryKinds";
 import Moderators from "./moderators";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { nip19 } from "nostr-tools";
 import Relay from "../components/relay";
 import { RelayWithEverything } from "../components/relayWithEverything";
 import { useRouter } from "next/navigation";
@@ -57,10 +59,27 @@ export default function Wizard(
     const [streamUrl, setStreamUrl] = useState("");
     const [streamDirection, setStreamDirection] = useState("both"); // can be "up", "down", "both"
 
+    // Session and user data
+    const { data: session } = useSession();
+    const [userPubkey, setUserPubkey] = useState<string>("");
+    
     // ACL sources
     const [aclSources, setAclSources] = useState<Array<{id: string, url: string, aclType: string}>>([]);
     const [aclSourceUrl, setAclSourceUrl] = useState("");
     const [aclSourceType, setAclSourceType] = useState("grapevine"); // can be "grapevine" or "nip05"
+    const [grapevineObserverPubkey, setGrapevineObserverPubkey] = useState<string>("");
+    const [grapevineBaseUrl, setGrapevineBaseUrl] = useState("https://cloudfodder.brainstorm.social/api/get-whitelist");
+    const [showAdvancedGrapevine, setShowAdvancedGrapevine] = useState(false);
+    
+    // Handle session data and auto-fill user pubkey
+    useEffect(() => {
+        if (session?.user?.name) {
+            // Extract pubkey from email (assuming it's stored there)
+            const pubkey = session.user.name;
+            setUserPubkey(pubkey);
+            setGrapevineObserverPubkey(pubkey);
+        }
+    }, [session]);
     
     // Load ACL sources when component mounts
     useEffect(() => {
@@ -127,11 +146,18 @@ export default function Wizard(
         url: string;
         type: string;
     }) => {
+        let finalUrl = newSource.url;
+        
+        // For grapevine type, construct the URL with observerPubkey parameter
+        if (newSource.type === "grapevine" && grapevineObserverPubkey) {
+            finalUrl = `${grapevineBaseUrl}?observerPubkey=${grapevineObserverPubkey}`;
+        }
+        
         const response = await fetch(`/api/relay/${props.relay.id}/aclsources`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                url: newSource.url,
+                url: finalUrl,
                 type: newSource.type, // API expects 'type' parameter
             }),
         });
@@ -141,6 +167,13 @@ export default function Wizard(
             const updatedSources = [...aclSources, responseData];
             setAclSources(updatedSources);
             toast.success("ACL source added");
+            
+            // Reset form
+            if (newSource.type === "grapevine") {
+                setGrapevineObserverPubkey(userPubkey); // Reset to user's pubkey
+            } else {
+                setAclSourceUrl("");
+            }
         } else {
             const errorMessage = await response.json();
             toast.error("Error adding ACL source: " + errorMessage.error);
@@ -1512,51 +1545,153 @@ export default function Wizard(
                             </h2>
                             <article className="prose">
                                 <p>
-                                    Add ACL sources like grapevine scores or nip05 domains
+                                    Add additional access control lists to manage who can use your relay. Choose from Web of Trust (WOT) systems or NIP-05 domain verification.
                                 </p>
                             </article>
 
                             <div className="form-control mt-4">
-                                <input
-                                    type="text"
-                                    placeholder="Enter ACL source URL (https://...)"
-                                    className="input input-bordered w-full"
-                                    value={aclSourceUrl}
-                                    onChange={(e) =>
-                                        setAclSourceUrl(e.target.value)
-                                    }
-                                />
+                                <label className="label">
+                                    <span className="label-text font-medium">ACL Source Type</span>
+                                </label>
+                                <select
+                                    className="select select-bordered w-full"
+                                    value={aclSourceType}
+                                    onChange={(e) => {
+                                        setAclSourceType(e.target.value);
+                                        // Reset form when type changes
+                                        setAclSourceUrl("");
+                                        setGrapevineObserverPubkey(userPubkey);
+                                    }}
+                                >
+                                    <option value="grapevine">Brainstorm Scores</option>
+                                    <option value="nip05">NIP-05 Domain Verification</option>
+                                </select>
+                            </div>
 
-                                <div className="flex gap-2 mt-2">
-                                    <select
-                                        className="select select-bordered"
-                                        value={aclSourceType}
-                                        onChange={(e) =>
-                                            setAclSourceType(e.target.value)
-                                        }
-                                    >
-                                        <option value="grapevine">grapevine</option>
-                                        <option value="nip05">nip05 domain</option>
-                                    </select>
+                            {aclSourceType === "grapevine" && (
+                                <div className="mt-4">
+                                    <div className="alert alert-info mb-4">
+                                        <div>
+                                            <h3 className="font-bold">Brainstorm Scores</h3>
+                                            <div className="text-sm">
+                                                Uses your social network to determine who can access the relay. 
+                                                Enter your pubkey as the "observer" - people found in the network with a score above zero, will be allowed to post.
+                                                Additional Info: <a href="">soon</a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">Observer Pubkey (Your Pubkey)</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter your pubkey (hex format)"
+                                            className="input input-bordered w-full"
+                                            value={grapevineObserverPubkey}
+                                            onChange={(e) => setGrapevineObserverPubkey(e.target.value)}
+                                        />
+                                        {userPubkey && grapevineObserverPubkey !== userPubkey && (
+                                            <label className="label">
+                                                <span className="label-text-alt text-info cursor-pointer" 
+                                                      onClick={() => setGrapevineObserverPubkey(userPubkey)}>
+                                                    Click to use your logged-in pubkey
+                                                </span>
+                                            </label>
+                                        )}
+                                    </div>
+
+                                    <div className="form-control mt-4">
+                                        <label className="cursor-pointer label justify-start gap-2">
+                                            <input 
+                                                type="checkbox" 
+                                                className="checkbox checkbox-sm" 
+                                                checked={showAdvancedGrapevine}
+                                                onChange={(e) => setShowAdvancedGrapevine(e.target.checked)}
+                                            />
+                                            <span className="label-text text-sm">Advanced: Custom Brainstorm API URL</span>
+                                        </label>
+                                    </div>
+
+                                    {showAdvancedGrapevine && (
+                                        <div className="form-control mt-2">
+                                            <label className="label">
+                                                <span className="label-text font-medium">Brainstorm API Base URL</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="https://cloudfodder.brainstorm.social/api/get-whitelist"
+                                                className="input input-bordered w-full"
+                                                value={grapevineBaseUrl}
+                                                onChange={(e) => setGrapevineBaseUrl(e.target.value)}
+                                            />
+                                        </div>
+                                    )}
 
                                     <button
-                                        className="btn btn-primary"
+                                        className="btn btn-primary mt-4"
+                                        onClick={() => {
+                                            if (grapevineObserverPubkey.trim()) {
+                                                handleAddAclSource({
+                                                    url: "", // Will be constructed in handleAddAclSource
+                                                    type: "grapevine",
+                                                });
+                                            } else {
+                                                toast.error("Please enter an observer pubkey");
+                                            }
+                                        }}
+                                        disabled={!grapevineObserverPubkey.trim()}
+                                    >
+                                        Add Brainstorm WOT Source
+                                    </button>
+                                </div>
+                            )}
+
+                            {aclSourceType === "nip05" && (
+                                <div className="mt-4">
+                                    <div className="alert alert-info mb-4">
+                                        <div>
+                                            <h3 className="font-bold">NIP-05 Domain Verification</h3>
+                                            <div className="text-sm">
+                                                Only users with verified NIP-05 identifiers from specific domains will be allowed.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">NIP-05 API URL</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter NIP-05 verification API URL (https://...)"
+                                            className="input input-bordered w-full"
+                                            value={aclSourceUrl}
+                                            onChange={(e) => setAclSourceUrl(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <button
+                                        className="btn btn-primary mt-4"
                                         onClick={() => {
                                             if (aclSourceUrl && aclSourceUrl.startsWith('https://')) {
                                                 handleAddAclSource({
                                                     url: aclSourceUrl,
                                                     type: aclSourceType,
                                                 });
-                                                setAclSourceUrl("");
                                             } else {
                                                 toast.error("URL must start with https://");
                                             }
                                         }}
+                                        disabled={!aclSourceUrl.trim() || !aclSourceUrl.startsWith('https://')}
                                     >
-                                        Add ACL Source
+                                        Add NIP-05 Source
                                     </button>
                                 </div>
-                            </div>
+                            )}
 
                             <div className="mt-4 flex flex-col gap-4">
                                 {aclSources.map((source, index) => (
