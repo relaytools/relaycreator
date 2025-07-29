@@ -8,6 +8,7 @@ import UserRelayStatus from '../../components/userRelayStatus'
 import ProfileImage from '../../components/profileImage'
 import TeamProfilesWrapper from '../../components/teamProfilesWrapper'
 import CopyUrlButton from '../../components/copyUrlButton'
+import Terms from '../../components/terms'
 import RelayPageClient from './client'
 // Using regular img tag instead of Next.js Image for more flexibility with external URLs
 
@@ -269,8 +270,21 @@ export default async function RelayPage({
                         </div>
                     </div>
                 </div>
+
+                {/* Terms of Service - fifth on mobile, third in right column on desktop */}
+                <div className="lg:col-span-1 lg:order-5">
+                    <div className="card bg-base-100 shadow-xl mb-4">
+                        <div className="card-body">
+                            <h2 className="card-title flex items-center gap-2">
+                                <FaInfoCircle className="text-info" /> Terms of Service
+                            </h2>
+                            <div className="divider my-1"></div>
+                            <Terms />
+                        </div>
+                    </div>
+                </div>
                 
-                {/* Posts related to this relay - fifth on mobile, third in left column on desktop */}
+                {/* Posts related to this relay - sixth on mobile, fourth in left column on desktop */}
                 <div className="lg:col-span-2 lg:order-4">
                     <div className="card bg-base-100 shadow-xl">
                         <div className="card-body">
