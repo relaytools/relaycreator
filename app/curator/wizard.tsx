@@ -66,10 +66,10 @@ export default function Wizard(
     // ACL sources
     const [aclSources, setAclSources] = useState<Array<{id: string, url: string, aclType: string}>>([]);
     const [aclSourceUrl, setAclSourceUrl] = useState("");
-    const [aclSourceType, setAclSourceType] = useState("grapevine"); // can be "grapevine" or "nip05"
-    const [grapevineObserverPubkey, setGrapevineObserverPubkey] = useState<string>("");
-    const [grapevineBaseUrl, setGrapevineBaseUrl] = useState("https://cloudfodder.brainstorm.social/api/get-whitelist");
-    const [showAdvancedGrapevine, setShowAdvancedGrapevine] = useState(false);
+    const [aclSourceType, setAclSourceType] = useState("brainstorm"); // can be "brainstorm" or "nip05"
+    const [brainstormObserverPubkey, setBrainstormObserverPubkey] = useState<string>("");
+    const [brainstormBaseUrl, setBrainstormBaseUrl] = useState("https://cloudfodder.brainstorm.social/api/get-whitelist");
+    const [showAdvancedBrainstorm, setShowAdvancedBrainstorm] = useState(false);
     
     // Handle session data and auto-fill user pubkey
     useEffect(() => {
@@ -77,7 +77,7 @@ export default function Wizard(
             // Extract pubkey from email (assuming it's stored there)
             const pubkey = session.user.name;
             setUserPubkey(pubkey);
-            setGrapevineObserverPubkey(pubkey);
+            setBrainstormObserverPubkey(pubkey);
         }
     }, [session]);
     
@@ -148,9 +148,9 @@ export default function Wizard(
     }) => {
         let finalUrl = newSource.url;
         
-        // For grapevine type, construct the URL with observerPubkey parameter
-        if (newSource.type === "grapevine" && grapevineObserverPubkey) {
-            finalUrl = `${grapevineBaseUrl}?observerPubkey=${grapevineObserverPubkey}`;
+        // For brainstorm type, construct the URL with observerPubkey parameter
+        if (newSource.type === "brainstorm" && brainstormObserverPubkey) {
+            finalUrl = `${brainstormBaseUrl}?observerPubkey=${brainstormObserverPubkey}`;
         }
         
         const response = await fetch(`/api/relay/${props.relay.id}/aclsources`, {
@@ -169,8 +169,8 @@ export default function Wizard(
             toast.success("ACL source added");
             
             // Reset form
-            if (newSource.type === "grapevine") {
-                setGrapevineObserverPubkey(userPubkey); // Reset to user's pubkey
+            if (newSource.type === "brainstorm") {
+                setBrainstormObserverPubkey(userPubkey); // Reset to user's pubkey
             } else {
                 setAclSourceUrl("");
             }
@@ -1560,15 +1560,15 @@ export default function Wizard(
                                         setAclSourceType(e.target.value);
                                         // Reset form when type changes
                                         setAclSourceUrl("");
-                                        setGrapevineObserverPubkey(userPubkey);
+                                        setBrainstormObserverPubkey(userPubkey);
                                     }}
                                 >
-                                    <option value="grapevine">Brainstorm Scores</option>
+                                    <option value="brainstorm">Brainstorm Scores</option>
                                     <option value="nip05">NIP-05 Domain Verification</option>
                                 </select>
                             </div>
 
-                            {aclSourceType === "grapevine" && (
+                            {aclSourceType === "brainstorm" && (
                                 <div className="mt-4">
                                     <div className="alert alert-info mb-4">
                                         <div>
@@ -1591,13 +1591,13 @@ export default function Wizard(
                                             type="text"
                                             placeholder="Enter your pubkey (hex format)"
                                             className="input input-bordered w-full"
-                                            value={grapevineObserverPubkey}
-                                            onChange={(e) => setGrapevineObserverPubkey(e.target.value)}
+                                            value={brainstormObserverPubkey}
+                                            onChange={(e) => setBrainstormObserverPubkey(e.target.value)}
                                         />
-                                        {userPubkey && grapevineObserverPubkey !== userPubkey && (
+                                        {userPubkey && brainstormObserverPubkey !== userPubkey && (
                                             <label className="label">
                                                 <span className="label-text-alt text-info cursor-pointer" 
-                                                      onClick={() => setGrapevineObserverPubkey(userPubkey)}>
+                                                      onClick={() => setBrainstormObserverPubkey(userPubkey)}>
                                                     Click to use your logged-in pubkey
                                                 </span>
                                             </label>
@@ -1609,14 +1609,14 @@ export default function Wizard(
                                             <input 
                                                 type="checkbox" 
                                                 className="checkbox checkbox-sm" 
-                                                checked={showAdvancedGrapevine}
-                                                onChange={(e) => setShowAdvancedGrapevine(e.target.checked)}
+                                                checked={showAdvancedBrainstorm}
+                                                onChange={(e) => setShowAdvancedBrainstorm(e.target.checked)}
                                             />
                                             <span className="label-text text-sm">Advanced: Custom Brainstorm API URL</span>
                                         </label>
                                     </div>
 
-                                    {showAdvancedGrapevine && (
+                                    {showAdvancedBrainstorm && (
                                         <div className="form-control mt-2">
                                             <label className="label">
                                                 <span className="label-text font-medium">Brainstorm API Base URL</span>
@@ -1625,8 +1625,8 @@ export default function Wizard(
                                                 type="text"
                                                 placeholder="https://cloudfodder.brainstorm.social/api/get-whitelist"
                                                 className="input input-bordered w-full"
-                                                value={grapevineBaseUrl}
-                                                onChange={(e) => setGrapevineBaseUrl(e.target.value)}
+                                                value={brainstormBaseUrl}
+                                                onChange={(e) => setBrainstormBaseUrl(e.target.value)}
                                             />
                                         </div>
                                     )}
@@ -1634,16 +1634,16 @@ export default function Wizard(
                                     <button
                                         className="btn btn-primary mt-4"
                                         onClick={() => {
-                                            if (grapevineObserverPubkey.trim()) {
+                                            if (brainstormObserverPubkey.trim()) {
                                                 handleAddAclSource({
                                                     url: "", // Will be constructed in handleAddAclSource
-                                                    type: "grapevine",
+                                                    type: "brainstorm",
                                                 });
                                             } else {
                                                 toast.error("Please enter an observer pubkey");
                                             }
                                         }}
-                                        disabled={!grapevineObserverPubkey.trim()}
+                                        disabled={!brainstormObserverPubkey.trim()}
                                     >
                                         Add Brainstorm WOT Source
                                     </button>
