@@ -147,7 +147,8 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                 const wotPromises = relay.acl_sources.map(async (aclSource) => {
                     if (aclSource.aclType == "brainstorm") {
                         try {
-                            const url = `${aclSource.url}&pubkey=${pubkeyToCheck}`;
+                            const separator = aclSource.url.includes('?') ? '&' : '?';
+                            const url = `${aclSource.url}${separator}pubkey=${pubkeyToCheck}`;
                             console.log("Checking WOT URL:", url);
 
                             const response = await fetch(url, {
