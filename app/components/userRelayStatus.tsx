@@ -427,10 +427,10 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                         </div>
                     </div>
 
-                    {/* WOT Lists */}
+                    {/* WOA Lists */}
                     {wotSources > 0 && (
                         <div className="flex items-center justify-between">
-                            <span className="text-sm">WOT Status:</span>
+                            <span className="text-sm" title="Web of Access">WOA Status:</span>
                             <div>
                                 {wotStatus === "loading" ? (
                                     <span className="badge badge-ghost gap-1">
@@ -439,11 +439,11 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                                     </span>
                                 ) : wotStatus === "whitelisted" ? (
                                     <span className="badge badge-success gap-1">
-                                        <FaNetworkWired size={12} /> Approved by WOT
+                                        <FaNetworkWired size={12} /> Approved by <span title="Web of Access">WOA</span>
                                     </span>
                                 ) : wotStatus === "not-whitelisted" ? (
                                     <span className="badge badge-warning gap-1">
-                                        <FaNetworkWired size={12} /> Not Approved by WOT
+                                        <FaNetworkWired size={12} /> Not Approved by <span title="Web of Access">WOA</span>
                                     </span>
                                 ) : wotStatus === "error" ? (
                                     <span className="badge badge-error gap-1">
@@ -452,8 +452,7 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                                     </span>
                                 ) : (
                                     <span className="badge badge-outline gap-1">
-                                        <FaNetworkWired size={12} /> No WOT
-                                        Lists
+                                        <FaNetworkWired size={12} /> No <span title="Web of Access">WOA</span> Lists
                                     </span>
                                 )}
                             </div>
