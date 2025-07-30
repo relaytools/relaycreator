@@ -74,10 +74,10 @@ export default function Wizard(
     // Handle session data and auto-fill user pubkey
     useEffect(() => {
         if (session?.user?.name) {
-            // Extract pubkey from email (assuming it's stored there)
+            // Extract pubkey from session name
             const pubkey = session.user.name;
             setUserPubkey(pubkey);
-            setBrainstormObserverPubkey(pubkey);
+            // Don't auto-fill observer pubkey - let it default to relay.tools default
         }
     }, [session]);
     
@@ -149,8 +149,14 @@ export default function Wizard(
         let finalUrl = newSource.url;
         
         // For brainstorm type, construct the URL with observerPubkey parameter
-        if (newSource.type === "brainstorm" && brainstormObserverPubkey) {
-            finalUrl = `${brainstormBaseUrl}?observerPubkey=${brainstormObserverPubkey}`;
+        if (newSource.type === "brainstorm") {
+            if (brainstormObserverPubkey.trim()) {
+                // Use custom observer pubkey
+                finalUrl = `${brainstormBaseUrl}?observerPubkey=${brainstormObserverPubkey}`;
+            } else {
+                // Use relay.tools default (no observerPubkey parameter)
+                finalUrl = brainstormBaseUrl;
+            }
         }
         
         const response = await fetch(`/api/relay/${props.relay.id}/aclsources`, {
@@ -170,7 +176,7 @@ export default function Wizard(
             
             // Reset form
             if (newSource.type === "brainstorm") {
-                setBrainstormObserverPubkey(userPubkey); // Reset to user's pubkey
+                setBrainstormObserverPubkey(""); // Reset to default (blank)
             } else {
                 setAclSourceUrl("");
             }
@@ -1560,7 +1566,7 @@ export default function Wizard(
                                         setAclSourceType(e.target.value);
                                         // Reset form when type changes
                                         setAclSourceUrl("");
-                                        setBrainstormObserverPubkey(userPubkey);
+                                        setBrainstormObserverPubkey("");
                                     }}
                                 >
                                     <option value="brainstorm">Brainstorm Scores</option>
@@ -1575,33 +1581,10 @@ export default function Wizard(
                                             <h3 className="font-bold">Brainstorm Scores</h3>
                                             <div className="text-sm">
                                                 Uses your social network to determine who can access the relay. 
-                                                Enter your pubkey as the "observer" - people found in the network with a score above zero, will be allowed to post.
+                                                Will use relay.tools default observer for scoring unless you specify a custom observer in advanced options.
                                                 Additional Info: <a href="">soon</a>
                                             </div>
                                         </div>
-                                    </div>
-
-
-                                    
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text font-medium">Observer Pubkey (Your Pubkey)</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter your pubkey (hex format)"
-                                            className="input input-bordered w-full"
-                                            value={brainstormObserverPubkey}
-                                            onChange={(e) => setBrainstormObserverPubkey(e.target.value)}
-                                        />
-                                        {userPubkey && brainstormObserverPubkey !== userPubkey && (
-                                            <label className="label">
-                                                <span className="label-text-alt text-info cursor-pointer" 
-                                                      onClick={() => setBrainstormObserverPubkey(userPubkey)}>
-                                                    Click to use your logged-in pubkey
-                                                </span>
-                                            </label>
-                                        )}
                                     </div>
 
                                     <div className="form-control mt-4">
@@ -1612,38 +1595,56 @@ export default function Wizard(
                                                 checked={showAdvancedBrainstorm}
                                                 onChange={(e) => setShowAdvancedBrainstorm(e.target.checked)}
                                             />
-                                            <span className="label-text text-sm">Advanced: Custom Brainstorm API URL</span>
+                                            <span className="label-text text-sm">Advanced: Custom Observer & API URL</span>
                                         </label>
                                     </div>
 
                                     {showAdvancedBrainstorm && (
-                                        <div className="form-control mt-2">
-                                            <label className="label">
-                                                <span className="label-text font-medium">Brainstorm API Base URL</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                placeholder="https://cloudfodder.brainstorm.social/api/get-whitelist"
-                                                className="input input-bordered w-full"
-                                                value={brainstormBaseUrl}
-                                                onChange={(e) => setBrainstormBaseUrl(e.target.value)}
-                                            />
+                                        <div className="mt-2 space-y-4">
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Observer Pubkey</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Leave blank for relay.tools default observer"
+                                                    className="input input-bordered w-full"
+                                                    value={brainstormObserverPubkey}
+                                                    onChange={(e) => setBrainstormObserverPubkey(e.target.value)}
+                                                />
+                                                {userPubkey && (
+                                                    <label className="label">
+                                                        <span className="label-text-alt text-info cursor-pointer" 
+                                                              onClick={() => setBrainstormObserverPubkey(userPubkey)}>
+                                                            Click to use your logged-in pubkey
+                                                        </span>
+                                                    </label>
+                                                )}
+                                            </div>
+                                            
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">Brainstorm API Base URL</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="https://cloudfodder.brainstorm.social/api/get-whitelist"
+                                                    className="input input-bordered w-full"
+                                                    value={brainstormBaseUrl}
+                                                    onChange={(e) => setBrainstormBaseUrl(e.target.value)}
+                                                />
+                                            </div>
                                         </div>
                                     )}
 
                                     <button
                                         className="btn btn-primary mt-4"
                                         onClick={() => {
-                                            if (brainstormObserverPubkey.trim()) {
-                                                handleAddAclSource({
-                                                    url: "", // Will be constructed in handleAddAclSource
-                                                    type: "brainstorm",
-                                                });
-                                            } else {
-                                                toast.error("Please enter an observer pubkey");
-                                            }
+                                            handleAddAclSource({
+                                                url: "", // Will be constructed in handleAddAclSource
+                                                type: "brainstorm",
+                                            });
                                         }}
-                                        disabled={!brainstormObserverPubkey.trim()}
                                     >
                                         Add Brainstorm WOT Source
                                     </button>
