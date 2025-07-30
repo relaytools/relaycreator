@@ -728,7 +728,7 @@ export default function Wizard(
                                 setMenuOpen(false);
                             }}
                         >
-                            ACL Sources Configuration
+                            Web of Access 
                         </button>
                     </li>
                     <div className="divider"></div>
@@ -1547,11 +1547,11 @@ export default function Wizard(
                     {checked === 9 && (
                         <div className="w-full">
                             <h2 className="text-lg font-bold mb-4">
-                                ACL Source Configuration
+                                Web of Access Configuration
                             </h2>
                             <article className="prose">
                                 <p>
-                                    Add additional access control lists to manage who can use your relay. Choose from Web of Trust (WOT) systems or NIP-05 domain verification.
+                                    Add additional access control lists to manage who can use your relay. Choose from <span title="Web of Access">WOA</span> systems or NIP-05 domain verification.
                                 </p>
                             </article>
 
@@ -1646,7 +1646,7 @@ export default function Wizard(
                                             });
                                         }}
                                     >
-                                        Add Brainstorm WOT Source
+                                        Add Brainstorm WOA Source
                                     </button>
                                 </div>
                             )}
