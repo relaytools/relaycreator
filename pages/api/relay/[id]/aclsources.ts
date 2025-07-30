@@ -37,7 +37,7 @@ export default async function handle(req: any, res: any) {
     }
 
     function validateAclType(type: string): boolean {
-        const validTypes = ['grapevine', 'nip05'];
+        const validTypes = ['brainstorm', 'nip05'];
         return validTypes.includes(type.toLowerCase());
     }
 
@@ -45,7 +45,7 @@ export default async function handle(req: any, res: any) {
         const { url, type } = req.body
         
         if (!validateAclType(type)) {
-            res.status(400).json({ "error": "type must be 'grapevine' or 'nip05'" })
+            res.status(400).json({ "error": "type must be 'brainstorm' or 'nip05'" })
             return
         }
 
