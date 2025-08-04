@@ -107,7 +107,10 @@ export default async function handle(req: any, res: any) {
                 }
             })
         }
-        await recordRelayPlanChange(findOrder.relay.id, findOrder.order_type, findOrder.amount);
+        // Only record plan changes for standard and premium plans, not custom payments
+        if (findOrder.order_type === 'standard' || findOrder.order_type === 'premium') {
+            await recordRelayPlanChange(findOrder.relay.id, findOrder.order_type, findOrder.amount);
+        }
         res.status(200).json({ order: findOrder });
     } else {
         res.status(200).json({ order: findOrder });
