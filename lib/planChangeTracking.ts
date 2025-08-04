@@ -109,8 +109,44 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
     });
     
     if (clientOrders.length === 0) {
-      console.log('No client orders found either, returning 0');
-      return 0;
+      console.log('No client orders found, calculating negative balance since relay creation');
+      
+      // Get relay creation date and payment amounts
+      const relay = await prisma.relay.findUnique({
+        where: { id: relayId },
+        select: { 
+          created_at: true,
+          payment_amount: true, 
+          payment_premium_amount: true 
+        }
+      });
+      
+      if (!relay || !relay.created_at) {
+        console.log('Relay not found or no creation date, returning 0');
+        return 0;
+      }
+      
+      // Calculate days since relay creation
+      const now = new Date();
+      const daysSinceCreation = (now.getTime() - new Date(relay.created_at).getTime()) / (1000 * 60 * 60 * 24);
+      
+      // Use standard pricing as default for unpaid relays
+      const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '21');
+      const dailyCost = standardPrice / 30;
+      const totalCostAccrued = daysSinceCreation * dailyCost;
+      
+      // Balance = 0 (no payments) - total cost accrued = negative balance
+      const negativeBalance = 0 - totalCostAccrued;
+      
+      console.log('Unpaid relay balance calculation:', {
+        relayId,
+        daysSinceCreation: Math.round(daysSinceCreation * 100) / 100,
+        dailyCost,
+        totalCostAccrued: Math.round(totalCostAccrued * 100) / 100,
+        negativeBalance: Math.round(negativeBalance * 100) / 100
+      });
+      
+      return negativeBalance;
     }
     
     // Get relay payment amounts for calculation
