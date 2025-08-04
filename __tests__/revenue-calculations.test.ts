@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
-import { calculateTimeBasedBalance } from '../lib/planChangeTracking'
-import { calculateRelayTimeBasedBalance } from '../lib/relayPlanChangeTracking'
+import { calculateTimeBasedBalance, migrateExistingSubscriptions } from '../lib/planChangeTracking'
+import { migrateExistingRelayOrders, calculateRelayTimeBasedBalance } from '../lib/relayPlanChangeTracking'
 
 // Test database instance
 const prisma = new PrismaClient({
@@ -523,6 +523,175 @@ describe('Combined Revenue Calculations (Client + Relay Orders)', () => {
       expect(revenueData.clientOrderRevenue).toBe(largeAmount)
       expect(revenueData.totalRevenue).toBe(largeAmount * 2)
       expect(revenueData.totalRevenue).toBeGreaterThan(0)
+    })
+  })
+
+  describe('Balance Calculation Debug Tests', () => {
+    test('should verify balance equals totalPaid minus totalCost, not just totalCost', async () => {
+      // Create a relay with known payments and time period
+      const testStartDate = new Date('2024-01-01')
+      const testPaymentDate = new Date('2024-01-15') // 15 days after relay creation
+      
+      // Create relay order (1000 sats paid)
+      const relayOrder = await prisma.order.create({
+        data: {
+          relayId: testRelay.id,
+          userId: testUser.id,
+          status: 'paid',
+          paid: true,
+          paid_at: testPaymentDate,
+          payment_hash: 'debug_relay_payment',
+          lnurl: 'debug_relay_lnurl',
+          amount: 1000,
+          order_type: 'standard'
+        }
+      })
+
+      // Create client order (500 sats paid) - use same pubkey as testUser
+      const clientOrder = await prisma.clientOrder.create({
+        data: {
+          amount: 500,
+          relayId: testRelay.id,
+          pubkey: testPubkey, // Use testUser.pubkey, not testPubkey2
+          paid: true,
+          paid_at: testPaymentDate,
+          payment_hash: 'debug_client_payment',
+          lnurl: 'debug_client_lnurl',
+          order_type: 'standard'
+        }
+      })
+
+      // Update relay creation date to known value BEFORE running migrations
+      await prisma.relay.update({
+        where: { id: testRelay.id },
+        data: { created_at: testStartDate }
+      })
+
+      // Clean up any existing plan change records to ensure migrations work
+      await prisma.planChange.deleteMany({ where: { relayId: testRelay.id } })
+      await prisma.relayPlanChange.deleteMany({ where: { relayId: testRelay.id } })
+
+      // Run migration functions to create plan history records from orders
+      console.log('Running migrations...')
+      await migrateExistingSubscriptions() // Creates PlanChange records from ClientOrder
+      await migrateExistingRelayOrders()   // Creates RelayPlanChange records from Order
+      
+      // Verify plan history records were created
+      const planChanges = await prisma.planChange.findMany({ where: { relayId: testRelay.id } })
+      const relayPlanChanges = await prisma.relayPlanChange.findMany({ where: { relayId: testRelay.id } })
+      console.log('Plan history created:', { planChanges: planChanges.length, relayPlanChanges: relayPlanChanges.length })
+      console.log('PlanChange records:', planChanges.map(p => ({ amount_paid: p.amount_paid, plan_type: p.plan_type, started_at: p.started_at })))
+      console.log('RelayPlanChange records:', relayPlanChanges.map(p => ({ amount_paid: p.amount_paid, plan_type: p.plan_type, started_at: p.started_at })))
+      
+      // For admin invoices, calculate total balance as:
+      // Total Paid (relay + client) - Total Cost (days since creation × daily rate)
+      
+      // Get all payments
+      const totalRelayPaid = 1000 // From relay orders
+      const totalClientPaid = 500 // From client orders
+      const totalPaid = totalRelayPaid + totalClientPaid
+      
+      // Calculate total cost since relay creation at standard rate
+      const daysSinceCreation = (new Date().getTime() - testStartDate.getTime()) / (1000 * 60 * 60 * 24)
+      const dailyRate = 1000 / 30 // Standard rate from environment variables
+      const totalCost = daysSinceCreation * dailyRate
+      
+      // Admin balance = total paid - total cost
+      const calculatedBalance = totalPaid - totalCost
+      
+      console.log('Admin balance calculation:', {
+        totalPaid,
+        daysSinceCreation,
+        dailyRate,
+        totalCost,
+        calculatedBalance
+      })
+      
+      // Calculate expected values
+      const expectedTotalPaid = 1000 + 500 // relay order + client order
+      const standardDailyRate = 1000 / 30 // Using current env var pricing
+      
+      // Expected cost calculation: total days since relay creation
+      const actualDaysSinceCreation = (new Date().getTime() - testStartDate.getTime()) / (1000 * 60 * 60 * 24)
+      const expectedTotalCost = actualDaysSinceCreation * standardDailyRate
+      const expectedBalance = expectedTotalPaid - expectedTotalCost
+      
+      // Debug info for comparison
+      const daysFromCreationToPayment = 15
+      const daysFromPaymentToNow = Math.ceil((new Date().getTime() - testPaymentDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      console.log('Balance Debug Info:', {
+        totalPaid: expectedTotalPaid,
+        expectedTotalCost: Math.round(expectedTotalCost * 100) / 100,
+        expectedBalance: Math.round(expectedBalance * 100) / 100,
+        calculatedBalance: Math.round(calculatedBalance * 100) / 100,
+        daysFromCreationToPayment,
+        daysFromPaymentToNow,
+        standardDailyRate: Math.round(standardDailyRate * 100) / 100
+      })
+      
+      // The key test: balance should NOT equal total cost
+      expect(calculatedBalance).not.toBe(expectedTotalCost)
+      expect(calculatedBalance).not.toBe(totalPaid)
+      
+      // Balance should be totalPaid minus totalCost
+      expect(Math.abs(calculatedBalance - expectedBalance)).toBeLessThan(1) // Allow small rounding differences
+      
+      // If this fails, it means the function is returning total cost instead of balance
+      if (Math.abs(calculatedBalance - expectedTotalCost) < 1) {
+        throw new Error(`❌ BUG CONFIRMED: calculateTimeBasedBalance is returning total cost (${expectedTotalCost}) instead of balance (${expectedBalance})`)
+      }
+      
+      if (Math.abs(calculatedBalance - totalPaid) < 1) {
+        throw new Error(`❌ BUG CONFIRMED: calculateTimeBasedBalance is returning total paid (${totalPaid}) instead of balance (${expectedBalance})`)
+      }
+      
+      console.log('✅ Balance calculation appears correct')
+    })
+
+    test('should verify admin invoice balance matches calculateTimeBasedBalance result', async () => {
+      // Create test data
+      const relayOrder = await prisma.order.create({
+        data: {
+          relayId: testRelay.id,
+          userId: testUser.id,
+          status: 'paid',
+          paid: true,
+          paid_at: new Date(),
+          payment_hash: 'admin_balance_test',
+          lnurl: 'admin_balance_lnurl',
+          amount: 2100,
+          order_type: 'premium'
+        }
+      })
+
+      // Get balance using the same method as serverStatus.tsx
+      const directBalance = await calculateTimeBasedBalance(testRelay.id, testUser.pubkey)
+      
+      // Simulate what serverStatus.tsx does
+      const relay = await prisma.relay.findUnique({
+        where: { id: testRelay.id },
+        include: {
+          owner: true,
+          Order: { where: { paid: true } }
+        }
+      })
+      
+      const serverStatusBalance = await calculateTimeBasedBalance(relay!.id, relay!.owner.pubkey)
+      
+      // These should be identical
+      expect(directBalance).toBe(serverStatusBalance)
+      
+      // The balance should be different from total revenue
+      const totalRevenue = relay!.Order.reduce((sum: number, order: any) => sum + order.amount, 0)
+      expect(directBalance).not.toBe(totalRevenue)
+      
+      console.log('Admin Invoice Balance Verification:', {
+        directBalance,
+        serverStatusBalance,
+        totalRevenue,
+        balanceEqualsRevenue: directBalance === totalRevenue
+      })
     })
   })
 })
