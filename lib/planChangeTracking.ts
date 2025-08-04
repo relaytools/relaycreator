@@ -96,7 +96,7 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
   if (planHistory.length === 0) {
     console.log('No plan history found, trying fallback calculation');
     
-    // Fallback: Use client orders to estimate balance for users without plan change history
+    // Fallback: Use both client orders and relay orders to estimate balance
     const clientOrders = await prisma.clientOrder.findMany({
       where: {
         relayId,
@@ -108,8 +108,21 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       }
     });
     
-    if (clientOrders.length === 0) {
-      console.log('No client orders found, calculating negative balance since relay creation');
+    const relayOrders = await prisma.order.findMany({
+      where: {
+        relayId,
+        paid: true
+      },
+      orderBy: {
+        paid_at: 'asc'
+      }
+    });
+    
+    const totalPaidFromOrders = clientOrders.reduce((sum, order) => sum + order.amount, 0) + 
+                               relayOrders.reduce((sum, order) => sum + order.amount, 0);
+    
+    if (clientOrders.length === 0 && relayOrders.length === 0) {
+      console.log('No client orders or relay orders found, calculating negative balance since relay creation');
       
       // Get relay creation date and payment amounts
       const relay = await prisma.relay.findUnique({
@@ -131,7 +144,7 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       const daysSinceCreation = (now.getTime() - new Date(relay.created_at).getTime()) / (1000 * 60 * 60 * 24);
       
       // Use standard pricing as default for unpaid relays
-      const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '21');
+      const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
       const dailyCost = standardPrice / 30;
       const totalCostAccrued = daysSinceCreation * dailyCost;
       
@@ -149,42 +162,55 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       return negativeBalance;
     }
     
-    // Get relay payment amounts for calculation
+    // Get relay creation date for proper cost calculation
     const relay = await prisma.relay.findUnique({
       where: { id: relayId },
       select: { 
+        created_at: true,
         payment_amount: true, 
         payment_premium_amount: true 
       }
     });
     
-    if (!relay) {
-      console.log('Relay not found, returning 0');
+    if (!relay || !relay.created_at) {
+      console.log('Relay not found or no creation date, returning 0');
       return 0;
     }
     
+    // Calculate total paid from all orders
     let totalPaid = 0;
-    let totalCostAccrued = 0;
-    const now = new Date();
-    
     for (const order of clientOrders) {
       totalPaid += order.amount;
-      
-      // Estimate daily cost based on order type and amount
-      let dailyCost = 0;
-      if (order.order_type === 'premium') {
-        dailyCost = (relay.payment_premium_amount || 2100) / 30;
-      } else if (order.order_type === 'standard') {
-        dailyCost = (relay.payment_amount || 21) / 30;
-      } else {
-        // Custom amount - estimate based on payment
-        dailyCost = order.amount / 30;
-      }
-      
-      // Calculate days since this payment
-      const daysSincePayment = Math.max(1, (now.getTime() - new Date(order.paid_at!).getTime()) / (1000 * 60 * 60 * 24));
-      totalCostAccrued += daysSincePayment * dailyCost;
     }
+    for (const order of relayOrders) {
+      totalPaid += order.amount;
+    }
+    
+    // Calculate total cost since relay creation
+    const now = new Date();
+    const daysSinceCreation = (now.getTime() - new Date(relay.created_at).getTime()) / (1000 * 60 * 60 * 24);
+    
+    // Determine the plan type from the most recent order to calculate daily cost
+    let dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000') / 30; // Default to standard
+    
+    // Find the most recent order to determine current plan type
+    const allOrders = [...clientOrders, ...relayOrders].sort((a, b) => 
+      new Date(b.paid_at!).getTime() - new Date(a.paid_at!).getTime()
+    );
+    
+    if (allOrders.length > 0) {
+      const mostRecentOrder = allOrders[0];
+      if (mostRecentOrder.order_type === 'premium') {
+        dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100') / 30;
+      } else if (mostRecentOrder.order_type === 'standard') {
+        dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000') / 30;
+      } else {
+        // For custom amounts, use the order amount as monthly cost
+        dailyCost = mostRecentOrder.amount / 30;
+      }
+    }
+    
+    const totalCostAccrued = daysSinceCreation * dailyCost;
     
     const fallbackBalance = totalPaid - totalCostAccrued;
     console.log('Fallback balance calculation:', {
