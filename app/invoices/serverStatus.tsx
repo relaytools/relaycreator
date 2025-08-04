@@ -93,7 +93,7 @@ export default async function ServerStatus(props: {
             const paymentAmount = Number(process.env.NEXT_PUBLIC_INVOICE_AMOUNT);
             const paymentPremiumAmount = Number(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT);
 
-            const relayBalances = relays.map((relay) => {
+            const relayBalances = await Promise.all(relays.map(async (relay) => {
                 // Filter paid and unpaid relay orders
                 const paidOrders = relay.Order.filter(
                     (order) => order.paid === true
@@ -129,94 +129,16 @@ export default async function ServerStatus(props: {
                     0
                 );
 
-                let balance = totalAmount + clientOrderAmount;
+                // Use the unified balance calculation system
+                const balance = await calculateTimeBasedBalance(relay.id, relay.owner.pubkey);
                 
-                // Check if relay has plan change tracking data
-                const relayPlanChanges = relay.RelayPlanChange || [];
+                // Debug logging for unified balance calculation
+                console.log(`[${relay.name}] Unified balance calculation - Total paid: ${totalAmount}, Client revenue: ${clientOrderAmount}, Final balance: ${balance}`);
+                console.log(`[${relay.name}] Balance details - Relay ID: ${relay.id}, Owner: ${relay.owner.pubkey}`);
                 
-                if (relayPlanChanges.length > 0) {
-                    // Use plan change tracking for accurate billing
-                    const now = new Date();
-                    let totalCostAccrued = 0;
-                    
-                    // Get current pricing from environment variables
-                    const currentStandardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '21');
-                    const currentPremiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
-                    
-                    for (const planPeriod of relayPlanChanges) {
-                        const periodStart = new Date(planPeriod.started_at);
-                        const periodEnd = planPeriod.ended_at ? new Date(planPeriod.ended_at) : now;
-                        
-                        // Calculate days in this plan period
-                        const daysInPeriod = (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
-                        
-                        // Each payment covers exactly 30 days at the rate paid
-                        const paidCoverageDays = 30;
-                        const dailyCostForPaidPeriod = planPeriod.amount_paid / 30;
-                        
-                        if (daysInPeriod <= paidCoverageDays) {
-                            // Still within paid coverage period - use historical rate
-                            const costForPeriod = daysInPeriod * dailyCostForPaidPeriod;
-                            totalCostAccrued += costForPeriod;
-                        } else {
-                            // Beyond paid coverage - use historical rate for paid period, current rate for excess
-                            const paidPeriodCost = paidCoverageDays * dailyCostForPaidPeriod;
-                            const excessDays = daysInPeriod - paidCoverageDays;
-                            
-                            // Use current pricing for excess days
-                            const currentDailyRate = planPeriod.plan_type === 'premium' 
-                                ? currentPremiumPrice / 30 
-                                : currentStandardPrice / 30;
-                            const excessCost = excessDays * currentDailyRate;
-                            
-                            totalCostAccrued += paidPeriodCost + excessCost;
-                        }
-                    }
-                    
-                    balance = totalAmount + clientOrderAmount - totalCostAccrued;
-                } else if (paidOrders.length > 0) {
-                    // Fallback to old method if no plan change tracking
-                    const now = new Date();
-                    const nowTime = now.getTime();
-                    
-                    // Get current pricing from environment variables
-                    const currentStandardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '21');
-                    const currentPremiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
-                    
-                    // Calculate cost based on actual payments made
-                    let totalCostAccrued = 0;
-                    
-                    for (const order of paidOrders) {
-                        if (order.paid && order.paid_at) {
-                            const orderDate = new Date(order.paid_at);
-                            const daysSincePayment = (nowTime - orderDate.getTime()) / 1000 / 60 / 60 / 24;
-                            
-                            // Each payment covers exactly 30 days at the rate paid
-                            const paidCoverageDays = 30;
-                            const dailyCostForPaidPeriod = order.amount / 30;
-                            
-                            if (daysSincePayment <= paidCoverageDays) {
-                                // Still within paid coverage period - use historical rate
-                                const costAccruedForThisPayment = daysSincePayment * dailyCostForPaidPeriod;
-                                totalCostAccrued += costAccruedForThisPayment;
-                            } else {
-                                // Beyond paid coverage - use historical rate for paid period, current rate for excess
-                                const paidPeriodCost = paidCoverageDays * dailyCostForPaidPeriod;
-                                const excessDays = daysSincePayment - paidCoverageDays;
-                                
-                                // Use current pricing for excess days (assume standard if not specified)
-                                const currentDailyRate = order.order_type === 'premium' 
-                                    ? currentPremiumPrice / 30 
-                                    : currentStandardPrice / 30;
-                                const excessCost = excessDays * currentDailyRate;
-                                
-                                totalCostAccrued += paidPeriodCost + excessCost;
-                            }
-                        }
-                    }
-
-                    // Balance = Total paid + client revenue - accrued costs
-                    balance = totalAmount + clientOrderAmount - totalCostAccrued;
+                // Log if this relay has negative balance
+                if (balance < 0) {
+                    console.log(`[${relay.name}] NEGATIVE BALANCE FOUND: ${balance} sats`);
                 }
 
                 return {
@@ -236,7 +158,7 @@ export default async function ServerStatus(props: {
                     profile_image: relay.profile_image,
                     RelayPlanChange: relay.RelayPlanChange,
                 };
-            });
+            }));
 
             return (
                 <div>
