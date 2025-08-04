@@ -72,9 +72,13 @@ export async function getCurrentRelayPlan(relayId: string) {
  * Calculate time-based balance for relay owner using plan history
  */
 export async function calculateRelayTimeBasedBalance(relayId: string, clientOrderAmount: number = 0) {
+  console.log('calculateRelayTimeBasedBalance called with:', { relayId, clientOrderAmount });
   const planHistory = await getRelayPlanHistory(relayId);
+  console.log('Relay plan history found:', planHistory.length, 'periods');
+  console.log('Plan history details:', planHistory.map(p => ({ amount_paid: p.amount_paid, plan_type: p.plan_type, started_at: p.started_at, ended_at: p.ended_at })));
   
   if (planHistory.length === 0) {
+    console.log('No relay plan history found, returning null');
     // No plan history, fall back to old calculation method
     return null;
   }
@@ -97,11 +101,25 @@ export async function calculateRelayTimeBasedBalance(relayId: string, clientOrde
     // Remove Math.min cap - allow cost to exceed payment if service time exceeds paid period
     const costForPeriod = daysInPeriod * dailyCostForPeriod;
     
+    console.log('Processing relay plan period:', {
+      amount_paid: planPeriod.amount_paid,
+      daysInPeriod,
+      dailyCostForPeriod,
+      costForPeriod
+    });
+    
     totalCostAccrued += costForPeriod;
   }
 
   // Balance = Total paid + client revenue - accrued costs
-  return totalAmountPaid + clientOrderAmount - totalCostAccrued;
+  const finalBalance = totalAmountPaid + clientOrderAmount - totalCostAccrued;
+  console.log('Relay balance calculation result:', {
+    totalAmountPaid,
+    clientOrderAmount,
+    totalCostAccrued,
+    finalBalance
+  });
+  return finalBalance;
 }
 
 /**
@@ -139,7 +157,8 @@ export async function migrateExistingRelayOrders() {
           relay.id,
           order.order_type || 'standard',
           order.amount,
-          order.id
+          order.id,
+          order.paid_at // Use the actual payment date as start date
         );
         
         console.log(`Created plan change for relay ${relay.name}, order ${order.id}`);
