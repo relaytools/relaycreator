@@ -25,7 +25,7 @@ export default async function handle(req: any, res: any) {
         "name": useUrl,
         "pubkey": relay.owner.pubkey,
         "software": "git+https://github.com/hoytech/strfry.git",
-        "supported_nips": [1, 2, 4, 9, 11, 12, 16, 20, 22, 28, 33, 40],
+        "supported_nips": [1, 2, 4, 9, 11, 12, 16, 20, 22, 28, 33, 40, 17, 86, 77],
         "version": "strfry v315-3cff8c9",
         "posting_policy": "https://" + useUrl + "#policy",
     }
