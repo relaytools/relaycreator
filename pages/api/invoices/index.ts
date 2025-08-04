@@ -56,14 +56,17 @@ export default async function handle(req: any, res: any) {
                 // allow top up of any amount (custom amount overrides plan selection)
                 if(sats != null) {
                     useAmount = parseInt(sats)
-                    // For custom amounts, determine plan type based on amount
+                    // For custom amounts, check if they match exact plan amounts
                     const standardAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || "21")
                     const premiumAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || "2100")
                     
-                    if (useAmount >= premiumAmount) {
+                    if (useAmount === standardAmount) {
+                        orderType = "standard"
+                    } else if (useAmount === premiumAmount) {
                         orderType = "premium"
                     } else {
-                        orderType = "standard"
+                        // Custom amount - should not trigger plan changes
+                        orderType = "custom"
                     }
                 }
             }
