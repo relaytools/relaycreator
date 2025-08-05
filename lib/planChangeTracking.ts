@@ -205,8 +205,24 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       } else if (mostRecentOrder.order_type === 'standard') {
         dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000') / 30;
       } else {
-        // For custom amounts, use the order amount as monthly cost
-        dailyCost = mostRecentOrder.amount / 30;
+        // CRITICAL FIX: Custom payments are NOT monthly plans!
+        // They are one-time top-ups. Use the CURRENT plan pricing for daily cost.
+        // Find the most recent standard/premium order to determine actual plan type
+        const planOrders = allOrders.filter(order => 
+          order.order_type === 'standard' || order.order_type === 'premium'
+        );
+        
+        if (planOrders.length > 0) {
+          const mostRecentPlanOrder = planOrders[0];
+          if (mostRecentPlanOrder.order_type === 'premium') {
+            dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100') / 30;
+          } else {
+            dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000') / 30;
+          }
+        } else {
+          // No plan orders found, default to standard pricing
+          dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000') / 30;
+        }
       }
     }
     
