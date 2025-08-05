@@ -150,18 +150,25 @@ export async function migrateExistingRelayOrders() {
       continue;
     }
 
-    // Create plan change records for each paid order
+    // Create plan change records for each paid order (only standard and premium, not custom)
     for (const order of relay.Order) {
       if (order.paid && order.paid_at) {
-        await recordRelayPlanChange(
-          relay.id,
-          order.order_type || 'standard',
-          order.amount,
-          order.id,
-          order.paid_at // Use the actual payment date as start date
-        );
+        const orderType = order.order_type || 'standard';
         
-        console.log(`Created plan change for relay ${relay.name}, order ${order.id}`);
+        // Only create plan changes for standard and premium orders, skip custom payments
+        if (orderType === 'standard' || orderType === 'premium') {
+          await recordRelayPlanChange(
+            relay.id,
+            orderType,
+            order.amount,
+            order.id,
+            order.paid_at // Use the actual payment date as start date
+          );
+          
+          console.log(`Created plan change for relay ${relay.name}, order ${order.id}, type: ${orderType}`);
+        } else {
+          console.log(`Skipped custom payment for relay ${relay.name}, order ${order.id}, amount: ${order.amount}`);
+        }
       }
     }
   }

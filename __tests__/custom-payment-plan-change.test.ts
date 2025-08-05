@@ -176,4 +176,64 @@ describe('Custom Payment Plan Change Bug Fix', () => {
     expect(determineOrderType(standardAmount + 1)).toBe('custom');
     expect(determineOrderType(premiumAmount - 1)).toBe('custom');
   });
+
+  it('should NOT create plan changes for custom payments during migration', async () => {
+    // Create a separate relay specifically for migration testing
+    const migrationTestRelay = await prisma.relay.create({
+      data: {
+        name: `migration-test-relay-${Date.now()}`,
+        details: 'Test relay for migration',
+        ownerId: testRelay.ownerId
+      }
+    });
+
+    // Create multiple orders including custom ones for this fresh relay
+    const standardOrder = await prisma.order.create({
+      data: {
+        relayId: migrationTestRelay.id,
+        userId: migrationTestRelay.ownerId,
+        status: 'completed',
+        paid: true,
+        paid_at: new Date('2024-01-01'),
+        payment_hash: 'standard_hash_migration',
+        lnurl: 'lnbc_standard_migration',
+        amount: 1000,
+        order_type: 'standard'
+      }
+    });
+
+    const customOrder = await prisma.order.create({
+      data: {
+        relayId: migrationTestRelay.id,
+        userId: migrationTestRelay.ownerId,
+        status: 'completed',
+        paid: true,
+        paid_at: new Date('2024-01-02'),
+        payment_hash: 'custom_hash_migration',
+        lnurl: 'lnbc_custom_migration',
+        amount: 5000, // Custom amount
+        order_type: 'custom'
+      }
+    });
+
+    // Import and run the migration function
+    const { migrateExistingRelayOrders } = await import('../lib/relayPlanChangeTracking');
+    await migrateExistingRelayOrders();
+
+    // Verify only standard order created a plan change, custom was skipped
+    const planChanges = await prisma.relayPlanChange.findMany({
+      where: { relayId: migrationTestRelay.id },
+      orderBy: { started_at: 'asc' }
+    });
+
+    expect(planChanges).toHaveLength(1);
+    expect(planChanges[0].plan_type).toBe('standard');
+    expect(planChanges[0].amount_paid).toBe(1000);
+    expect(planChanges[0].orderId).toBe(standardOrder.id);
+
+    // Clean up the migration test relay
+    await prisma.relayPlanChange.deleteMany({ where: { relayId: migrationTestRelay.id } });
+    await prisma.order.deleteMany({ where: { relayId: migrationTestRelay.id } });
+    await prisma.relay.delete({ where: { id: migrationTestRelay.id } });
+  });
 });
