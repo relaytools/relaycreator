@@ -21,7 +21,7 @@ export default async function handle(req: any, res: any) {
     }
 
     let nostrjson: any = {
-        "description": relay.details,
+        "description": relay.details || "",
         "name": useUrl,
         "pubkey": relay.owner.pubkey,
         "software": "git+https://github.com/hoytech/strfry.git",
