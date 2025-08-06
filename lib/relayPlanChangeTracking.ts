@@ -70,9 +70,10 @@ export async function getCurrentRelayPlan(relayId: string) {
 
 /**
  * Calculate time-based balance for relay owner using plan history
+ * Only considers relay owner payments (Order table) and relay plan changes (RelayPlanChange table)
  */
-export async function calculateRelayTimeBasedBalance(relayId: string, clientOrderAmount: number = 0) {
-  console.log('calculateRelayTimeBasedBalance called with:', { relayId, clientOrderAmount });
+export async function calculateRelayTimeBasedBalance(relayId: string) {
+  console.log('calculateRelayTimeBasedBalance called with relayId:', relayId);
   const planHistory = await getRelayPlanHistory(relayId);
   console.log('Relay plan history found:', planHistory.length, 'periods');
   console.log('Plan history details:', planHistory.map(p => ({ amount_paid: p.amount_paid, plan_type: p.plan_type, started_at: p.started_at, ended_at: p.ended_at })));
@@ -80,7 +81,7 @@ export async function calculateRelayTimeBasedBalance(relayId: string, clientOrde
   if (planHistory.length === 0) {
     console.log('No relay plan history found, using fallback calculation');
     // No plan history, fall back to order-based calculation
-    return await calculateFallbackRelayBalance(relayId, clientOrderAmount);
+    return await calculateFallbackRelayBalance(relayId);
   }
 
   const now = new Date();
@@ -111,11 +112,10 @@ export async function calculateRelayTimeBasedBalance(relayId: string, clientOrde
     totalCostAccrued += costForPeriod;
   }
 
-  // Balance = Total paid + client revenue - accrued costs
-  const finalBalance = totalAmountPaid + clientOrderAmount - totalCostAccrued;
+  // Balance = Total paid by relay owner - accrued costs
+  const finalBalance = totalAmountPaid - totalCostAccrued;
   console.log('Relay balance calculation result:', {
     totalAmountPaid,
-    clientOrderAmount,
     totalCostAccrued,
     finalBalance
   });
@@ -124,9 +124,9 @@ export async function calculateRelayTimeBasedBalance(relayId: string, clientOrde
 
 /**
  * Fallback balance calculation when no RelayPlanChanges exist
- * Uses Order and ClientOrder records directly
+ * Uses only Order records (relay owner payments)
  */
-async function calculateFallbackRelayBalance(relayId: string, clientOrderAmount: number = 0): Promise<number> {
+export async function calculateFallbackRelayBalance(relayId: string): Promise<number> {
   console.log('Using fallback relay balance calculation for relayId:', relayId);
   
   // Get relay info including creation date
@@ -178,9 +178,15 @@ async function calculateFallbackRelayBalance(relayId: string, clientOrderAmount:
     for (const order of orders) {
       totalPaid += order.amount;
       
+      // Skip orders without payment date (shouldn't happen for paid orders, but safety check)
+      if (!order.paid_at) {
+        console.log(`Warning: Paid order ${order.amount} sats has no paid_at date, skipping cost calculation`);
+        continue;
+      }
+      
       // Each payment gives 30 days of service at the rate paid
       const dailyCostForPayment = order.amount / 30;
-      const daysSincePayment = (now.getTime() - order.paid_at!.getTime()) / (1000 * 60 * 60 * 24);
+      const daysSincePayment = (now.getTime() - order.paid_at.getTime()) / (1000 * 60 * 60 * 24);
       const costForPayment = daysSincePayment * dailyCostForPayment;
       
       totalCostAccrued += costForPayment;
@@ -189,14 +195,10 @@ async function calculateFallbackRelayBalance(relayId: string, clientOrderAmount:
     }
   }
   
-  // Add client revenue
-  totalPaid += clientOrderAmount;
-  
   const balance = totalPaid - totalCostAccrued;
   
   console.log('Fallback calculation result:', {
     totalPaid,
-    clientOrderAmount,
     totalCostAccrued,
     balance
   });
