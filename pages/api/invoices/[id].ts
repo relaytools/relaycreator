@@ -1,5 +1,6 @@
 import LNBits from 'lnbits'
 import prisma from '../../../lib/prisma'
+import { recordRelayPlanChange } from '../../../lib/relayPlanChangeTracking'
 
 export default async function handle(req: any, res: any) {
 
@@ -30,6 +31,8 @@ export default async function handle(req: any, res: any) {
             lnurl: true,
             payment_hash: true,
             expires_at: true,
+            order_type: true,
+            amount: true,
 
             relay: {
                 select: {
@@ -38,6 +41,11 @@ export default async function handle(req: any, res: any) {
                     name: true,
                     domain: true,
                     created_at: true,
+                    owner: {
+                        select: {
+                            pubkey: true,
+                        }
+                    }
                 },
             }
         }
@@ -98,6 +106,10 @@ export default async function handle(req: any, res: any) {
                     status: "running",
                 }
             })
+        }
+        // Only record plan changes for standard and premium plans, not custom payments
+        if (findOrder.order_type === 'standard' || findOrder.order_type === 'premium') {
+            await recordRelayPlanChange(findOrder.relay.id, findOrder.order_type, findOrder.amount);
         }
         res.status(200).json({ order: findOrder });
     } else {

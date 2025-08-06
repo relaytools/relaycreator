@@ -29,7 +29,7 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
 
     return (
         <div className="font-condensed">
-            <h1 className="mt-2 text-2xl leading-tight lg:leading-normal lg:text-5xl text-primary text-center">The fastest and easiest way to launch new relays for nostr.</h1>
+            <h1 className="mt-2 text-2xl leading-tight lg:leading-normal lg:text-5xl text-secondary text-center">The fastest and easiest way to launch new relays for nostr.</h1>
             <div className="mt-8 flex flex-wrap gap-12">
                 <div className="bg-base-100 hidden flex-1 lg:flex-auto lg:block lg:w-1/4">
                     <div className="">
@@ -51,16 +51,13 @@ export default function HelpfulInfo(props: React.PropsWithChildren<{}>) {
                         <h2 className="text-xl mb-2">Relay Creator</h2>
                         <div className="font-roboto">
                             <p>Create relays of any type quickly and easily</p>
-                            <p>Pricing: 12,000 sats/month</p>
-                            <p className="">open source on <a className="link" href="https://github.com/relaytools">github</a></p>
-                            
+                            <p className="">Open source on <a className="link" href="https://github.com/relaytools">github</a></p>
                         </div>
                     </div>
                 </div>
             </div>
             <div className="mt-4 flex lg:justify-end justify-center">
-                <a href={`/signup`} className="btn uppercase btn-primary rounded-lg"
-                >
+                <a href={`/signup`} className="btn uppercase btn-base-100 rounded-lg flex-grow">
                     <Image src="buttonStart.svg" className="rounded-lg" alt="Start a Relay" width={200} height={50} style={{ width: '200px', height: 'auto', objectFit: 'cover' }} />
                 </a>
             </div>

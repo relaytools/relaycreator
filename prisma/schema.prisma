@@ -38,6 +38,7 @@ model Order {
   expires_at   DateTime?
   paid_at      DateTime?
   amount       Int       @default(21000)
+  order_type   String    @default("standard") @db.VarChar(50)
 
   @@index([userId])
 }
@@ -53,8 +54,46 @@ model ClientOrder {
   expires_at   DateTime?
   paid_at      DateTime?
   amount       Int       @default(21)
+  order_type   String    @default("standard") @db.VarChar(50)
 
   @@index([relayId])
+}
+
+// Track plan changes over time for accurate billing calculations
+model PlanChange {
+  id           String    @id @default(cuid())
+  relay        Relay     @relation(fields: [relayId], references: [id])
+  relayId      String
+  pubkey       String    @db.VarChar(255)
+  plan_type    String    @db.VarChar(50) // "standard", "premium", "custom"
+  amount_paid  Int       // Amount paid for this plan period
+  started_at   DateTime  // When this plan period started
+  ended_at     DateTime? // When this plan period ended (null for current plan)
+  created_at   DateTime  @default(now())
+  
+  // Reference to the ClientOrder that triggered this plan change
+  clientOrderId String?
+  
+  @@index([relayId, pubkey])
+  @@index([pubkey, started_at])
+}
+
+// Track relay owner plan changes over time for accurate billing calculations
+model RelayPlanChange {
+  id           String    @id @default(cuid())
+  relay        Relay     @relation(fields: [relayId], references: [id])
+  relayId      String
+  plan_type    String    @db.VarChar(50) // "standard", "premium", "custom"
+  amount_paid  Int       // Amount paid for this plan period
+  started_at   DateTime  // When this plan period started
+  ended_at     DateTime? // When this plan period ended (null for current plan)
+  created_at   DateTime  @default(now())
+  
+  // Reference to the Order that triggered this plan change
+  orderId      String?
+  
+  @@index([relayId])
+  @@index([relayId, started_at])
 }
 
 model Nip05 {
@@ -100,7 +139,10 @@ model Relay {
   moderators             Moderator[]
   Order                  Order[]
   ClientOrder            ClientOrder[]
+  PlanChange             PlanChange[]
+  RelayPlanChange        RelayPlanChange[]
   streams                Stream[]
+  acl_sources            AclSource[]
   allow_list             AllowList?
   block_list             BlockList?
   details                String?       @db.Text
@@ -109,6 +151,8 @@ model Relay {
   listed_in_directory    Boolean       @default(false)
   payment_required       Boolean       @default(false)
   payment_amount         Int           @default(21)
+  payment_premium_amount Int           @default(2100)
+  nip05_payment_amount   Int           @default(21)
   ip                     String?       @db.VarChar(255)
   capacity               Int?
   port                   Int?
@@ -128,6 +172,14 @@ model Relay {
   request_payment_amount Int           @default(1000)
 
   @@index([ownerId])
+}
+
+model AclSource {
+  id String @id @default(cuid())
+  relayId String
+  relay Relay @relation(fields: [relayId], references: [id])
+  url String @db.VarChar(1024)
+  aclType String @db.VarChar(128)
 }
 
 model Server {

@@ -73,7 +73,7 @@ export default async function handle(req: any, res: any) {
             return;
         }
         // delete all lists with this reason..
-        if (listId != "") {
+        if (listId != "" && listId != "all") {
             await prisma.listEntryPubkey.deleteMany({
                 where: {
                     AND: [

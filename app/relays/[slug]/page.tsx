@@ -1,64 +1,41 @@
+
 import prisma from '../../../lib/prisma'
-import Posts from '../../posts/page'
-import { headers } from 'next/headers'
+import { FaUser, FaShieldAlt, FaCheck, FaBan, FaGlobe, FaCalendarAlt, FaInfoCircle, FaLock, FaUnlock, FaChartLine, FaCrown, FaCog } from 'react-icons/fa'
+import { RelayWithEverything } from '../../components/relayWithEverything'
+import DinosaurPosts from '../../components/dinosaurPosts'
+import ConnectionStats from '../../components/connectionStats'
+import UserRelayStatus from '../../components/userRelayStatus'
+import ProfileImage from '../../components/profileImage'
+import TeamProfilesWrapper from '../../components/teamProfilesWrapper'
+import CopyUrlButton from '../../components/copyUrlButton'
+import Terms from '../../components/terms'
+import RelayPageClient from './client'
+// Using regular img tag instead of Next.js Image for more flexibility with external URLs
 
-export default async function Relays({
+export default async function RelayPage({
     params,
-    searchParams
 }: {
-    params: { slug: string }
-    searchParams: { [key: string]: string | undefined }
+    params: Promise<{ slug: string }>
 }) {
-    const { slug } = params;
-    const { successpayment } = searchParams;
-
-    const headersList = headers()
-    const rewritten = headersList.get('middleware-rewritten')
-
-    /*
-// this will be user fav relays eventually
-    const publicRelays = await prisma.relay.findMany({
-        where: {
-            status: "running",
-            listed_in_directory: true,
-        },
-        include: {
-            owner: true,
-            moderators: {
-                include: { user: true },
-            },
-            block_list: {
-                include: {
-                    list_keywords: true,
-                    list_pubkeys: true,
-                    list_kinds: true,
-                },
-            },
-            allow_list: {
-                include: {
-                    list_keywords: true,
-                    list_pubkeys: true,
-                    list_kinds: true,
-                },
-            },
-        }
-    })
-
+    const { slug } = await params;
+    
+    // Fetch the relay details from the database
     const relay = await prisma.relay.findFirst({
         where: {
-            OR: [
-                {
-                    status: "running",
-                },
-                {
-                    status: "provision",
-                },
-            ],
-            //listed_in_directory: true,
             name: slug,
         },
         include: {
             owner: true,
+            streams: {
+                select: {
+                    id: true,
+                    url: true,
+                    direction: true,
+                    internal: true,
+                    sync: true,
+                    status: true,
+                },
+            },
             moderators: {
                 include: { user: true },
             },
@@ -76,20 +53,249 @@ export default async function Relays({
                     list_kinds: true,
                 },
             },
-        }
-    })
+            acl_sources: true,
+        },
+    }) as RelayWithEverything | null;
 
-    if (relay == null) {
+    if (!relay) {
         return (
-            <div>relay not found</div>
-        )
-    }
-        */
-    return (
-        <div className="flex flex-wrap">
-            <div className="">
-                <Posts relayName={slug} />
+            <div className="container mx-auto p-4">
+                <h1 className="text-2xl font-bold text-center">Relay not found</h1>
+                <p className="text-center mt-4">
+                    The relay you are looking for does not exist or has been removed.
+                </p>
             </div>
-        </div>
+        );
+    }
+
+    // Format creation date nicely
+    const createdAt = relay.created_at ? new Date(relay.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    }) : 'Unknown';
+
+    // Auth required badge
+    const authBadge = relay.auth_required ? 
+        <span className="badge badge-secondary gap-1"><FaLock size={12} /> Auth required</span> : 
+        <span className="badge badge-outline gap-1"><FaUnlock size={12} /> No auth</span>;
+    
+    // WOA badge - show if acl_sources is not empty
+    const woaBadge = relay.acl_sources && relay.acl_sources.length > 0 ? 
+        <span className="badge badge-accent gap-1" title="Web of Access"><FaShieldAlt size={12} /> WOA</span> : null;
+    
+
+    // Check if banner_image exists and is not empty
+    const bannerImage = relay.banner_image && relay.banner_image.trim() !== '' ? 
+        relay.banner_image : '/green-check.png';
+    
+    // Use profile image if available, otherwise use banner image for the circular display
+    const profileImage = relay.profile_image && relay.profile_image.trim() !== '' ?
+        relay.profile_image : bannerImage;
+
+    return (
+        <RelayPageClient relay={relay}>
+            <div className="container mx-auto p-4">
+                {/* Full-width banner with overlay */}
+                <div className="relative rounded-xl overflow-hidden mb-6">
+                    {/* Banner image - full width */}
+                    <div className="w-full h-40 sm:h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 relative overflow-hidden">
+                        {bannerImage && (
+                            <div className="absolute inset-0 w-full h-full">
+                                <img 
+                                    src={bannerImage} 
+                                    alt={`${relay.name} banner`}
+                                    className="w-full h-full object-cover opacity-50"
+                                />
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Overlay content */}
+                    <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-base-300/90 to-transparent">
+                        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                            {/* Profile image */}
+                            <div className="relative sm:-mb-12 border-4 border-base-100 rounded-full overflow-hidden bg-base-100 w-20 h-20 sm:w-24 sm:h-24 mx-auto sm:mx-0">
+                                <ProfileImage 
+                                    imageUrl={profileImage} 
+                                    altText={`${relay.name} profile`} 
+                                    className="w-full h-full"
+                                />
+                            </div>
+                            
+                            {/* Relay info container - stacked on mobile, side by side on larger screens */}
+                            <div className="flex flex-col sm:flex-row w-full justify-between items-center sm:items-end mt-2 sm:mt-0">
+                                {/* Relay name and URL */}
+                                <div>
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-white text-center sm:text-left">{relay.name}</h1>
+                                    <p className="text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1 text-white/90 mt-1">
+                                        <FaGlobe className="text-primary" /> 
+                                        <span className="font-mono overflow-hidden text-ellipsis">{'wss://' + relay.name + '.' + relay.domain}</span>
+                                    </p>
+                                </div>
+                                
+                                {/* Badges */}
+                                <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-end mt-3 sm:mt-0">
+                                    {authBadge}
+                                    {woaBadge}
+                                    <span className="badge badge-neutral gap-1">
+                                        <FaCalendarAlt size={12} />est. {createdAt}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+            {/* About section - adjust margin top for mobile */}
+            <div className="card bg-base-100 shadow-xl mb-6 mt-8 sm:mt-12">
+                <div className="card-body">
+                    <h2 className="card-title">About</h2>
+                    <div className="divider my-1"></div>
+                    <p>{relay.details || 'A Nostr relay powered by relay.tools'}</p>
+                </div>
+            </div>
+            
+            {/* Mobile-first layout with custom ordering */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                {/* Team card - always first */}
+                <div className="lg:col-span-2">
+                    <div className="card bg-base-100 shadow-xl mb-6">
+                        <div className="card-body p-4">
+                            <div>
+                                {/* Create a combined, deduplicated team list */}
+                                {(() => {
+                                    // Define team member type
+                                    interface TeamMember {
+                                        pubkey: string;
+                                        roles: string[];
+                                    }
+                                    
+                                    // Start with the owner
+                                    const teamMembers: TeamMember[] = [];
+                                    const seenPubkeys = new Set<string>();
+                                    // Add owner if exists
+                                    if (relay.owner?.pubkey) {
+                                        teamMembers.push({
+                                            pubkey: relay.owner.pubkey,
+                                            roles: ['owner']
+                                        });
+                                        seenPubkeys.add(relay.owner.pubkey);
+                                    }
+                                    
+                                    // Add moderators, avoiding duplicates
+                                    relay.moderators.forEach(mod => {
+                                        if (mod.user?.pubkey) {
+                                            if (seenPubkeys.has(mod.user.pubkey)) {
+                                                // This user is already in the list (as owner), add moderator role
+                                                const existingMember = teamMembers.find(m => m.pubkey === mod.user.pubkey);
+                                                if (existingMember) {
+                                                    existingMember.roles.push('moderator');
+                                                }
+                                            } else {
+                                                // New team member
+                                                teamMembers.push({
+                                                    pubkey: mod.user.pubkey,
+                                                    roles: ['moderator']
+                                                });
+                                                seenPubkeys.add(mod.user.pubkey);
+                                            }
+                                        }
+                                    });
+                                    
+                                    return (
+                                        <TeamProfilesWrapper 
+                                            teamMembers={teamMembers}
+                                            size="small"
+                                            showName={true}
+                                            showPubkey={true}
+                                            showCopy={true}
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Your Status - second on mobile, first in right column on desktop */}
+                <div className="lg:col-span-1">
+                    <UserRelayStatus relay={relay} />
+                </div>
+                
+                {/* Stats card - third on mobile, second in left column on desktop */}
+                <div className="lg:col-span-2 lg:order-2">
+                    <div className="card bg-base-100 shadow-xl mb-6">
+                        <div className="card-body">
+                            <h2 className="card-title flex items-center gap-2">
+                                <FaChartLine className="text-primary" /> Relay Statistics
+                            </h2>
+                            <div className="divider my-1"></div>
+                            <div>
+                                <ConnectionStats relayName={relay.name} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Connect to Relay - fourth on mobile, second in right column on desktop */}
+                <div className="lg:col-span-1 lg:order-3">
+                    <div className="card bg-base-100 shadow-xl mb-4">
+                        <div className="card-body">
+                            <h2 className="card-title">Connect to Relay</h2>
+                            <div className="divider my-1"></div>
+                            <div className="flex items-center justify-between bg-base-200 p-3 rounded-md">
+                                <div className="font-mono text-xs break-all">
+                                    {'wss://' + relay.name + '.' + relay.domain}
+                                </div>
+                                <CopyUrlButton 
+                                    url={'wss://' + relay.name + '.' + relay.domain} 
+                                    className="btn btn-sm btn-ghost ml-2"
+                                />
+                            </div>
+                            
+                            <div className="mt-4">
+                                <h3 className="text-sm font-medium mb-2">Recommended clients:</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    <a 
+                                        href={`https://jumble.social/?r=${encodeURIComponent('wss://' + relay.name + '.' + relay.domain)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-xs btn-outline"
+                                    >
+                                        jumble.social
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Terms of Service - fifth on mobile, third in right column on desktop */}
+                <div className="lg:col-span-1 lg:order-5">
+                    <div className="card bg-base-100 shadow-xl mb-4">
+                        <div className="card-body">
+                            <h2 className="card-title flex items-center gap-2">
+                                <FaInfoCircle className="text-info" /> Terms of Service
+                            </h2>
+                            <div className="divider my-1"></div>
+                            <Terms />
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Posts related to this relay - sixth on mobile, fourth in left column on desktop */}
+                <div className="lg:col-span-2 lg:order-4">
+                    <div className="card bg-base-100 shadow-xl">
+                        <div className="card-body">
+                            <h2 className="card-title">Moderator Portal</h2>
+                            <div className="divider my-1"></div>
+                            <DinosaurPosts relayName={slug} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </RelayPageClient>
     )
 }
