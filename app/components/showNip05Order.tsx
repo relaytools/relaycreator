@@ -24,6 +24,7 @@ export async function alby(lnurl: string) {
 export default function ShowNip05Order(
     props: React.PropsWithChildren<{
         nip05Order: any;
+        onPaymentSuccess?: () => void;
     }>) {
 
     const [status, setStatus] = useState(false)
@@ -31,9 +32,15 @@ export default function ShowNip05Order(
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
 
     const getNip05OrderStatus = async (clientOrderId: string) => {
-        const result = await fetch(rootDomain + `/api/nip05orders/${props.nip05Order.id}`)
+        const result = await fetch(`/api/nip05orders/${props.nip05Order.id}`)
         const j = await result.json()
+        const wasPaid = status;
         setStatus(j.nip05Order.paid)
+        
+        // If payment just completed, trigger callback
+        if (!wasPaid && j.nip05Order.paid && props.onPaymentSuccess) {
+            props.onPaymentSuccess();
+        }
     }
 
     useEffect(() => {
@@ -54,7 +61,7 @@ export default function ShowNip05Order(
                 <button
                     onClick={(e) => copyToClipboard(e, props.nip05Order.lnurl)}
                     type="submit"
-                    className="flex justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-50 hover:text-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300 mb-4"
+                    className="flex justify-center rounded-md bg-purple-600 py-2 px-3 text-sm font-semibold text-white shadow-xs hover:bg-gray-50 hover:text-purple-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ring-1 ring-gray-300 mb-4"
                 >
                     Copy ⚡ invoice to clipboard
                 </button>

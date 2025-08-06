@@ -17,7 +17,6 @@ export default async function handle(req: any, res: any) {
         return Response.json({ stats: null });
     }
 
-    console.log(slug)
     try {
         const influxDB = getInfluxDBClient();
         const queryApi = influxDB.getQueryApi(process.env.INFLUXDB_ORG);
@@ -32,6 +31,7 @@ export default async function handle(req: any, res: any) {
         |> yield(name: "mean")
     `;
 
+    // |> filter(fn: (r) => r["proxy"] == "${slug}")
         const result = await queryApi.collectRows(fluxQuery);
         return res.status(200).json({ stats: result });
     } catch (e) {

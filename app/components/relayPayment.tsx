@@ -127,23 +127,8 @@ export default function RelayPayment(
                 <div className="flex">
                     <div className=" ">
                         <div>
-                            <div className="lg:text-lg">
-                                This relay requires payment of{" "}
-                                {props.relay.payment_amount} sats to post. ⚡
-                                {isAlreadyPaid && (
-                                    <div className="text-sm text-green-600">
-                                        You're already a member of this relay,{" "}
-                                        <a
-                                            className="link-secondary"
-                                            href={`${rootDomain}` + "/nip05"}
-                                        >
-                                            got nip05?
-                                        </a>
-                                    </div>
-                                )}
-                            </div>
                             {showPubkeyInput && (
-                                <div className="mt-2 flex rounded-md shadow-sm">
+                                <div className="mt-2 flex rounded-md shadow-xs">
                                     <input
                                         type="text"
                                         name="pubkey"

@@ -2,16 +2,14 @@
 import {
     ModWithRelays,
     RelayWithEverything,
-} from "../components/relayWithEverything";
+} from "./relayWithEverything";
 import { useState, useEffect } from "react";
-import Relay from "../components/relay";
-import { useSearchParams } from "next/navigation";
+import Relay from "./relay";
 
 export default function MyRelays() {
     const [myRelays, setMyRelays] = useState<RelayWithEverything[]>([]);
     const [moderatedRelays, setModeratedRelays] = useState<ModWithRelays[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [showPublicRelays, setShowPublicRelays] = useState(false);
 
     useEffect(() => {
         const fetchRelays = async () => {
@@ -38,10 +36,24 @@ export default function MyRelays() {
 
     return (
         <div>
+            {/* Relay Invoices Link */}
+            <div className="mb-6">
+                <a 
+                    href="/invoices"
+                    className="card bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer block"
+                >
+                    <div className="card-body text-center py-6">
+                        <div className="text-4xl mb-2">📄</div>
+                        <h3 className="card-title justify-center text-xl font-bold">Relay Invoices</h3>
+                        <p className="text-sm opacity-90">View your relay billing & payment history</p>
+                    </div>
+                </a>
+            </div>
+            
             <div className="collapse collapse-arrow bg-base-200">
                 <input type="checkbox" defaultChecked /> 
                 <div className="collapse-title text-lg font-bold text-center">
-                    Your Relay(s)
+                    Relay Settings
                 </div>
                 <div className="collapse-content">
                     {isLoading ? (
@@ -76,26 +88,6 @@ export default function MyRelays() {
                                         />
                                     )
                             )}
-                        </div>
-                    )}
-                </div>
-            </div>
-            
-            <div className="collapse collapse-arrow bg-base-200 mt-4">
-                <input 
-                    type="checkbox" 
-                    onChange={(e) => setShowPublicRelays(e.target.checked)}
-                /> 
-                <div className="collapse-title text-center text-lg">
-                    Public Relays
-                </div>
-                <div className="collapse-content">
-                    {showPublicRelays && (
-                        <div className="mt-4">
-                            {(() => {
-                                const PublicRelays = require('./publicRelays').default;
-                                return <PublicRelays />;
-                            })()}
                         </div>
                     )}
                 </div>
