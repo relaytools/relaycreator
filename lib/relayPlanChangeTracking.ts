@@ -78,9 +78,9 @@ export async function calculateRelayTimeBasedBalance(relayId: string, clientOrde
   console.log('Plan history details:', planHistory.map(p => ({ amount_paid: p.amount_paid, plan_type: p.plan_type, started_at: p.started_at, ended_at: p.ended_at })));
   
   if (planHistory.length === 0) {
-    console.log('No relay plan history found, returning null');
-    // No plan history, fall back to old calculation method
-    return null;
+    console.log('No relay plan history found, using fallback calculation');
+    // No plan history, fall back to order-based calculation
+    return await calculateFallbackRelayBalance(relayId, clientOrderAmount);
   }
 
   const now = new Date();
@@ -120,6 +120,88 @@ export async function calculateRelayTimeBasedBalance(relayId: string, clientOrde
     finalBalance
   });
   return finalBalance;
+}
+
+/**
+ * Fallback balance calculation when no RelayPlanChanges exist
+ * Uses Order and ClientOrder records directly
+ */
+async function calculateFallbackRelayBalance(relayId: string, clientOrderAmount: number = 0): Promise<number> {
+  console.log('Using fallback relay balance calculation for relayId:', relayId);
+  
+  // Get relay info including creation date
+  const relay = await prisma.relay.findUnique({
+    where: { id: relayId },
+    select: { created_at: true, name: true }
+  });
+  
+  if (!relay?.created_at) {
+    console.log('No relay creation date found, returning 0');
+    return 0;
+  }
+  
+  // Get all paid orders for this relay
+  const orders = await prisma.order.findMany({
+    where: {
+      relayId: relayId,
+      paid: true
+    },
+    select: {
+      amount: true,
+      order_type: true,
+      paid_at: true
+    },
+    orderBy: {
+      paid_at: 'asc'
+    }
+  });
+  
+  console.log(`Found ${orders.length} paid orders for relay ${relay.name}`);
+  
+  const now = new Date();
+  let totalPaid = 0;
+  let totalCostAccrued = 0;
+  
+  if (orders.length === 0) {
+    // No payments made, calculate cost since relay creation using standard pricing
+    const daysRunning = (now.getTime() - relay.created_at.getTime()) / (1000 * 60 * 60 * 24);
+    const standardDailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || "1000") / 30;
+    totalCostAccrued = daysRunning * standardDailyCost;
+    console.log(`Fallback calculation debug:`);
+    console.log(`  Relay created at: ${relay.created_at}`);
+    console.log(`  Current time: ${now}`);
+    console.log(`  Days running: ${daysRunning}`);
+    console.log(`  Standard daily cost: ${standardDailyCost} sats/day`);
+    console.log(`  Total cost accrued: ${totalCostAccrued} sats`);
+  } else {
+    // Calculate cost based on each payment period
+    for (const order of orders) {
+      totalPaid += order.amount;
+      
+      // Each payment gives 30 days of service at the rate paid
+      const dailyCostForPayment = order.amount / 30;
+      const daysSincePayment = (now.getTime() - order.paid_at!.getTime()) / (1000 * 60 * 60 * 24);
+      const costForPayment = daysSincePayment * dailyCostForPayment;
+      
+      totalCostAccrued += costForPayment;
+      
+      console.log(`Order: ${order.amount} sats, ${daysSincePayment.toFixed(1)} days ago, cost: ${costForPayment.toFixed(2)} sats`);
+    }
+  }
+  
+  // Add client revenue
+  totalPaid += clientOrderAmount;
+  
+  const balance = totalPaid - totalCostAccrued;
+  
+  console.log('Fallback calculation result:', {
+    totalPaid,
+    clientOrderAmount,
+    totalCostAccrued,
+    balance
+  });
+  
+  return balance;
 }
 
 /**
