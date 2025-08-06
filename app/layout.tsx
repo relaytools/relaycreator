@@ -32,20 +32,21 @@ const robotoMono = Roboto_Mono({
 })
 
 //export default function RootLayout({ children, }: { children: React.ReactNode; }) {
-export default function RootLayout({ children, }: React.PropsWithChildren) {
+export default async function RootLayout({ children, }: React.PropsWithChildren) {
 
   // Get theme based on the cookie "theme".
-  const themeCookie = cookies().get('theme')
+  const themeCookieStore = await cookies()
+  const themeCookie = themeCookieStore.get('theme')
+
   // If the cookie "theme" does not exist, set theme to the first index of Themes.
   const currentTheme = themeCookie ? themeCookie.value : Themes[0]
 
-  const headersList = headers()
+  const headersList = await headers()
   const rewritten = headersList.get('middleware-rewritten')
   const path = headersList.get('next-url')
-  console.log("path: ", path)
 
   return (
-    <html data-theme={currentTheme} className={`${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal`}>
+    <html data-theme={currentTheme} className={`${robotoMono.variable} ${robotoCondensed.variable} ${roboto.variable} font-roboto leading-normal ${currentTheme === 'dark' ? 'dark' : ''}`}>
       <head></head>
       <body>
         <div className="bg-base-100 mx-auto lg:max-w-7xl max-w-screen font-roboto">

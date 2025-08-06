@@ -4,20 +4,19 @@ import prisma from '../../lib/prisma'
 import Wizard from "./wizard"
 import { ToastContainer } from 'react-toastify'
 
+type Params = Promise<{ relay_id: string }>
 
 export default async function Curator({
-    params,
     searchParams,
 }: {
-    params: { slug: string }
-    searchParams: { [key: string]: string | undefined }
+    searchParams: Params 
 }) {
     const session = await getServerSession(authOptions)
 
     if (!session || !(session as any).user.name) {
         return (
             <article className="prose">
-                <h1>Your relay is being created.  Please Sign-in to manage your relay.</h1>
+                <h1>Your relay has been created.  Please Sign-in to manage your relay.</h1>
             </article>
         )
     }
@@ -27,7 +26,7 @@ export default async function Curator({
     })
 
     // get the relay from the param
-    const { relay_id } = searchParams
+    const { relay_id } = await searchParams
     if (relay_id == null || me == null) {
         return (
             <>
@@ -71,6 +70,7 @@ export default async function Curator({
                     list_kinds: true,
                 },
             },
+            acl_sources: true,
         }
     })
 

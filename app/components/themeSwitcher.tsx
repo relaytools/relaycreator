@@ -18,8 +18,17 @@ export default function ThemeSwitcher({
         document.cookie =
             `theme=${currentTheme};expires=` +
             new Date(new Date().getTime() + 400 * 24 * 60 * 60 * 1000).toUTCString()
+        
         // Set the data-theme attribute for <html>
         document.documentElement.setAttribute('data-theme', currentTheme)
+        
+        // Also toggle the 'dark' class for Tailwind CSS dark mode
+        if (currentTheme === 'dark') {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+        
         setLoading(false)
     }, [currentTheme])
 

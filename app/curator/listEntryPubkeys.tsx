@@ -5,6 +5,7 @@ import { NDKFilter, NDKEvent } from "@nostr-dev-kit/ndk";
 import { useSession } from "next-auth/react";
 import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 import { ToastContainer, toast } from "react-toastify";
+import BatchedProfileList from "../components/batchedProfileList";
 
 type ListEntryPubkey = {
     pubkey: string;
@@ -69,7 +70,7 @@ export default function ListEntryPubkeys(
     };
 
     const handleDelete = async (event: any) => {
-        event.preventDefault();
+        //event.preventDefault();
         const deleteThisId = event.currentTarget.id;
         // call to API to delete keyword
         const response = await fetch(
@@ -125,10 +126,33 @@ export default function ListEntryPubkeys(
         );
     };
 
-    const handleDeleteAll = async (event: any) => {
-        event.preventDefault();
+    const handleDeleteAll = async (event: any, entryIds?: string[]) => {
+        //event.preventDefault();
         const deleteThis = event.currentTarget.id;
-        // call to API to delete keyword
+        
+        // If entryIds are provided, delete specific entries using batch API
+        if (entryIds && entryIds.length > 0) {
+            const response = await fetch(
+                `/api/relay/${props.relay_id}/${idkind}pubkeys`,
+                {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ entryIds })
+                }
+            );
+            
+            if (response.ok) {
+                // Remove the deleted entries from the local state
+                const updatedPubkeys = pubkeys.filter(pubkey => !entryIds.includes(pubkey.id));
+                setPubkeys(updatedPubkeys);
+                toast.success(`Deleted ${entryIds.length} entries successfully`);
+            } else {
+                toast.error("Failed to delete entries");
+            }
+            return;
+        }
+        
+        // Original logic for deleting by filter
         let allOrFilter = filter;
         if (filter == "") {
             allOrFilter = "all";
@@ -362,10 +386,10 @@ export default function ListEntryPubkeys(
 
     // Add handleEdit function
     const handleEdit = async (entry: ListEntryPubkey) => {
-        if (isEditing) {
-            // Save the edited reason
+        if (isEditing && showActionsPubkey === entry.id) {
+            // Save the edit
             const response = await fetch(
-                `/api/relay/${props.relay_id}/${idkind}pubkey?entry_id=${entry.id}`,
+                `/api/relay/${props.relay_id}/${idkind}pubkeys/${entry.id}`,
                 {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -393,28 +417,61 @@ export default function ListEntryPubkeys(
         }
     };
 
+    const downloadCSV = () => {
+        // Create CSV content
+        const csvHeader = "pubkey,reason\n";
+        const csvContent = pubkeys
+            .map(entry => {
+                const pubkey = entry.pubkey || "";
+                const reason = (entry.reason || "").replace(/"/g, '""'); // Escape quotes
+                return `"${pubkey}","${reason}"`;
+            })
+            .join("\n");
+        
+        const fullCSV = csvHeader + csvContent;
+        
+        // Create and download file
+        const blob = new Blob([fullCSV], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${props.kind}_pubkeys.csv`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success(`Downloaded ${pubkeys.length} entries as CSV`, toastOptions);
+    };
+
     return (
         <div className="flex flex-wrap">
             <div className="">
                 <div className="">
                     <div className="flex flex-wrap">
                         <div className="w-full">
-                            {!newpubkey && (
-                                <div className="mt-4">
-                                    <button
-                                        onClick={() => setNewPubkeyHandler()}
-                                        type="button"
-                                        className="btn uppercase btn-primary mr-2 flex-grow w-full mt-4"
-                                    >
-                                        Add pubkey(s)
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <div className="w-full flex-grow">
+                        {!newpubkey && (
+                            <div className="mt-4 flex gap-2">
+                                <button
+                                    onClick={() => setNewPubkeyHandler()}
+                                    type="button"
+                                    className="btn uppercase btn-primary grow"
+                                >
+                                    Add pubkey(s)
+                                </button>
+                                <button
+                                    onClick={downloadCSV}
+                                    type="button"
+                                    className="btn uppercase btn-accent"
+                                >
+                                    Download CSV
+                                </button>
+                            </div>
+                        )}
+                        <div className="w-full grow">
                             {!showHidePubkeys && !newpubkey && (
                                 <button
-                                    className="btn btn-secondary uppercase flex-grow w-full mt-4"
+                                    className="btn btn-secondary uppercase grow w-full mt-4"
                                     onClick={() => setShowHidePubkeys(true)}
                                 >
                                     show {pubkeys.length.toString()}{" "}
@@ -423,28 +480,13 @@ export default function ListEntryPubkeys(
                             )}
                             {showHidePubkeys && !newpubkey && (
                                 <div className="mt-4">
-                                    <input
-                                        type="text"
-                                        placeholder="search/filter by reason"
-                                        value={filter}
-                                        onChange={(e) =>
-                                            setFilter(e.target.value)
-                                        }
-                                        className="input input-primary input-bordered"
-                                    ></input>
-                                    <button
-                                        className="btn btn-secondary"
-                                        onClick={() => setFilter("")}
-                                    >
-                                        clear
-                                    </button>
                                     <div className="font-condensed">
                                         These are the included nostr lists:
                                     </div>
                                     <div className="font-condensed">
                                         Click to filter:
                                     </div>
-                                    <div className="flex-grow">
+                                    <div className="grow">
                                         {listsFromPubkeys().map(
                                             (entry: any) => (
                                                 <button
@@ -460,42 +502,15 @@ export default function ListEntryPubkeys(
                                         )}
                                     </div>
                                     <button
-                                        className="btn btn-secondary uppercase flex-grow w-full mt-4 mb-4"
-                                        onClick={() =>
-                                            setShowHidePubkeys(false)
-                                        }
+                                        className="btn btn-secondary uppercase grow w-full mt-4 mb-4"
+                                        onClick={() => {
+                                            setShowHidePubkeys(false);
+                                            setFilter(""); // Clear search when hiding
+                                        }}
                                     >
-                                        hide
-                                        {filter == "" &&
-                                            " " +
-                                                pubkeys.length.toString() +
-                                                " "}
-                                        {filter != "" &&
-                                            " " +
-                                                filteredPubkeys().length.toString() +
-                                                " of (" +
-                                                pubkeys.length.toString() +
-                                                ") "}
-                                        {props.kind}
+                                        hide {pubkeys.length} {props.kind}
                                     </button>
-                                    <button
-                                        onClick={handleDeleteAll}
-                                        className="btn uppercase btn-warning flex-grow w-full mt-4"
-                                        id="all"
-                                    >
-                                        Delete
-                                        {filter == "" &&
-                                            " " +
-                                                pubkeys.length.toString() +
-                                                " "}
-                                        {filter != "" &&
-                                            " " +
-                                                filteredPubkeys().length.toString() +
-                                                " of (" +
-                                                pubkeys.length.toString() +
-                                                ") "}
-                                        Pubkeys
-                                    </button>
+
                                 </div>
                             )}
                         </div>
@@ -568,100 +583,42 @@ export default function ListEntryPubkeys(
                                 ))}
                             </div>
                         )}
-                        <div className="mt-4 w-full font-mono flex-wrap">
-                            {showHidePubkeys &&
-                                filteredPubkeys().map((entry: any) => (
-                                    <div
-                                        key={entry.id}
-                                        className="flex flex-col w-full border-2 border-secondary mb-2 rounded-md max-w-sm overflow-auto lg:max-w-screen-2xl"
-                                        onClick={() =>
-                                            setShowActionsPubkey(entry.id)
-                                        }
-                                    >
-                                        <div className="overflow-none mr-2">
-                                            {entry.pubkey}
-                                        </div>
-                                        <div className="border-t-2 border-dashed border-neutral overflow-auto">
-                                            reason: {entry.reason}
-                                        </div>
-                                        {showActionsPubkey == entry.id && (
-                                            <div className="flex">
-                                                {!isEditing && (
-                                                    <button
-                                                        onClick={handleDelete}
-                                                        className="btn uppercase btn-secondary p-4"
-                                                        id={entry.id}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                )}
-                                                {isEditing ? (
-                                                    <div className="ml-4 items-center justify-center flex flex-wrap">
-                                                        <div className="font-condensed bold">
-                                                            new reason:
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            value={
-                                                                editingReason
-                                                            }
-                                                            onChange={(e) =>
-                                                                setEditingReason(
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                            onKeyDown={(e) => {
-                                                                if (
-                                                                    e.key ===
-                                                                    "Enter"
-                                                                ) {
-                                                                    handleEdit(
-                                                                        entry
-                                                                    );
-                                                                }
-                                                            }}
-                                                            className="input input-bordered input-primary"
-                                                        />
-                                                        <button
-                                                            className="btn uppercase btn-secondary ml-2"
-                                                            onClick={() =>
-                                                                handleEdit(
-                                                                    entry
-                                                                )
-                                                            }
-                                                        >
-                                                            Save
-                                                        </button>
-                                                        <button
-                                                            className="btn uppercase btn-secondary ml-2"
-                                                            onClick={() =>
-                                                                setIsEditing(
-                                                                    false
-                                                                )
-                                                            }
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        className="btn uppercase btn-secondary ml-4"
-                                                        onClick={() =>
-                                                            handleEdit(entry)
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                        <div className="mt-4 w-full">
+                            {showHidePubkeys && (
+                                <BatchedProfileList
+                                    entries={pubkeys}
+                                    onEdit={(entry, newReason) => {
+                                        handleEdit({ ...entry, reason: newReason });
+                                    }}
+                                    onDelete={(entryId) => {
+                                        const event = { currentTarget: { id: entryId } };
+                                        handleDelete(event);
+                                    }}
+                                    onDeleteAll={(entryIds) => {
+                                        const event = { currentTarget: { id: "all" } };
+                                        handleDeleteAll(event, entryIds);
+                                    }}
+                                    isEditing={isEditing}
+                                    editingEntryId={showActionsPubkey}
+                                    editingReason={editingReason}
+                                    onStartEdit={(entryId, currentReason) => {
+                                        setShowActionsPubkey(entryId);
+                                        setEditingReason(currentReason);
+                                        setIsEditing(true);
+                                    }}
+                                    onCancelEdit={() => setIsEditing(false)}
+                                    onReasonChange={setEditingReason}
+                                    itemsPerPage={9}
+                                    searchTerm={filter}
+                                    onSearchChange={setFilter}
+                                    kind={props.kind}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }

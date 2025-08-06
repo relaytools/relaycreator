@@ -20,6 +20,42 @@ export default async function handle(req: any, res: any) {
         },
     })
 
+    // Parse domain to extract subdomain and base domain
+    const domainParts = domain.split('.');
+    let relayName = '';
+    let baseDomain = '';
+    
+    if (domainParts.length >= 2) {
+        relayName = domainParts[0]; // subdomain (relay name)
+        baseDomain = domainParts.slice(1).join('.'); // base domain
+    } else {
+        console.log("Invalid domain format");
+        res.status(400).json({ "error": "Invalid domain format" });
+        return;
+    }
+
+    // Find the specific relay that matches the subdomain and domain
+    const targetRelay = await prisma.relay.findFirst({
+        where: {
+            AND: [
+                { name: relayName },
+                { domain: baseDomain },
+                {
+                    OR: [
+                        { status: "running" },
+                        { status: "provision" },
+                    ]
+                }
+            ]
+        },
+    });
+
+    if (!targetRelay) {
+        console.log("Relay not found for domain:", domain);
+        res.status(404).json({ "error": "Relay not found for this domain" });
+        return;
+    }
+
     const relays = await prisma.relay.findMany({
         where: {
             OR: [
@@ -88,7 +124,7 @@ export default async function handle(req: any, res: any) {
 
     let authorized = false
     relayDomainNames.forEach(d => {
-        if(domain == d) {
+        if(domain.toLowerCase() == d.toLowerCase()) {
             authorized = true
         }
     })
@@ -117,11 +153,38 @@ export default async function handle(req: any, res: any) {
         endpoint: process.env.LNBITS_ENDPOINT,
     });
 
-    const newInvoice = await wallet.createInvoice({
-        amount: 21,
-        memo: "nip05" + " " + name + " " + domain + " " + pubkey,
-        out: false,
+    
+
+    // Check if user has premium subscription to this relay
+    const userClientOrders = await prisma.clientOrder.findMany({
+        where: {
+            pubkey: pubkey,
+            relayId: targetRelay.id,
+            paid: true,
+        },
+        orderBy: {
+            paid_at: 'desc'
+        },
+        take: 1
     });
+
+    // Determine if user has premium plan (free NIP-05) or needs to pay
+    let nip05Amount = targetRelay.nip05_payment_amount || 21;
+    const hasPremiumPlan = userClientOrders.length > 0 && userClientOrders[0].order_type === 'premium';
+    
+    if (hasPremiumPlan) {
+        nip05Amount = 0; // Free for premium subscribers
+    }
+    
+    let newInvoice = null;
+    if (nip05Amount > 0) {
+        // Create invoice only if payment is required
+        newInvoice = await wallet.createInvoice({
+            amount: nip05Amount,
+            memo: "nip05" + " " + name + " " + domain + " " + pubkey,
+            out: false,
+        });
+    }
 
     const newNip05 = await prisma.nip05.create({
         data: {
@@ -147,11 +210,11 @@ export default async function handle(req: any, res: any) {
         data: {
             userId: user.id,
             nip05Id: newNip05.id,
-            amount: 21,
-            paid: false,
-            payment_hash: newInvoice.payment_hash,
-            lnurl: newInvoice.payment_request,
-            status: "pending",
+            amount: nip05Amount,
+            paid: nip05Amount === 0, // Mark as paid if free (premium user)
+            payment_hash: newInvoice?.payment_hash || "free-premium-nip05",
+            lnurl: newInvoice?.payment_request || "free-premium-nip05",
+            status: nip05Amount === 0 ? "completed" : "pending",
         }
     })
 
