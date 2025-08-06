@@ -1,14 +1,57 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
-/*
-@layer base {
-  @font-face {
-    font-family: 'roboto';
-    font-weight: 100;
-    font-display: swap;
-    font-style: normal;
-  }
+@plugin "daisyui" {
+    themes: light, dark;
+};
+
+
+@plugin "daisyui/theme" {
+    name: "light";
+    default: false;
+    prefersdark: false;
+    color-scheme: "light";
+    --radius-selector: 0.5rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.5rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+    --rounded-btn: 0.1rem;
+    --rounded-badge: 1.9rem;
+    --animation-btn: 0.2s;
+    --animation-input: 0.2s;
+    --btn-case-text: uppercase;
+    --border-btn: 1px;
+    --tab-border: 1px;
+    --tab-radius: 0.5rem;
+    
 }
-*/
+
+@plugin "daisyui/theme" {
+    name: "dark";
+    default: true;
+    color-scheme: "dark";
+    --radius-selector: 0.5rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.5rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+    --rounded-btn: 0.1rem;
+    --rounded-badge: 1.9rem;
+    --animation-btn: 0.2s;
+    --animation-input: 0.2s;
+    --btn-case-text: uppercase;
+    --border-btn: 1px;
+    --tab-border: 1px;
+    --tab-radius: 0.5rem;
+    
+}
+
+
+
+@config '../tailwind.config.js';

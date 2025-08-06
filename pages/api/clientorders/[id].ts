@@ -1,5 +1,6 @@
 import LNBits from 'lnbits'
 import prisma from '../../../lib/prisma'
+import { recordPlanChange } from '../../../lib/planChangeTracking'
 
 export default async function handle(req: any, res: any) {
     const clientOrderId = req.query.id;
@@ -64,6 +65,20 @@ export default async function handle(req: any, res: any) {
                 paid_at: new Date(),
             }
         })
+
+        // Record plan change for accurate billing calculations
+        try {
+            await recordPlanChange(
+                clientOrder.relayId,
+                clientOrder.pubkey,
+                clientOrder.order_type,
+                clientOrder.amount,
+                clientOrder.id
+            );
+        } catch (error) {
+            console.error('Failed to record plan change:', error);
+            // Don't fail the payment processing if plan tracking fails
+        }
 
         if (clientOrder.relay.allow_list == null) {
             res.status(500).json({ "error": "no allow list" })

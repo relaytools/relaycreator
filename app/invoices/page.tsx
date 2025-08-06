@@ -15,19 +15,20 @@ import ServerStatus from "./serverStatus"
 // user should not be 'verified' until payment is received.
 
 // payment page is the hub for server and client components here
-export default function PaymentPage(props: { params: Record<string, string> }) {
 
-    // server side validate some things:
-    // relayname
-    // pubkey
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export default async function PaymentPage(props: {
+    searchParams: SearchParams,
+}) {
+
+    const p = await props.searchParams
 
     return (
         <div>
             {/* @ts-expect-error Server Component */}
-            <ServerStatus pubkey={props.searchParams.pubkey} relayname={props.searchParams.relayname} order_id={props.searchParams.order_id}></ServerStatus>
+            <ServerStatus relayname={p.relayname} pubkey={p.pubkey} order_id={p.order_id}></ServerStatus>
         </div>
     )
-
-
 
 }

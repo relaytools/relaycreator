@@ -3,6 +3,8 @@ import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function ShowSmallSession(
     props: React.PropsWithChildren<{
@@ -39,6 +41,10 @@ export default function ShowSmallSession(
                 content: token,
             };
             let useMe = await (window as any).nostr.signEvent(signThis);
+            toast.success("Signing in...", {
+                position: "bottom-right",
+                autoClose: 2000,
+            });
             signIn("credentials", {
                 kind: useMe.kind,
                 created_at: useMe.created_at,
@@ -51,6 +57,10 @@ export default function ShowSmallSession(
             });
         } catch {
             console.log("error signing event");
+            toast.error("Failed to sign in. Please check your Nostr extension.", {
+                position: "bottom-right",
+                autoClose: 4000,
+            });
             setShowLoginHelp(true);
         }
     };
@@ -65,7 +75,7 @@ export default function ShowSmallSession(
     const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#";
 
     return (
-        <div className="mb-4 flex items-center justify-center">
+        <div className="mb-2 flex items-center justify-center">
             {showLoginHelp && (
                 <dialog
                     id="my_modal_5"
@@ -124,7 +134,7 @@ export default function ShowSmallSession(
                     onClick={(e) => doNip07Login(e)}
                     className="btn btn-primary uppercase ml-2"
                 >
-                    sign-in for mod actions
+                    sign-in
                     <Image
                         alt="nostr"
                         src="/nostr_logo_prpl_wht_rnd.svg"
@@ -135,10 +145,28 @@ export default function ShowSmallSession(
             </div>
             ) : (
                 <div className="badge badge-success" 
-                    onClick={() => signOut({ callbackUrl: "/#" })}>
+                    onClick={() => {
+                        toast.info("Signing out...", {
+                            position: "bottom-right",
+                            autoClose: 2000,
+                        });
+                        signOut({ callbackUrl: "/#" });
+                    }}>
                     you are signed in as a moderator
                 </div>
             )}
+            <ToastContainer
+                position="bottom-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="auto"
+            />
         </div>
     );
 }

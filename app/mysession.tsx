@@ -27,12 +27,14 @@ export default function ShowSession(
         // adding additional call to support new signing clients -- until we can get bugs fixed upstream
         // oct-20 update, attempting to re-enable one event sign-in
         try {
-            const thisPubkeyRes = await (window as any).nostr.getPublicKey();
+            // jun2025, trying the one key method again, the other signers with bugs are gone
+            // this allows us to only ask for one permission from the signer extension
+            //const thisPubkeyRes = await (window as any).nostr.getPublicKey();
             let signThis = {
                 kind: 27235,
                 created_at: Math.floor(Date.now() / 1000),
                 tags: [],
-                pubkey: thisPubkeyRes,
+                //pubkey: thisPubkeyRes,
                 content: token,
             };
             let useMe = await (window as any).nostr.signEvent(signThis);
@@ -154,7 +156,7 @@ export default function ShowSession(
                 <div className="flex-1">
                     <a
                         href={rootDomain + "/"}
-                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center max-h-40"
+                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-start max-h-40"
                     >
                         <Image
                             src="/17.svg"
@@ -171,7 +173,7 @@ export default function ShowSession(
                 <div className="flex-1">
                     <a
                         href={rootDomain + "/"}
-                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-center max-h-40"
+                        className="lg:text-5xl font-extrabold text-2xl flex items-center justify-start max-h-40"
                     >
                         <Image
                             src="/19.svg"
@@ -223,7 +225,7 @@ export default function ShowSession(
                                 tabIndex={0}
                                 className="btn uppercase cursor-pointer mask mask-squircle"
                             >
-                                <div className="rounded bg-white">
+                                <div className="rounded-sm bg-white">
                                     <Image
                                         src="/settings2-svgrepo-com.svg"
                                         alt="menu"
@@ -234,7 +236,7 @@ export default function ShowSession(
                             </label>
                             <ul
                                 tabIndex={0}
-                                className="menu menu-lg dropdown-content mt-3 p-2 shadow bg-base-200 font-bold rounded-box w-52 z-[1]"
+                                className="menu menu-lg dropdown-content mt-3 p-2 shadow-sm bg-base-200 font-bold rounded-box w-52 z-1"
                             >
                                 <li>
                                     <a href={rootDomain + "/"}>Faq</a>
@@ -306,12 +308,18 @@ export default function ShowSession(
                         </label>
                         <ul
                             tabIndex={0}
-                            className="menu menu-lg dropdown-content mt-3 p-2 shadow-lg bg-base-100 font-bold rounded-box w-52 z-[50]"
+                            className="menu menu-lg dropdown-content mt-3 p-2 shadow-lg bg-base-100 font-bold rounded-box w-52 z-50"
                         >
                             <li>
-                                <a href={rootDomain + "/?myrelays=true"}>
+                                <a href={rootDomain + "/relays/myrelays"}>
                                     My Relays
                                 </a>
+                            </li>
+                            <li>
+                                <a href={rootDomain + "/clientinvoices"}>Subscriptions</a>
+                            </li>
+                            <li>
+                                <a href={rootDomain + "/nip05"}>NIP-05 Identity</a>
                             </li>
                             <li>
                                 <a href={rootDomain + "/invoices"}>Invoices</a>

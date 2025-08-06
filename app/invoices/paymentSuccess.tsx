@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import ZapAnimation from '../lightningsuccess/lightning'
+import TextStringWaitingForPayment from '../components/textStringWaitingForPayment';
 
 export default function PaymentSuccess(props: React.PropsWithChildren<{
     signed_in: boolean;
@@ -30,7 +31,10 @@ export default function PaymentSuccess(props: React.PropsWithChildren<{
         <>
             {status && props.signed_in && <div>success<ZapAnimation redirect_to={`/curator?relay_id=${props.relay_id}`}></ZapAnimation></div>}
             {status && !props.signed_in && <div>success<ZapAnimation redirect_to={`/curator?relay_id=${props.relay_id}`}></ZapAnimation></div>}
-            {!status && <div>waiting</div>}
+
+            {!status && <div> 
+                <TextStringWaitingForPayment />
+            </div>}
         </>
     )
 }
