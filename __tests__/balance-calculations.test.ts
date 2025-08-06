@@ -27,8 +27,55 @@ describe('Balance Calculations with Plan Changes', () => {
   })
 
   beforeEach(async () => {
+    // Clean up any existing test data first
+    await prisma.relayPlanChange.deleteMany({
+      where: { 
+        relay: {
+          name: { startsWith: 'test_relay_' }
+        }
+      }
+    })
+    await prisma.order.deleteMany({
+      where: { 
+        relay: {
+          name: { startsWith: 'test_relay_' }
+        }
+      }
+    })
+    await prisma.clientOrder.deleteMany({
+      where: { 
+        relay: {
+          name: { startsWith: 'test_relay_' }
+        }
+      }
+    })
+    await prisma.allowList.deleteMany({
+      where: { 
+        relay: {
+          name: { startsWith: 'test_relay_' }
+        }
+      }
+    })
+    await prisma.blockList.deleteMany({
+      where: { 
+        relay: {
+          name: { startsWith: 'test_relay_' }
+        }
+      }
+    })
+    await prisma.relay.deleteMany({
+      where: {
+        name: { startsWith: 'test_relay_' }
+      }
+    })
+    await prisma.user.deleteMany({
+      where: {
+        pubkey: { startsWith: '7a0c885e1fdc340b0fe8f69b8edcabc171cb41423040d7a32228f23221bd89d' }
+      }
+    })
+    
     // Create fresh test data for each test
-    testPubkey = '7a0c885e1fdc340b0fe8f69b8edcabc171cb41423040d7a32228f23221bd89d7'
+    testPubkey = `7a0c885e1fdc340b0fe8f69b8edcabc171cb41423040d7a32228f23221bd89d${Date.now().toString().slice(-1)}`
     
     testUser = await prisma.user.create({
       data: {
@@ -36,12 +83,15 @@ describe('Balance Calculations with Plan Changes', () => {
       }
     })
 
+    // Create relay with creation date 1 day ago for testing negative balances
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
     testRelay = await prisma.relay.create({
       data: {
         name: `test_relay_${Date.now()}`,
         ownerId: testUser.id,
         payment_amount: 21,
-        payment_premium_amount: 2100
+        payment_premium_amount: 2100,
+        created_at: oneDayAgo
       }
     })
   })
@@ -61,6 +111,9 @@ describe('Balance Calculations with Plan Changes', () => {
       where: { relayId: testRelay?.id }
     })
     await prisma.order.deleteMany({
+      where: { relayId: testRelay?.id }
+    })
+    await prisma.clientOrder.deleteMany({
       where: { relayId: testRelay?.id }
     })
     await prisma.allowList.deleteMany({
@@ -446,10 +499,107 @@ describe('Balance Calculations with Plan Changes', () => {
     })
   })
 
+  describe('Bug Reproduction', () => {
+    test('should calculate correct balance with 7 Orders and 1 ClientOrder, no RelayPlanChanges', async () => {
+      // Reproduce bug: 7 paid Orders + 1 ClientOrder, no RelayPlanChanges
+      // This should test the fallback balance calculation logic
+      
+      const now = new Date()
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const twentyDaysAgo = new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000)
+      const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
+      const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000)
+      
+      // Create 7 paid Orders with various amounts and dates
+      const orders = [
+        { amount: 1000, order_type: 'standard', paid_at: thirtyDaysAgo, hash: 'hash_1' },
+        { amount: 2100, order_type: 'premium', paid_at: twentyDaysAgo, hash: 'hash_2' },
+        { amount: 500, order_type: 'custom', paid_at: twentyDaysAgo, hash: 'hash_3' },
+        { amount: 1000, order_type: 'standard', paid_at: tenDaysAgo, hash: 'hash_4' },
+        { amount: 3000, order_type: 'custom', paid_at: tenDaysAgo, hash: 'hash_5' },
+        { amount: 2100, order_type: 'premium', paid_at: fiveDaysAgo, hash: 'hash_6' },
+        { amount: 750, order_type: 'custom', paid_at: fiveDaysAgo, hash: 'hash_7' }
+      ]
+      
+      for (const orderData of orders) {
+        await prisma.order.create({
+          data: {
+            relayId: testRelay.id,
+            userId: testUser.id,
+            status: 'paid',
+            paid: true,
+            paid_at: orderData.paid_at,
+            payment_hash: orderData.hash,
+            lnurl: `test_lnurl_${orderData.hash}`,
+            amount: orderData.amount,
+            order_type: orderData.order_type
+          }
+        })
+      }
+      
+      // Create 1 ClientOrder
+      await prisma.clientOrder.create({
+        data: {
+          relayId: testRelay.id,
+          pubkey: 'test_client_pubkey',
+          paid: true,
+          paid_at: tenDaysAgo,
+          payment_hash: 'client_hash_1',
+          lnurl: 'client_lnurl_1',
+          amount: 21,
+          order_type: 'standard'
+        }
+      })
+      
+      // Verify no RelayPlanChanges exist
+      const planChanges = await getRelayPlanHistory(testRelay.id)
+      expect(planChanges).toHaveLength(0)
+      
+      // Calculate expected totals
+      const totalOrderPayments = 1000 + 2100 + 500 + 1000 + 3000 + 2100 + 750 // = 10,450
+      const totalClientPayments = 21
+      const totalPayments = totalOrderPayments + totalClientPayments // = 10,471
+      
+      console.log(`Expected total payments: ${totalPayments} sats`)
+      console.log(`Order payments: ${totalOrderPayments} sats`)
+      console.log(`Client payments: ${totalClientPayments} sats`)
+      
+      // Calculate balance using the function that should handle fallback logic
+      const balance = await calculateRelayTimeBasedBalance(testRelay.id)
+      
+      console.log(`Calculated balance: ${balance} sats`)
+      
+      // The balance calculation should account for:
+      // 1. Total payments received
+      // 2. Cost accrued over time since relay creation
+      // 3. Should use fallback logic since no RelayPlanChanges exist
+      
+      // For debugging: let's also check what the relay creation date is
+      const relay = await prisma.relay.findUnique({
+        where: { id: testRelay.id },
+        select: { created_at: true }
+      })
+      
+      if (relay?.created_at) {
+        const daysRunning = Math.floor((now.getTime() - relay.created_at.getTime()) / (1000 * 60 * 60 * 24))
+        console.log(`Relay has been running for ${daysRunning} days`)
+        console.log(`Relay created at: ${relay.created_at}`)
+      }
+      
+      // The test should help identify what the actual vs expected balance is
+      expect(balance).toBeDefined()
+      expect(typeof balance).toBe('number')
+      
+      // Add your expected balance assertion here once you determine what it should be
+      // For now, just log the values to see what's happening
+    })
+  })
+
   describe('Edge Cases and Error Handling', () => {
     test('should handle relay with no orders', async () => {
       const balance = await calculateRelayTimeBasedBalance(testRelay.id)
-      expect(balance).toBeNull() // Function returns null when no plan history exists
+      expect(balance).toBeLessThan(0) // Unpaid relay should have negative balance based on time running
+      expect(typeof balance).toBe('number') // Should return a number, not null
 
       const currentPlan = await getCurrentRelayPlan(testRelay.id)
       expect(currentPlan).toBeNull()
@@ -476,7 +626,8 @@ describe('Balance Calculations with Plan Changes', () => {
 
       // Should not affect balance or plan
       const balance = await calculateRelayTimeBasedBalance(testRelay.id)
-      expect(balance).toBeNull() // No paid orders means no plan history
+      expect(balance).toBeLessThan(0) // Unpaid relay should have negative balance
+      expect(typeof balance).toBe('number') // Should return a number, not null
 
       const currentPlan = await getCurrentRelayPlan(testRelay.id)
       expect(currentPlan).toBeNull()
