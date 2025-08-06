@@ -96,7 +96,7 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
   if (planHistory.length === 0) {
     console.log('No plan history found, trying fallback calculation');
     
-    // Fallback: Use both client orders and relay orders to estimate balance
+    // Fallback: Use only client orders for client balance calculation
     const clientOrders = await prisma.clientOrder.findMany({
       where: {
         relayId,
@@ -108,21 +108,10 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       }
     });
     
-    const relayOrders = await prisma.order.findMany({
-      where: {
-        relayId,
-        paid: true
-      },
-      orderBy: {
-        paid_at: 'asc'
-      }
-    });
+    const totalPaidFromOrders = clientOrders.reduce((sum, order) => sum + order.amount, 0);
     
-    const totalPaidFromOrders = clientOrders.reduce((sum, order) => sum + order.amount, 0) + 
-                               relayOrders.reduce((sum, order) => sum + order.amount, 0);
-    
-    if (clientOrders.length === 0 && relayOrders.length === 0) {
-      console.log('No client orders or relay orders found, calculating negative balance since relay creation');
+    if (clientOrders.length === 0) {
+      console.log('No client orders found, calculating negative balance since relay creation');
       
       // Get relay creation date and payment amounts
       const relay = await prisma.relay.findUnique({
@@ -182,9 +171,6 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
     for (const order of clientOrders) {
       totalPaid += order.amount;
     }
-    for (const order of relayOrders) {
-      totalPaid += order.amount;
-    }
     
     // Calculate total cost since relay creation
     const now = new Date();
@@ -193,8 +179,8 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
     // Determine the plan type from the most recent order to calculate daily cost
     let dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000') / 30; // Default to standard
     
-    // Find the most recent order to determine current plan type
-    const allOrders = [...clientOrders, ...relayOrders].sort((a, b) => 
+    // Find the most recent client order to determine current plan type
+    const allOrders = [...clientOrders].sort((a, b) => 
       new Date(b.paid_at!).getTime() - new Date(a.paid_at!).getTime()
     );
     
