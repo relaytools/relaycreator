@@ -6,7 +6,7 @@ import prisma from "../../lib/prisma";
 import ZapAnimation from "../lightningsuccess/lightning";
 import Balances from "./balances";
 import AdminInvoices from "./adminInvoices";
-import { calculateTimeBasedBalance } from "../../lib/planChangeTracking";
+import { calculateRelayTimeBasedBalance } from "../../lib/relayPlanChangeTracking";
 
 export const dynamic = "force-dynamic";
 
@@ -129,8 +129,8 @@ export default async function ServerStatus(props: {
                     0
                 );
 
-                // Use the unified balance calculation system
-                const balance = await calculateTimeBasedBalance(relay.id, relay.owner.pubkey);
+                // Use the relay-focused balance calculation system
+                const balance = await calculateRelayTimeBasedBalance(relay.id, clientOrderAmount);
                 
                 // Debug logging for unified balance calculation
                 console.log(`[${relay.name}] Unified balance calculation - Total paid: ${totalAmount}, Client revenue: ${clientOrderAmount}, Final balance: ${balance}`);
