@@ -28,18 +28,22 @@ describe('Custom Payment Plan Change Bug Fix', () => {
 
   afterAll(async () => {
     // Clean up test data
-    await prisma.relayPlanChange.deleteMany({
-      where: { relayId: testRelay.id }
-    });
-    await prisma.order.deleteMany({
-      where: { relayId: testRelay.id }
-    });
-    await prisma.relay.delete({
-      where: { id: testRelay.id }
-    });
-    await prisma.user.delete({
-      where: { id: testUser.id }
-    });
+    try {
+      await prisma.relayPlanChange.deleteMany({
+        where: { relayId: testRelay.id }
+      });
+      await prisma.order.deleteMany({
+        where: { relayId: testRelay.id }
+      });
+      await prisma.relay.delete({
+        where: { id: testRelay.id }
+      });
+      await prisma.user.delete({
+        where: { id: testUser.id }
+      });
+    } catch (error) {
+      // Ignore cleanup errors - records may not exist
+    }
   });
 
   it('should create plan change for standard payment amount', async () => {

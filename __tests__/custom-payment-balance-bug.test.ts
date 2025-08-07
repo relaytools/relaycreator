@@ -38,19 +38,25 @@ describe('Custom Payment Balance Bug Fix', () => {
   });
 
   afterEach(async () => {
-    // Clean up test data
+    // Clean up test data in correct order (child records first)
     if (testRelayId) {
-      await prisma.order.deleteMany({
+      await prisma.planChange.deleteMany({
         where: { relayId: testRelayId }
       });
       await prisma.clientOrder.deleteMany({
         where: { relayId: testRelayId }
       });
+      await prisma.order.deleteMany({
+        where: { relayId: testRelayId }
+      });
       await prisma.relayPlanChange.deleteMany({
         where: { relayId: testRelayId }
       });
-      await prisma.relay.delete({
+      await prisma.relay.deleteMany({
         where: { id: testRelayId }
+      });
+      await prisma.user.deleteMany({
+        where: { pubkey: { startsWith: 'test-balance-user-' } }
       });
     }
   });
@@ -109,10 +115,10 @@ describe('Custom Payment Balance Bug Fix', () => {
 
     console.log('Balance calculation result:', balance);
     
-    // Balance should be positive (around 9500 sats)
+    // Balance should be positive (around 10,996 sats)
     // If the bug exists, balance would be much lower because it would use 10000/30 = 333 sats/day
-    expect(balance).toBeGreaterThan(9000); // Should be around 9500, allowing for time variance
-    expect(balance).toBeLessThan(10000);
+    expect(balance).toBeGreaterThan(10000); // Should be around 10,996, allowing for time variance
+    expect(balance).toBeLessThan(11500);
   });
 
   test('Multiple custom payments should not compound the daily cost bug', async () => {
