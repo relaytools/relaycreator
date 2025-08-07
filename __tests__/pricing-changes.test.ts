@@ -43,12 +43,15 @@ describe('Pricing Changes - Relay Invoices', () => {
     });
     testUserId = testUser.id;
 
-    // Create test relay
+    // Create test relay with specific pricing for the test
     await prisma.relay.create({
       data: {
         id: testRelayId,
         name: 'test-relay',
-        ownerId: testUserId
+        ownerId: testUserId,
+        // Set pricing to match test expectations (will be changed during test)
+        payment_amount: 50, // This test expects 50 sats pricing
+        payment_premium_amount: 2100 // Standard premium pricing
       }
     });
   });
@@ -213,12 +216,15 @@ describe('Pricing Changes - Client Subscriptions', () => {
     });
     relayOwnerId = relayOwner.id;
 
-    // Create test relay
+    // Create test relay with specific pricing for client subscription tests
     await prisma.relay.create({
       data: {
         id: testRelayId,
         name: 'test-relay',
-        ownerId: relayOwnerId
+        ownerId: relayOwnerId,
+        // Set pricing to match test expectations
+        payment_amount: 50, // Client tests expect 50 sats pricing  
+        payment_premium_amount: 2100 // Client tests expect 2100 sats premium (70 sats/day)
       }
     });
   });
