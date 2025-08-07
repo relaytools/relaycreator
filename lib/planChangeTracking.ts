@@ -217,18 +217,32 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
   const totalPaid = clientOrders.reduce((sum, order) => sum + order.amount, 0);
   let totalCostAccrued = 0;
   
-  // Calculate costs based on plan periods and current environment pricing
-  for (const period of planHistory) {
-    const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
-    const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+  // CRITICAL FIX: Calculate costs from first payment date to now, not just plan periods
+  if (clientOrders.length > 0) {
+    const sortedOrders = [...clientOrders]
+      .filter(order => order.paid_at)
+      .sort((a, b) => new Date(a.paid_at!).getTime() - new Date(b.paid_at!).getTime());
     
-    const dailyCost = period.plan_type === 'premium' 
-      ? premiumPrice / 30 
-      : standardPrice / 30;
-    
-    const costForPeriod = period.days_in_period * dailyCost;
-    
-    totalCostAccrued += costForPeriod;
+    if (sortedOrders.length > 0) {
+      const firstPaymentDate = new Date(sortedOrders[0].paid_at!);
+      const now = new Date();
+      const totalDaysSinceFirstPayment = (now.getTime() - firstPaymentDate.getTime()) / (1000 * 60 * 60 * 24);
+      
+      // Determine plan type from most recent plan order or default to standard
+      const planOrders = sortedOrders.filter(order => 
+        order.order_type === 'standard' || order.order_type === 'premium'
+      );
+      
+      const isCurrentlyPremium = planOrders.length > 0 && 
+        planOrders[planOrders.length - 1].order_type === 'premium';
+      
+      const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
+      const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+      
+      const dailyCost = isCurrentlyPremium ? premiumPrice / 30 : standardPrice / 30;
+      
+      totalCostAccrued = totalDaysSinceFirstPayment * dailyCost;
+    }
   }
   
   const balance = totalPaid - totalCostAccrued;

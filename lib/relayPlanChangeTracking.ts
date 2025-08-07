@@ -108,24 +108,25 @@ export async function calculateRelayTimeBasedBalance(relayId: string) {
   const now = new Date();
   let totalCostAccrued = 0;
 
-  // Calculate costs based on plan periods and current environment pricing
-  for (const planPeriod of planHistory) {
-    const periodStart = planPeriod.started_at;
-    const periodEnd = planPeriod.ended_at || now;
+  // CRITICAL FIX: Calculate costs from relay creation date, not just plan periods
+  const relay = await prisma.relay.findUnique({
+    where: { id: relayId },
+    select: { created_at: true }
+  });
+  
+  if (relay?.created_at) {
+    const totalDaysSinceCreation = (now.getTime() - relay.created_at.getTime()) / (1000 * 60 * 60 * 24);
     
-    // Calculate days in this plan period
-    const daysInPeriod = (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
+    // Determine plan type from most recent plan change or default to standard
+    const mostRecentPlan = planHistory.length > 0 ? planHistory[planHistory.length - 1] : null;
+    const isCurrentlyPremium = mostRecentPlan?.plan_type === 'premium';
     
-    // Use current environment variable pricing for daily cost calculation
     const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
     const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
     
-    const dailyCostForPeriod = planPeriod.plan_type === 'premium' 
-      ? premiumPrice / 30 
-      : standardPrice / 30;
-      
-    const costForPeriod = daysInPeriod * dailyCostForPeriod;
-    totalCostAccrued += costForPeriod;
+    const dailyCost = isCurrentlyPremium ? premiumPrice / 30 : standardPrice / 30;
+    
+    totalCostAccrued = totalDaysSinceCreation * dailyCost;
   }
 
   // Balance = Total paid by relay owner - accrued costs
