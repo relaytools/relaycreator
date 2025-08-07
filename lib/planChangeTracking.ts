@@ -154,8 +154,18 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
     const isCurrentlyPremium = planOrders.length > 0 && 
       planOrders[planOrders.length - 1].order_type === 'premium';
     
-    const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
-    const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+    // CRITICAL FIX: Use relay-specific pricing, not global environment variables
+    const relay = await prisma.relay.findUnique({
+      where: { id: relayId },
+      select: { payment_amount: true, payment_premium_amount: true }
+    });
+    
+    if (!relay) {
+      throw new Error(`Relay not found: ${relayId}`);
+    }
+    
+    const standardPrice = relay.payment_amount;
+    const premiumPrice = relay.payment_premium_amount;
     
     const dailyCost = isCurrentlyPremium ? premiumPrice / 30 : standardPrice / 30;
     
@@ -198,8 +208,18 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       const isCurrentlyPremium = planOrders.length > 0 && 
         planOrders[planOrders.length - 1].order_type === 'premium';
       
-      const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
-      const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+      // CRITICAL FIX: Use relay-specific pricing, not global environment variables
+      const relay = await prisma.relay.findUnique({
+        where: { id: relayId },
+        select: { payment_amount: true, payment_premium_amount: true }
+      });
+      
+      if (!relay) {
+        throw new Error(`Relay not found: ${relayId}`);
+      }
+      
+      const standardPrice = relay.payment_amount;
+      const premiumPrice = relay.payment_premium_amount;
       
       const dailyCost = isCurrentlyPremium ? premiumPrice / 30 : standardPrice / 30;
       
