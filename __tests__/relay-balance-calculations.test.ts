@@ -68,7 +68,7 @@ describe('Relay Owner Balance Calculations', () => {
       }
     } catch (error) {
       // Ignore cleanup errors - records may already be deleted
-      console.log('Cleanup error (ignored):', error.message);
+      console.log('Cleanup error (ignored):', error instanceof Error ? error.message : String(error));
     }
   });
 
