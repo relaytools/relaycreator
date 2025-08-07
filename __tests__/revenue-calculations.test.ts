@@ -104,7 +104,7 @@ describe('Combined Revenue Calculations (Client + Relay Orders)', () => {
 
     // Calculate unified balance using the same logic as serverStatus.tsx
     const clientOrderAmount = paidClientOrders.reduce((sum, order) => sum + order.amount, 0)
-    const balance = await calculateRelayTimeBasedBalance(relay.id, clientOrderAmount)
+    const balance = await calculateRelayTimeBasedBalance(relay.id)
 
     return {
       relayId: relay.id,
