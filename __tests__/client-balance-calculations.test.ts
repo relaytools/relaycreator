@@ -301,7 +301,7 @@ describe('Client Balance Calculations', () => {
       expect(balance).toBe(0);
     });
 
-    test('should calculate correct balance with payment coverage logic', async () => {
+    test('should calculate correct balance with daily cost logic', async () => {
       const now = new Date();
       const paymentDate = new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000); // 45 days ago
 
@@ -321,16 +321,15 @@ describe('Client Balance Calculations', () => {
 
       const balance = await calculateTimeBasedBalance(testRelayId, testPubkey);
       
-      // Standard payment gives 30 days coverage
-      // After 45 days, 15 days are uncovered
-      const uncoveredDays = 45 - 30;
-      const expectedCost = uncoveredDays * STANDARD_DAILY;
+      // Charge for ALL days since payment (45 days)
+      const totalDays = 45;
+      const expectedCost = totalDays * STANDARD_DAILY;
       const expectedBalance = STANDARD_PRICE - expectedCost;
       
       expect(balance).toBeCloseTo(expectedBalance, 2);
     });
 
-    test('should handle multiple payments with coverage logic', async () => {
+    test('should handle multiple payments with daily cost logic', async () => {
       const now = new Date();
       const payment1Date = new Date(now.getTime() - 50 * 24 * 60 * 60 * 1000); // 50 days ago
       const payment2Date = new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000); // 20 days ago
@@ -366,12 +365,10 @@ describe('Client Balance Calculations', () => {
       const balance = await calculateTimeBasedBalance(testRelayId, testPubkey);
       
       const totalPaid = STANDARD_PRICE + (STANDARD_PRICE / 2);
-      // Standard payment: 30 days coverage
-      // Custom payment: (500/1000) * 30 = 15 days coverage
-      // Total coverage: 45 days
-      // After 50 days: 5 uncovered days
-      const uncoveredDays = 50 - 45;
-      const expectedCost = uncoveredDays * STANDARD_DAILY;
+      // Charge for ALL days since first payment (50 days)
+      // Since there's a standard plan order, use standard pricing
+      const totalDays = 50;
+      const expectedCost = totalDays * STANDARD_DAILY;
       const expectedBalance = totalPaid - expectedCost;
       
       expect(balance).toBeCloseTo(expectedBalance, 2);
@@ -413,10 +410,10 @@ describe('Client Balance Calculations', () => {
       const balance = await calculateTimeBasedBalance(testRelayId, testPubkey);
       
       const totalPaid = STANDARD_PRICE + PREMIUM_PRICE;
-      // Total coverage: 30 + 30 = 60 days
-      // After 40 days: no uncovered days yet
-      const uncoveredDays = Math.max(0, 40 - 60);
-      const expectedCost = uncoveredDays * PREMIUM_DAILY; // Uses premium pricing for uncovered days
+      // Charge for ALL days since first payment (40 days)
+      // Since most recent plan order is premium, use premium pricing
+      const totalDays = 40;
+      const expectedCost = totalDays * PREMIUM_DAILY;
       const expectedBalance = totalPaid - expectedCost;
       
       expect(balance).toBeCloseTo(expectedBalance, 2);
@@ -490,9 +487,9 @@ describe('Client Balance Calculations', () => {
 
       const balance = await calculateTimeBasedBalance(testRelayId, testPubkey);
       
-      // 30 days covered, 335 days uncovered
-      const uncoveredDays = 365 - 30;
-      const expectedCost = uncoveredDays * STANDARD_DAILY;
+      // Charge for ALL days since payment (365 days)
+      const totalDays = 365;
+      const expectedCost = totalDays * STANDARD_DAILY;
       const expectedBalance = STANDARD_PRICE - expectedCost;
       
       expect(balance).toBeCloseTo(expectedBalance, 2);
@@ -519,9 +516,10 @@ describe('Client Balance Calculations', () => {
 
       const balance = await calculateTimeBasedBalance(testRelayId, testPubkey);
       
-      // Custom payment coverage based on standard pricing: (500/1000) * 30 = 15 days
-      const uncoveredDays = 20 - 15;
-      const expectedCost = uncoveredDays * STANDARD_DAILY;
+      // Charge for ALL days since payment (20 days)
+      // Since no plan orders exist, defaults to standard pricing
+      const totalDays = 20;
+      const expectedCost = totalDays * STANDARD_DAILY;
       const expectedBalance = 500 - expectedCost;
       
       expect(balance).toBeCloseTo(expectedBalance, 2);
