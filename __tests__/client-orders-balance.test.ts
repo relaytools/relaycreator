@@ -68,6 +68,8 @@ describe('Client Orders Balance Calculations with Plan Changes', () => {
     // Delete in correct order to avoid foreign key constraints
     await prisma.planChange.deleteMany({})
     await prisma.clientOrder.deleteMany({})
+    await prisma.order.deleteMany({})
+    await prisma.relayPlanChange.deleteMany({})
     await prisma.relay.deleteMany({})
     await prisma.user.deleteMany({})
   }
