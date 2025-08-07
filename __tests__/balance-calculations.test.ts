@@ -22,12 +22,23 @@ describe('Balance Calculations with Plan Changes', () => {
   let testPubkey: string
 
   beforeAll(async () => {
+    // Set test environment variables to match test amounts
+    process.env.NEXT_PUBLIC_INVOICE_AMOUNT = '21';
+    process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT = '2100';
+    
     // Clean up any existing test data
     await cleanupTestData()
   })
 
   beforeEach(async () => {
     // Clean up any existing test data first
+    await prisma.clientOrder.deleteMany({
+      where: { 
+        relay: {
+          name: { startsWith: 'test_relay_' }
+        }
+      }
+    })
     await prisma.relayPlanChange.deleteMany({
       where: { 
         relay: {
@@ -36,13 +47,6 @@ describe('Balance Calculations with Plan Changes', () => {
       }
     })
     await prisma.order.deleteMany({
-      where: { 
-        relay: {
-          name: { startsWith: 'test_relay_' }
-        }
-      }
-    })
-    await prisma.clientOrder.deleteMany({
       where: { 
         relay: {
           name: { startsWith: 'test_relay_' }
@@ -106,31 +110,35 @@ describe('Balance Calculations with Plan Changes', () => {
   })
 
   async function cleanupTestData() {
-    // Delete in correct order to avoid foreign key constraints
-    await prisma.relayPlanChange.deleteMany({
-      where: { relayId: testRelay?.id }
-    })
-    await prisma.order.deleteMany({
-      where: { relayId: testRelay?.id }
-    })
-    await prisma.clientOrder.deleteMany({
-      where: { relayId: testRelay?.id }
-    })
-    await prisma.allowList.deleteMany({
-      where: { relayId: testRelay?.id }
-    })
-    await prisma.blockList.deleteMany({
-      where: { relayId: testRelay?.id }
-    })
-    if (testRelay) {
-      await prisma.relay.delete({
-        where: { id: testRelay.id }
-      })
-    }
-    if (testUser) {
-      await prisma.user.delete({
-        where: { id: testUser.id }
-      })
+    try {
+      // Delete in correct order to avoid foreign key constraints
+      if (testRelay?.id) {
+        await prisma.clientOrder.deleteMany({
+          where: { relayId: testRelay.id }
+        })
+        await prisma.relayPlanChange.deleteMany({
+          where: { relayId: testRelay.id }
+        })
+        await prisma.order.deleteMany({
+          where: { relayId: testRelay.id }
+        })
+        await prisma.allowList.deleteMany({
+          where: { relayId: testRelay.id }
+        })
+        await prisma.blockList.deleteMany({
+          where: { relayId: testRelay.id }
+        })
+        await prisma.relay.delete({
+          where: { id: testRelay.id }
+        })
+      }
+      if (testUser?.id) {
+        await prisma.user.delete({
+          where: { id: testUser.id }
+        })
+      }
+    } catch (error: any) {
+      // Ignore cleanup errors - records may not exist
     }
   }
 
@@ -214,11 +222,8 @@ describe('Balance Calculations with Plan Changes', () => {
         }
       })
 
-      // Record initial standard plan
-      await recordRelayPlanChange(testRelay.id, 'standard', 21, standardOrder.id)
-
-      // Wait a moment to ensure different timestamps
-      await new Promise(resolve => setTimeout(resolve, 10))
+      // Record initial standard plan (1 week ago)
+      await recordRelayPlanChange(testRelay.id, 'standard', 21, standardOrder.id, oneWeekAgo)
 
       // Create premium upgrade order (now)
       const premiumOrder = await prisma.order.create({
@@ -235,8 +240,8 @@ describe('Balance Calculations with Plan Changes', () => {
         }
       })
 
-      // Record premium upgrade
-      await recordRelayPlanChange(testRelay.id, 'premium', 2100, premiumOrder.id)
+      // Record premium upgrade (now)
+      await recordRelayPlanChange(testRelay.id, 'premium', 2100, premiumOrder.id, now)
 
       // Check plan history
       const history = await getRelayPlanHistory(testRelay.id)
