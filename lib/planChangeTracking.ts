@@ -126,13 +126,8 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       return 0;
     }
     
-    // CRITICAL FIX: Proper payment coverage calculation!
-    // Each payment gives coverage for a certain period, only charge for uncovered days
-    
-
-    
-    let totalPaid = 0;
-    let totalCoveredDays = 0;
+    // CRITICAL FIX: Simple daily cost calculation from first payment date
+    // Same logic as plan history path - charge for all days since first payment
     
     // Sort orders by payment date
     const sortedOrders = [...clientOrders]
@@ -140,65 +135,32 @@ export async function calculateTimeBasedBalance(relayId: string, pubkey: string)
       .sort((a, b) => new Date(a.paid_at!).getTime() - new Date(b.paid_at!).getTime());
     
     if (sortedOrders.length === 0) {
-
       return 0;
     }
     
-    // Calculate total paid and coverage days
-    for (const order of sortedOrders) {
-      totalPaid += order.amount;
-      
-      // Determine coverage days based on order type and amount
-      let coverageDays = 30; // Default to 30 days
-      
-      if (order.order_type === 'standard' || order.order_type === 'premium') {
-        // Standard and premium orders give 30 days coverage
-        coverageDays = 30;
-      } else {
-        // Custom orders: calculate coverage based on current pricing
-        const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
-        const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
-        
-        // Find most recent plan order to determine pricing tier
-        const planOrders = sortedOrders.filter(o => 
-          o.order_type === 'standard' || o.order_type === 'premium'
-        );
-        
-        const currentPlanPrice = planOrders.length > 0 && 
-          planOrders[planOrders.length - 1].order_type === 'premium' 
-          ? premiumPrice : standardPrice;
-        
-        // Custom payment coverage = (amount / monthly_price) * 30 days
-        coverageDays = (order.amount / currentPlanPrice) * 30;
-      }
-      
-      totalCoveredDays += coverageDays;
-    }
+    // Calculate total paid
+    const totalPaid = clientOrders.reduce((sum, order) => sum + order.amount, 0);
     
     // Calculate actual days since first payment
     const firstPaymentDate = new Date(sortedOrders[0].paid_at!);
     const now = new Date();
-    const actualDaysSinceFirstPayment = (now.getTime() - firstPaymentDate.getTime()) / (1000 * 60 * 60 * 24);
-    
-    // Calculate uncovered days (days beyond paid coverage)
-    const uncoveredDays = Math.max(0, actualDaysSinceFirstPayment - totalCoveredDays);
-    
-    // Calculate cost for uncovered days using current pricing
-    let dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000') / 30; // Default to standard
+    const totalDaysSinceFirstPayment = (now.getTime() - firstPaymentDate.getTime()) / (1000 * 60 * 60 * 24);
     
     // Determine current plan from most recent plan order
     const planOrders = sortedOrders.filter(order => 
       order.order_type === 'standard' || order.order_type === 'premium'
     );
     
-    if (planOrders.length > 0) {
-      const mostRecentPlanOrder = planOrders[planOrders.length - 1];
-      if (mostRecentPlanOrder.order_type === 'premium') {
-        dailyCost = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100') / 30;
-      }
-    }
+    const isCurrentlyPremium = planOrders.length > 0 && 
+      planOrders[planOrders.length - 1].order_type === 'premium';
     
-    const totalCostAccrued = uncoveredDays * dailyCost;
+    const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
+    const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+    
+    const dailyCost = isCurrentlyPremium ? premiumPrice / 30 : standardPrice / 30;
+    
+    // Calculate total cost for all days since first payment
+    const totalCostAccrued = totalDaysSinceFirstPayment * dailyCost;
     
     const fallbackBalance = totalPaid - totalCostAccrued;
 
