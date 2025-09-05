@@ -68,7 +68,7 @@ export default function Wizard(
     const [aclSourceUrl, setAclSourceUrl] = useState("");
     const [aclSourceType, setAclSourceType] = useState("brainstorm"); // can be "brainstorm" or "nip05"
     const [brainstormObserverPubkey, setBrainstormObserverPubkey] = useState<string>("");
-    const [brainstormBaseUrl, setBrainstormBaseUrl] = useState("https://cloudfodder.brainstorm.social/api/get-whitelist");
+    const [brainstormBaseUrl, setBrainstormBaseUrl] = useState("https://straycat.brainstorm.social/api/get-whitelist");
     const [showAdvancedBrainstorm, setShowAdvancedBrainstorm] = useState(false);
     
     // Handle session data and auto-fill user pubkey
@@ -1628,7 +1628,7 @@ export default function Wizard(
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    placeholder="https://cloudfodder.brainstorm.social/api/get-whitelist"
+                                                    placeholder="https://straycat.brainstorm.social/api/get-whitelist"
                                                     className="input input-bordered w-full"
                                                     value={brainstormBaseUrl}
                                                     onChange={(e) => setBrainstormBaseUrl(e.target.value)}
