@@ -93,6 +93,12 @@ export default async function RelayPage({
     const profileImage = relay.profile_image && relay.profile_image.trim() !== '' ?
         relay.profile_image : bannerImage;
 
+    let useRelayUrl = 'wss://' + relay.name + '.' + relay.domain
+
+    if(relay.is_external) {
+        useRelayUrl = 'wss://' + relay.domain
+    }
+
     return (
         <RelayPageClient relay={relay}>
             <div className="container mx-auto p-4">
@@ -130,7 +136,7 @@ export default async function RelayPage({
                                     <h1 className="text-2xl sm:text-3xl font-bold text-white text-center sm:text-left">{relay.name}</h1>
                                     <p className="text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1 text-white/90 mt-1">
                                         <FaGlobe className="text-primary" /> 
-                                        <span className="font-mono overflow-hidden text-ellipsis">{'wss://' + relay.name + '.' + relay.domain}</span>
+                                        <span className="font-mono overflow-hidden text-ellipsis">{useRelayUrl}</span>
                                     </p>
                                 </div>
                                 
@@ -246,10 +252,10 @@ export default async function RelayPage({
                             <div className="divider my-1"></div>
                             <div className="flex items-center justify-between bg-base-200 p-3 rounded-md">
                                 <div className="font-mono text-xs break-all">
-                                    {'wss://' + relay.name + '.' + relay.domain}
+                                    {useRelayUrl}
                                 </div>
                                 <CopyUrlButton 
-                                    url={'wss://' + relay.name + '.' + relay.domain} 
+                                    url={useRelayUrl} 
                                     className="btn btn-sm btn-ghost ml-2"
                                 />
                             </div>
@@ -258,7 +264,7 @@ export default async function RelayPage({
                                 <h3 className="text-sm font-medium mb-2">Recommended clients:</h3>
                                 <div className="flex flex-wrap gap-2">
                                     <a 
-                                        href={`https://jumble.social/?r=${encodeURIComponent('wss://' + relay.name + '.' + relay.domain)}`}
+                                        href={`https://jumble.social/?r=${encodeURIComponent(useRelayUrl)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="btn btn-xs btn-outline"
