@@ -335,7 +335,7 @@ frontend secured
 backend main
 	mode  		        http
 	option 		        redispatch
-	balance 	        roundrobin
+	balance 	        source
 	option forwardfor except 127.0.0.1 header x-real-ip
     ${app_servers_cfg}
 
