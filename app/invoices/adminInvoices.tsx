@@ -540,7 +540,7 @@ export default function AdminInvoices(props: any) {
                                         {b.orders.length > 0 && (
                                             <div>
                                                 <h4 className="font-medium text-success mb-2">Paid Orders ({b.orders.length})</h4>
-                                                {b.orders.slice(0, 5).map((order: any) => (
+                                                {b.orders.map((order: any) => (
                                                     <div key={order.id + "colkey"} className="card bg-base-100 shadow-sm mb-2">
                                                         <div className="card-body p-3">
                                                             <div className="flex justify-between items-center">
@@ -555,9 +555,6 @@ export default function AdminInvoices(props: any) {
                                                         </div>
                                                     </div>
                                                 ))}
-                                                {b.orders.length > 5 && (
-                                                    <div className="text-sm opacity-70 text-center">... and {b.orders.length - 5} more orders</div>
-                                                )}
                                             </div>
                                         )}
                                     </div>
