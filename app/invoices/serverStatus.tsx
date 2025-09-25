@@ -7,6 +7,8 @@ import ZapAnimation from "../lightningsuccess/lightning";
 import Balances from "./balances";
 import AdminInvoices from "./adminInvoices";
 import { calculateRelayTimeBasedBalance } from "../../lib/relayPlanChangeTracking";
+import { calculateTimeBasedBalance } from "../../lib/planChangeTracking";
+import { nip19 } from "nostr-tools";
 
 export const dynamic = "force-dynamic";
 
@@ -129,6 +131,49 @@ export default async function ServerStatus(props: {
                     0
                 );
 
+                // Group paid client orders by pubkey and compute outstanding balance per client
+                const clientGroupsMap = new Map<string, { pubkey: string, paidOrders: typeof paidClientOrders, totalPaid: number, balance: number | null }>();
+                const toHex = (key: string | null): string | null => {
+                    if (!key) return null;
+                    try {
+                        if (key.startsWith("npub")) {
+                            const decoded = nip19.decode(key);
+                            return typeof decoded.data === 'string' ? decoded.data : null;
+                        }
+                        return key;
+                    } catch {
+                        return null;
+                    }
+                };
+                for (const order of paidClientOrders) {
+                    const key = toHex(order.pubkey) || "unknown";
+                    if (!clientGroupsMap.has(key)) {
+                        clientGroupsMap.set(key, { pubkey: key, paidOrders: [], totalPaid: 0, balance: null });
+                    }
+                    const group = clientGroupsMap.get(key)!;
+                    group.paidOrders.push(order);
+                    group.totalPaid += order.amount;
+                }
+
+                // Compute balances per client using client-focused calculator
+                for (const [key, group] of clientGroupsMap.entries()) {
+                    try {
+                        // Only compute for real pubkeys
+                        const bal = key === 'unknown' ? 0 : await calculateTimeBasedBalance(relay.id, key);
+                        group.balance = bal;
+                    } catch (e) {
+                        console.warn(`[${relay.name}] Failed to calculate client balance for pubkey ${key}:`, e);
+                        group.balance = null;
+                    }
+                }
+                const clientOrderGroups = Array.from(clientGroupsMap.values()).sort((a, b) => {
+                    // Sort by most negative balance first, then by total paid desc
+                    const balA = a.balance ?? 0;
+                    const balB = b.balance ?? 0;
+                    if (balA !== balB) return balA - balB;
+                    return b.totalPaid - a.totalPaid;
+                });
+
                 // Use the relay-focused balance calculation system (relay owner payments only)
                 const balance = await calculateRelayTimeBasedBalance(relay.id);
                 
@@ -155,6 +200,7 @@ export default async function ServerStatus(props: {
                     clientOrderAmount: clientOrderAmount,
                     clientOrders: paidClientOrders,
                     unpaidClientOrders: unpaidClientOrders,
+                    clientOrderGroups,
                     banner_image: relay.banner_image,
                     profile_image: relay.profile_image,
                     RelayPlanChange: relay.RelayPlanChange,

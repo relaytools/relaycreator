@@ -2,6 +2,8 @@
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Bolt11Invoice from "../components/invoice";
+import BatchedProfileDisplay from "../components/batchedProfileDisplay";
+import { FaCopy, FaCheck } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
@@ -36,6 +38,8 @@ export default function Balances(
     const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<{[key: string]: string}>({});
     const [selectedPlanByRelay, setSelectedPlanByRelay] = useState<{[key: string]: string}>({});
+    const [expandedClients, setExpandedClients] = useState<{ [relayId: string]: Record<string, boolean> }>({});
+    const [copiedClientKey, setCopiedClientKey] = useState<string>("");
     let useAmount = "";
 
     // Function to get current plan from relay data
@@ -142,6 +146,49 @@ export default function Balances(
             ...prev,
             [relayId]: plan
         }));
+    };
+
+    // Toggle expanded state for a client's history within a relay
+    const toggleClientExpanded = (relayId: string, clientPubkey: string) => {
+        setExpandedClients(prev => {
+            const relayMap = prev[relayId] || {};
+            return {
+                ...prev,
+                [relayId]: {
+                    ...relayMap,
+                    [clientPubkey]: !relayMap[clientPubkey]
+                }
+            };
+        });
+    };
+
+    // Helpers to normalize pubkeys that may already be npub-encoded
+    const isNpub = (key: string) => typeof key === 'string' && key.startsWith('npub');
+    const toHexPubkey = (key: string | null | undefined): string | null => {
+        if (!key) return null;
+        try {
+            if (isNpub(key)) {
+                const decoded = nip19.decode(key);
+                if (decoded.type === 'npub' && typeof decoded.data === 'string') {
+                    return decoded.data;
+                }
+                // If decode returns bytes-like, handle gracefully
+                return typeof decoded.data === 'string' ? decoded.data : null;
+            }
+            // assume already hex
+            return key;
+        } catch {
+            return null;
+        }
+    };
+    const toNpubDisplay = (key: string | null | undefined): string => {
+        if (!key) return 'Unknown';
+        try {
+            if (isNpub(key)) return key;
+            return nip19.npubEncode(key);
+        } catch {
+            return 'Unknown';
+        }
     };
 
     return (
@@ -292,7 +339,7 @@ export default function Balances(
                                                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                                                 }`}
                                             >
-                                                Member Subscriptions
+                                                Member Subscriptions ({relay.clientOrderGroups?.length || 0})
                                             </button>
                                         </nav>
                                     </div>
@@ -308,9 +355,9 @@ export default function Balances(
                                                 <p className="text-slate-600 dark:text-slate-400 mb-4">
                                                     Create an invoice to add funds to your relay balance
                                                 </p>
-                                                <div className="flex gap-2">
+                                                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                                                     <select
-                                                        className="select select-primary"
+                                                        className="select select-primary w-full sm:w-auto"
                                                         value={getSelectedPlan(relay)}
                                                         onChange={event => setSelectedPlan(relay.relayId, event.target.value)}
                                                     >
@@ -320,7 +367,7 @@ export default function Balances(
                                                     <input
                                                         type="text"
                                                         name="satsamount"
-                                                        className="input input-primary flex-1"
+                                                        className="input input-primary w-full sm:flex-1"
                                                         placeholder={(() => {
                                                             // Get selected plan from dropdown (reactive to changes)
                                                             const selectedPlan = getSelectedPlan(relay);
@@ -343,9 +390,9 @@ export default function Balances(
                                                         })()}
                                                         onChange={event => {useAmount = event.target.value}}
                                                     />
-                                                    <span className="flex items-center text-sm text-slate-600 dark:text-slate-400 px-2">sats</span>
+                                                    <span className="hidden sm:flex items-center text-sm text-slate-600 dark:text-slate-400 px-2">sats</span>
                                                     <button
-                                                        className="btn btn-primary"
+                                                        className="btn btn-primary w-full sm:w-auto"
                                                         onClick={() => getTopUpInvoice(relay, getSelectedPlan(relay))}
                                                     >
                                                         Create Invoice
@@ -429,92 +476,149 @@ export default function Balances(
                                     {activeTabForRelay === 'client-orders' && (
                                         <div className="space-y-4">
                                             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                                                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">Subscription Payments</h3>
+                                                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">Member Subscriptions</h3>
                                                 <p className="text-green-700 dark:text-green-300 text-sm">
                                                     Total revenue from client subscriptions: <strong>{relay.clientOrderAmount} sats</strong>
                                                 </p>
+                                                <p className="text-slate-600 dark:text-slate-400 text-xs mt-1">
+                                                    {relay.clientOrderGroups?.length || 0} members. Click a member to view their paid order history.
+                                                </p>
                                             </div>
-                                            
-                                            {relay.unpaidClientOrders && relay.unpaidClientOrders.length > 0 && (
-                                                <div>
-                                                    <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-3">Pending Client Payments</h3>
-                                                    <div className="space-y-2">
-                                                        {relay.unpaidClientOrders.map((order: any) => (
-                                                            <div key={order.id} className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div>
-                                                                        <div className="font-medium text-yellow-800 dark:text-yellow-200">
-                                                                            {order.amount} sats - {order.order_type || 'Standard'} Plan
-                                                                        </div>
-                                                                        <div className="text-sm text-yellow-700 dark:text-yellow-300">
-                                                                            Client: {order.user?.pubkey ? nip19.npubEncode(order.user.pubkey).substring(0, 20) + '...' : 'Unknown'}
-                                                                        </div>
-                                                                        <div className="text-sm text-yellow-700 dark:text-yellow-300">
-                                                                            Expires: {order.expires_at ? new Date(order.expires_at).toLocaleString() : 'No expiration'}
-                                                                        </div>
+
+                                            {relay.clientOrderGroups && relay.clientOrderGroups.length > 0 ? (
+                                                <BatchedProfileDisplay
+                                                    pubkeys={Array.from(new Set(
+                                                        relay.clientOrderGroups
+                                                            .map((g: any) => toHexPubkey(g.pubkey))
+                                                            .filter((p: string | null) => !!p)
+                                                    )) as string[]}
+                                                >
+                                                    {(profiles, loading) => (
+                                                        <div className="space-y-3">
+                                                            {relay.clientOrderGroups.map((group: any) => {
+                                                                const originalKey = group.pubkey || 'unknown';
+                                                                const hexKey = toHexPubkey(originalKey);
+                                                                const prof = hexKey ? profiles.get(hexKey) : undefined;
+                                                                const displayName = (prof?.content as any)?.display_name || prof?.content?.name;
+                                                                const picture = prof?.content?.picture;
+                                                                const npub = toNpubDisplay(hexKey || null);
+                                                                const expansionKey = hexKey || originalKey; // fallback to original if decode failed
+                                                                const isExpanded = !!(expandedClients[relay.relayId]?.[expansionKey]);
+                                                                const balance = group.balance ?? 0;
+                                                                return (
+                                                                    <div key={`${relay.relayId}-${expansionKey}`} className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                                                        <button
+                                                                            className="w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                                                            onClick={() => toggleClientExpanded(relay.relayId, expansionKey)}
+                                                                        >
+                                                                            <div className="flex items-center gap-3 text-left min-w-0">
+                                                                                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 flex-shrink-0">
+                                                                                    {picture ? (
+                                                                                        <img src={picture} alt="avatar" className="w-full h-full object-cover" />
+                                                                                    ) : (
+                                                                                        <div className="w-full h-full" />
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="flex flex-col min-w-0">
+                                                                                    <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
+                                                                                        {displayName || (npub !== 'Unknown' ? `${npub.substring(0, 20)}...` : 'Unknown client')}
+                                                                                    </div>
+                                                                                    {npub !== 'Unknown' && (
+                                                                                        <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                                                                                            <span className="truncate">{npub}</span>
+                                                                                            <span
+                                                                                                role="button"
+                                                                                                tabIndex={0}
+                                                                                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1 rounded cursor-pointer"
+                                                                                                title="Copy npub"
+                                                                                                onClick={async (e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    try {
+                                                                                                        await navigator.clipboard.writeText(npub);
+                                                                                                        setCopiedClientKey(expansionKey);
+                                                                                                        setTimeout(() => setCopiedClientKey(""), 2000);
+                                                                                                    } catch (err) {
+                                                                                                        console.error("Failed to copy npub:", err);
+                                                                                                    }
+                                                                                                }}
+                                                                                                onKeyDown={async (e) => {
+                                                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                                                        e.stopPropagation();
+                                                                                                        try {
+                                                                                                            await navigator.clipboard.writeText(npub);
+                                                                                                            setCopiedClientKey(expansionKey);
+                                                                                                            setTimeout(() => setCopiedClientKey(""), 2000);
+                                                                                                        } catch (err) {
+                                                                                                            console.error("Failed to copy npub:", err);
+                                                                                                        }
+                                                                                                    }
+                                                                                                }}
+                                                                                            >
+                                                                                                {copiedClientKey === expansionKey ? (
+                                                                                                    <FaCheck className="w-3 h-3 text-green-500" />
+                                                                                                ) : (
+                                                                                                    <FaCopy className="w-3 h-3" />
+                                                                                                )}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                                <span className={`ml-3 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                                                    balance > 0 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                                                                    balance < 0 ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                                                                                    'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200'
+                                                                                }`}>
+                                                                                    Balance: {amountPrecision(balance)} sats
+                                                                                </span>
+                                                                            </div>
+                                                                            <svg className={`w-5 h-5 text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                                                        </button>
+                                                                        {isExpanded && (
+                                                                            <div className="bg-slate-50 dark:bg-slate-800/60">
+                                                                                <div className="overflow-x-auto">
+                                                                                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                                                                                        <thead className="bg-slate-100 dark:bg-slate-700/60">
+                                                                                            <tr>
+                                                                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
+                                                                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount</th>
+                                                                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
+                                                                                            </tr>
+                                                                                        </thead>
+                                                                                        <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                                                                                            {group.paidOrders.map((order: any) => (
+                                                                                                <tr key={order.id}>
+                                                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                                                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                                                                            order.order_type === 'premium' ? 
+                                                                                                            'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                                                                                                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                                                                        }`}>
+                                                                                                            {order.order_type || 'Standard'}
+                                                                                                        </span>
+                                                                                                    </td>
+                                                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
+                                                                                                        {amountPrecision(order.amount)} sats
+                                                                                                    </td>
+                                                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                                                                                        {order.paid_at ? new Date(order.paid_at).toLocaleString() : ''}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            ))}
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
-                                                                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                                                        Pending
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            
-                                            {relay.clientOrders && relay.clientOrders.length > 0 && (
-                                                <div>
-                                                    <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-3">Client Subscription History</h3>
-                                                    <div className="overflow-x-auto">
-                                                        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                                                            <thead className="bg-slate-50 dark:bg-slate-700">
-                                                                <tr>
-                                                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Client</th>
-                                                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
-                                                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount</th>
-                                                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-                                                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                                                                {relay.clientOrders.map((order: any) => (
-                                                                    <tr key={order.id}>
-                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-100">
-                                                                            {order.user?.pubkey ? nip19.npubEncode(order.user.pubkey).substring(0, 20) + '...' : 'Unknown'}
-                                                                        </td>
-                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                                                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                                                order.order_type === 'premium' ? 
-                                                                                'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                                                                                'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                                                            }`}>
-                                                                                {order.order_type || 'Standard'}
-                                                                            </span>
-                                                                        </td>
-                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
-                                                                            {amountPrecision(order.amount)} sats
-                                                                        </td>
-                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                                                                            {order.paid_at ? new Date(order.paid_at).toLocaleString() : 'Not paid'}
-                                                                        </td>
-                                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                                                                Paid
-                                                                            </span>
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            
-                                            {(!relay.clientOrders || relay.clientOrders.length === 0) && (!relay.unpaidClientOrders || relay.unpaidClientOrders.length === 0) && (
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </BatchedProfileDisplay>
+                                            ) : (
                                                 <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                                                     <p>No client subscriptions found</p>
-                                                    <p className="text-sm mt-2">When clients subscribe to your relay, their payment history will appear here</p>
+                                                    <p className="text-sm mt-2">When clients subscribe to your relay, they'll appear here grouped by pubkey</p>
                                                 </div>
                                             )}
                                         </div>
