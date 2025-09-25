@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { FaCopy, FaCheck } from "react-icons/fa";
 import { useSession } from "next-auth/react";
 import { nip19 } from "nostr-tools";
 import {
@@ -109,6 +110,7 @@ export default function PostsPage(
     const [profileSearch, setProfileSearch] = useState("");
     const [showProfileResults, setShowProfileResults] = useState(false);
     const [profileResults, setProfileResults] = useState<Profile[]>([]);
+    const [copiedField, setCopiedField] = useState<string>("");
 
     const relayLimit = 100;
     const transformToMultiSeriesData = (influxData: any) => {
@@ -1714,6 +1716,8 @@ export default function PostsPage(
                                         </div>
                                     </div>
 
+                                    
+
                                     {showPost.kind == 1 && (
                                         <div className="chat-bubble text-white selectable h-auto break-normal whitespace-pre-line">
                                             {showContentWithoutLinks4(
@@ -1863,6 +1867,41 @@ export default function PostsPage(
                                         disabled={replyPost == ""}
                                     >
                                         reply
+                                    </button>
+                                </div>
+
+                                {/* Simple copy action buttons (above mod actions) */}
+                                <div className="mt-2 flex flex-wrap gap-2 justify-center">
+                                    <button
+                                        className="btn uppercase"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            try {
+                                                const npub = (() => { try { return nip19.npubEncode(showPost!.pubkey); } catch { return showPost!.pubkey; } })();
+                                                await navigator.clipboard.writeText(npub);
+                                            } catch (err) { console.error('Failed to copy npub:', err); }
+                                        }}
+                                    >
+                                        copy pubkey
+                                    </button>
+                                    <button
+                                        className="btn uppercase"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            try {
+                                                const note = (() => {
+                                                    try {
+                                                        const relays = nrelaydata ? [nrelaydata] : undefined;
+                                                        return nip19.neventEncode({ id: showPost!.id, relays });
+                                                    } catch {
+                                                        return showPost!.id;
+                                                    }
+                                                })();
+                                                await navigator.clipboard.writeText(note);
+                                            } catch (err) { console.error('Failed to copy note id:', err); }
+                                        }}
+                                    >
+                                        copy event id
                                     </button>
                                 </div>
 
