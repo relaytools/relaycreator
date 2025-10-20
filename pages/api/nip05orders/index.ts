@@ -141,20 +141,6 @@ export default async function handle(req: any, res: any) {
         return
     }
 
-    if (!process.env.LNBITS_ADMIN_KEY || !process.env.LNBITS_INVOICE_READ_KEY || !process.env.LNBITS_ENDPOINT) {
-        console.log("ERROR: no LNBITS env vars")
-        res.status(500).json({ "error": "no LNBITS env vars" })
-        return
-    }
-
-    const { wallet } = LNBits({
-        adminKey: process.env.LNBITS_ADMIN_KEY,
-        invoiceReadKey: process.env.LNBITS_INVOICE_READ_KEY,
-        endpoint: process.env.LNBITS_ENDPOINT,
-    });
-
-    
-
     // Check if user has premium subscription to this relay
     const userClientOrders = await prisma.clientOrder.findMany({
         where: {
@@ -169,7 +155,8 @@ export default async function handle(req: any, res: any) {
     });
 
     // Determine if user has premium plan (free NIP-05) or needs to pay
-    let nip05Amount = targetRelay.nip05_payment_amount || 21;
+    // If nip05_payment_amount is 0 or null, bypass payments entirely
+    let nip05Amount = targetRelay.nip05_payment_amount ?? 0;
     const hasPremiumPlan = userClientOrders.length > 0 && userClientOrders[0].order_type === 'premium';
     
     if (hasPremiumPlan) {
@@ -178,6 +165,19 @@ export default async function handle(req: any, res: any) {
     
     let newInvoice = null;
     if (nip05Amount > 0) {
+        // Initialize LNBits only when payment is required
+        if (!process.env.LNBITS_ADMIN_KEY || !process.env.LNBITS_INVOICE_READ_KEY || !process.env.LNBITS_ENDPOINT) {
+            console.log("ERROR: no LNBITS env vars but payment is required")
+            res.status(500).json({ "error": "Payment system not configured" })
+            return
+        }
+
+        const { wallet } = LNBits({
+            adminKey: process.env.LNBITS_ADMIN_KEY,
+            invoiceReadKey: process.env.LNBITS_INVOICE_READ_KEY,
+            endpoint: process.env.LNBITS_ENDPOINT,
+        });
+
         // Create invoice only if payment is required
         newInvoice = await wallet.createInvoice({
             amount: nip05Amount,
