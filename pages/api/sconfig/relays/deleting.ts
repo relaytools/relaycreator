@@ -6,7 +6,6 @@ import prisma from '../../../../lib/prisma'
 // show all relays (as a flat list?)
 export default async function handle(req: any, res: any) {
 
-    // disable login for now (no sensitive info here anyway)
     const session = await getServerSession(req, res, authOptions)
     if (session) {
         // Signed in

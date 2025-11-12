@@ -13,11 +13,11 @@ import {
     FaSearch,
     FaNetworkWired,
 } from "react-icons/fa";
-import { RelayWithEverything } from "./relayWithEverything";
+import { RelayWithPublic } from "./relayWithPublic";
 import ShowSmallSession from "./smallsession";
 
 interface UserRelayStatusProps {
-    relay: RelayWithEverything;
+    relay: RelayWithPublic;
 }
 
 export default function UserRelayStatus({ relay }: UserRelayStatusProps) {

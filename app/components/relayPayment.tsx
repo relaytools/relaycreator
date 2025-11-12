@@ -1,5 +1,5 @@
 "use client";
-import { RelayWithEverything } from "./relayWithEverything";
+import { RelayWithPublic } from "./relayWithPublic";
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ShowClientOrder from "./showClientOrder";
@@ -9,7 +9,7 @@ import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
 
 export default function RelayPayment(
     props: React.PropsWithChildren<{
-        relay: RelayWithEverything;
+        relay: RelayWithPublic;
         pubkey: string;
     }>
 ) {

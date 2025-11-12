@@ -30,20 +30,6 @@ export default async function handle(req: any, res: any) {
       moderators: {
         include: { user: true },
       },
-      block_list: {
-        include: {
-          list_keywords: true,
-          list_pubkeys: true,
-          list_kinds: true,
-        },
-      },
-      allow_list: {
-        include: {
-          list_keywords: true,
-          list_pubkeys: true,
-          list_kinds: true,
-        },
-      },
     }
   })
 

@@ -1,6 +1,7 @@
 
 import prisma from '../../../lib/prisma'
 import { FaUser, FaShieldAlt, FaCheck, FaBan, FaGlobe, FaCalendarAlt, FaInfoCircle, FaLock, FaUnlock, FaChartLine, FaCrown, FaCog } from 'react-icons/fa'
+import { RelayWithPublic } from '../../components/relayWithPublic'
 import { RelayWithEverything } from '../../components/relayWithEverything'
 import DinosaurPosts from '../../components/dinosaurPosts'
 import ConnectionStats from '../../components/connectionStats'
@@ -10,6 +11,8 @@ import TeamProfilesWrapper from '../../components/teamProfilesWrapper'
 import CopyUrlButton from '../../components/copyUrlButton'
 import Terms from '../../components/terms'
 import RelayPageClient from './client'
+import { getServerSession } from "next-auth/next"
+import authOptions from "../../../pages/api/auth/[...nextauth]"
 // Using regular img tag instead of Next.js Image for more flexibility with external URLs
 
 export default async function RelayPage({
@@ -18,6 +21,13 @@ export default async function RelayPage({
     params: Promise<{ slug: string }>
 }) {
     const { slug } = await params;
+
+    const session = await getServerSession(authOptions)
+
+    var userPubkey:any
+    if (session && (session as any).user.name) {
+        userPubkey = (session as any).user.name.toLowerCase();
+    }
     
     // Fetch the relay details from the database
     const relay = await prisma.relay.findFirst({
@@ -39,13 +49,6 @@ export default async function RelayPage({
             moderators: {
                 include: { user: true },
             },
-            block_list: {
-                include: {
-                    list_keywords: true,
-                    list_pubkeys: true,
-                    list_kinds: true,
-                },
-            },
             allow_list: {
                 include: {
                     list_keywords: true,
@@ -55,7 +58,7 @@ export default async function RelayPage({
             },
             acl_sources: true,
         },
-    }) as RelayWithEverything | null;
+    }) as RelayWithPublic | null;
 
     if (!relay) {
         return (
@@ -66,6 +69,59 @@ export default async function RelayPage({
                 </p>
             </div>
         );
+    }
+
+    // Check if user is owner
+    const isOwner = relay.owner?.pubkey?.toLowerCase() === userPubkey;
+    
+    // Check if user is moderator
+    const isModerator = relay.moderators?.some(
+      mod => mod.user?.pubkey?.toLowerCase() === userPubkey
+    );
+
+    var showDetail = false
+    if(isOwner || isModerator) {
+        showDetail = true
+    }
+
+    var detailRelay
+    if(showDetail) {
+        detailRelay = await prisma.relay.findFirst({
+            where: {
+                name: slug,
+            },
+            include: {
+                owner: true,
+                streams: {
+                    select: {
+                        id: true,
+                        url: true,
+                        direction: true,
+                        internal: true,
+                        sync: true,
+                        status: true,
+                    },
+                },
+                moderators: {
+                    include: { user: true },
+                },
+                allow_list: {
+                    include: {
+                        list_keywords: true,
+                        list_pubkeys: true,
+                        list_kinds: true,
+                    },
+                },
+                block_list: {
+                    include: {
+                        list_keywords: true,
+                        list_pubkeys: true,
+                        list_kinds: true,
+                    },
+                },
+                acl_sources: true,
+            },
+        }) as RelayWithEverything | null;
     }
 
     // Format creation date nicely
@@ -100,58 +156,61 @@ export default async function RelayPage({
     }
 
     return (
-        <RelayPageClient relay={relay}>
+        <>
+            {showDetail && detailRelay && (
+                <RelayPageClient relay={detailRelay} />
+            )}
             <div className="container mx-auto p-4">
-                {/* Full-width banner with overlay */}
-                <div className="relative rounded-xl overflow-hidden mb-6">
-                    {/* Banner image - full width */}
-                    <div className="w-full h-40 sm:h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 relative overflow-hidden">
-                        {bannerImage && (
-                            <div className="absolute inset-0 w-full h-full">
-                                <img 
-                                    src={bannerImage} 
-                                    alt={`${relay.name} banner`}
-                                    className="w-full h-full object-cover opacity-50"
-                                />
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* Overlay content */}
-                    <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-base-300/90 to-transparent">
-                        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                            {/* Profile image */}
-                            <div className="relative sm:-mb-12 border-4 border-base-100 rounded-full overflow-hidden bg-base-100 w-20 h-20 sm:w-24 sm:h-24 mx-auto sm:mx-0">
-                                <ProfileImage 
-                                    imageUrl={profileImage} 
-                                    altText={`${relay.name} profile`} 
-                                    className="w-full h-full"
-                                />
+            {/* Full-width banner with overlay */}
+            <div className="relative rounded-xl overflow-hidden mb-6">
+                {/* Banner image - full width */}
+                <div className="w-full h-40 sm:h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 relative overflow-hidden">
+                    {bannerImage && (
+                        <div className="absolute inset-0 w-full h-full">
+                            <img 
+                                src={bannerImage} 
+                                alt={`${relay.name} banner`}
+                                className="w-full h-full object-cover opacity-50"
+                            />
+                        </div>
+                    )}
+                </div>
+                
+                {/* Overlay content */}
+                <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-base-300/90 to-transparent">
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                        {/* Profile image */}
+                        <div className="relative sm:-mb-12 border-4 border-base-100 rounded-full overflow-hidden bg-base-100 w-20 h-20 sm:w-24 sm:h-24 mx-auto sm:mx-0">
+                            <ProfileImage 
+                                imageUrl={profileImage} 
+                                altText={`${relay.name} profile`} 
+                                className="w-full h-full"
+                            />
+                        </div>
+                        
+                        {/* Relay info container - stacked on mobile, side by side on larger screens */}
+                        <div className="flex flex-col sm:flex-row w-full justify-between items-center sm:items-end mt-2 sm:mt-0">
+                            {/* Relay name and URL */}
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-bold text-white text-center sm:text-left">{relay.name}</h1>
+                                <p className="text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1 text-white/90 mt-1">
+                                    <FaGlobe className="text-primary" /> 
+                                    <span className="font-mono overflow-hidden text-ellipsis">{useRelayUrl}</span>
+                                </p>
                             </div>
                             
-                            {/* Relay info container - stacked on mobile, side by side on larger screens */}
-                            <div className="flex flex-col sm:flex-row w-full justify-between items-center sm:items-end mt-2 sm:mt-0">
-                                {/* Relay name and URL */}
-                                <div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-white text-center sm:text-left">{relay.name}</h1>
-                                    <p className="text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-1 text-white/90 mt-1">
-                                        <FaGlobe className="text-primary" /> 
-                                        <span className="font-mono overflow-hidden text-ellipsis">{useRelayUrl}</span>
-                                    </p>
-                                </div>
-                                
-                                {/* Badges */}
-                                <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-end mt-3 sm:mt-0">
-                                    {authBadge}
-                                    {woaBadge}
-                                    <span className="badge badge-neutral gap-1">
-                                        <FaCalendarAlt size={12} />est. {createdAt}
-                                    </span>
-                                </div>
+                            {/* Badges */}
+                            <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-end mt-3 sm:mt-0">
+                                {authBadge}
+                                {woaBadge}
+                                <span className="badge badge-neutral gap-1">
+                                    <FaCalendarAlt size={12} />est. {createdAt}
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
             
             {/* About section - adjust margin top for mobile */}
             <div className="card bg-base-100 shadow-xl mb-6 mt-8 sm:mt-12">
@@ -302,6 +361,6 @@ export default async function RelayPage({
                 </div>
             </div>
             </div>
-        </RelayPageClient>
+        </>
     )
 }
