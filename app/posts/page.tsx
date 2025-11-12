@@ -19,7 +19,7 @@ import NDK, {
     NDKPublishError,
 } from "@nostr-dev-kit/ndk";
 
-import { RelayWithEverything } from "../components/relayWithEverything";
+import { RelayWithPublic } from "../components/relayWithPublic";
 import RelayMenuBar from "../relays/relayMenuBar";
 import RelayPayment from "../components/relayPayment";
 import Terms from "../components/terms";
@@ -181,7 +181,7 @@ export default function PostsPage(
     };
 
     interface RelayData {
-        relay: RelayWithEverything;
+        relay: RelayWithPublic;
         publicRelays: [];
         // add other properties if needed
     }

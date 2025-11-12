@@ -35,8 +35,6 @@ export default async function Curator({
         )
     }
 
-    
-
     const relay = await prisma.relay.findFirst({
         where: {
             id: relay_id,
@@ -73,7 +71,6 @@ export default async function Curator({
             acl_sources: true,
         }
     })
-
 
     if (relay == null) {
         return (

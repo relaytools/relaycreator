@@ -8,12 +8,10 @@ import { useSession } from 'next-auth/react';
 
 // Define the props interface for the component
 export interface RelayPageClientProps {
-  children: React.ReactNode;
   relay: RelayWithEverything;
 }
 
 export default function RelayPageClient({
-  children,
   relay
 }: RelayPageClientProps) {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -55,7 +53,6 @@ export default function RelayPageClient({
             </div>
           </div>
         )}
-        {children}
       </div>
 
       {/* Wizard Modal */}
