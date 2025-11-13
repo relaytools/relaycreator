@@ -1908,39 +1908,44 @@ export default function PostsPage(
                                 {modActions && (
                                     <div>
                                         <div className="w-full bg-linear-to-r from-gray-600 to-gray-900 items-center h-5 px-3 sm:text-sm text-center mb-4">
-                                            - actions -{" "}
+                                            {session ? "- actions -" : "- sign-in for mod actions -"}
                                         </div>
                                         <ShowSmallSession pubkey={myPubkey} />
-                                        <div className="mb-4">
-                                            <button
-                                                className="btn uppercase"
-                                                onClick={(e) =>
-                                                    handleDeleteEvent(e)
-                                                }
-                                            >
-                                                delete event
-                                            </button>
-                                        </div>
-                                        <div className="mb-4">
-                                            <button
-                                                className="btn uppercase"
-                                                onClick={(e) =>
-                                                    handleBlockPubkey(e)
-                                                }
-                                            >
-                                                block pubkey
-                                            </button>
-                                        </div>
-                                        <div className="mb-4">
-                                            <button
-                                                className="btn uppercase"
-                                                onClick={(e) =>
-                                                    handleBlockAndDelete(e)
-                                                }
-                                            >
-                                                block & delete pubkey
-                                            </button>
-                                        </div>
+                                        
+                                        {session && (
+                                            <>
+                                                <div className="mb-4">
+                                                    <button
+                                                        className="btn uppercase"
+                                                        onClick={(e) =>
+                                                            handleDeleteEvent(e)
+                                                        }
+                                                    >
+                                                        delete event
+                                                    </button>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <button
+                                                        className="btn uppercase"
+                                                        onClick={(e) =>
+                                                            handleBlockPubkey(e)
+                                                        }
+                                                    >
+                                                        block pubkey
+                                                    </button>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <button
+                                                        className="btn uppercase"
+                                                        onClick={(e) =>
+                                                            handleBlockAndDelete(e)
+                                                        }
+                                                    >
+                                                        block & delete pubkey
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 )}
 
