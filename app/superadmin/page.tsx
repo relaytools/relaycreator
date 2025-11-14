@@ -43,6 +43,32 @@ export default async function SuperAdminPage() {
         },
     });
 
+    // Fetch all jobs ordered by timestamp (most recent first)
+    const jobs = await prisma.job.findMany({
+        select: {
+            id: true,
+            kind: true,
+            status: true,
+            created_at: true,
+            updated_at: true,
+            error_msg: true,
+            output: true,
+            pubkey: true,
+            eventId: true,
+            relay: {
+                select: {
+                    id: true,
+                    name: true,
+                    status: true,
+                },
+            },
+        },
+        orderBy: {
+            created_at: "desc",
+        },
+        take: 100, // Limit to most recent 100 jobs
+    });
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
             <div className="container mx-auto px-4 py-8">
@@ -51,13 +77,14 @@ export default async function SuperAdminPage() {
                         🛡️ Super Admin Panel
                     </h1>
                     <p className="text-slate-600 dark:text-slate-400">
-                        Manage global block list that applies to all relays
+                        Manage global block list and monitor jobs across all relays
                     </p>
                 </div>
 
                 <GlobalBlockListManager
                     globalBlockList={globalBlockList}
                     userPubkey={user.pubkey}
+                    jobs={jobs}
                 />
             </div>
         </div>
