@@ -96,6 +96,16 @@ async function verifyNip98Event(authHeader: string, requestUrl: string): Promise
   }
 }
 
+// Helper function to validate pubkey (hex format only per NIP-86 spec)
+function validatePubkey(pubkeyInput: string): { valid: boolean; error?: string } {
+  // Must be a valid 64-character lowercase hex string
+  if (typeof pubkeyInput !== 'string' || !/^[a-f0-9]{64}$/.test(pubkeyInput)) {
+    return { valid: false, error: 'Invalid pubkey. Must be a 64-character hexadecimal string' };
+  }
+  
+  return { valid: true };
+}
+
 // Helper function to extract relay ID from the request
 function getRelayIdFromRequest(req: NextApiRequest): string | null {
   // Extract from query parameters if available
@@ -214,14 +224,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
         
       case 'banpubkey':
-        // Do we assume this is the equiv of RT block and delete pubkey?
-        // so, todo: remove from allow list, figure out how to queue the deletes of the events?
-
+        // this blocks and deletes the pubkey
         if (!params || params.length < 1) {
           response.error = 'Missing required parameters';
         } else {
           const pubkey = params[0];
           const reason = params[1] || '';
+          
+          // Validate pubkey (hex format only per NIP-86 spec)
+          const validation = validatePubkey(pubkey);
+          if (!validation.valid) {
+            return res.status(400).json({ error: validation.error || 'Invalid pubkey' });
+          }
           
           // Get the BlockList for this relay, create if it doesn't exist
           let blockList = await prisma.blockList.findUnique({
@@ -261,6 +275,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
             });
           }
+
+          // now that we have relay jobs, we can queue a job for this relay, to deletePubkey
+          await prisma.job.create({
+            data: {
+              relayId: relayId,
+              kind: 'deletePubkey',
+              status: 'queue',
+              pubkey: pubkey
+            }
+          });
           
           response.result = true;
         }
@@ -294,6 +318,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // todo, support deleteing by reason?
           const reason = params[1] || '';
           
+          // Validate pubkey (hex format only per NIP-86 spec)
+          const validation = validatePubkey(pubkey);
+          if (!validation.valid) {
+            return res.status(400).json({ error: validation.error || 'Invalid pubkey' });
+          }
+          
           // Get the AllowList for this relay, create if it doesn't exist
           let allowList = await prisma.allowList.findUnique({
             where: { relayId: relayId }
@@ -325,6 +355,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } else {
           const pubkey = params[0];
           const reason = params[1] || '';
+          
+          // Validate pubkey (hex format only per NIP-86 spec)
+          const validation = validatePubkey(pubkey);
+          if (!validation.valid) {
+            return res.status(400).json({ error: validation.error || 'Invalid pubkey' });
+          }
           
           // Remove from block list if exists
           const blockList = await prisma.blockList.findUnique({
@@ -492,12 +528,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         break;
         
-      // The following methods are not fully implemented because the database schema doesn't have the required tables
-      // These would need additional database schema changes to fully implement
-        
       case 'banevent':
-        // TODO: we want this one..
-        response.error = `Method '${method}' not yet implemented`;
+        if (!params || params.length < 1) {
+          response.error = 'Missing required parameters';
+        } else {
+          const eventId = params[0];
+
+          // Validate that eventId is a valid Nostr event ID (64-character hex string)
+          if (typeof eventId !== 'string' || !/^[a-f0-9]{64}$/.test(eventId)) {
+            response.error = 'Invalid event ID. Must be a 64-character hexadecimal string';
+            break;
+          }
+
+          // Queue a job to delete this specific event
+          await prisma.job.create({
+            data: {
+              relayId: relayId,
+              kind: 'deleteEvent',
+              status: 'queue',
+              eventId: eventId
+            }
+          });
+
+          response.result = true;
+        }
         break;
         
       default:
