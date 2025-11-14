@@ -170,6 +170,7 @@ model Relay {
   referrer               String?       @db.VarChar(255) @default("")
   request_payment       Boolean       @default(false)
   request_payment_amount Int           @default(1000)
+  jobs                  Job[]
 
   @@index([ownerId])
 }
@@ -268,4 +269,26 @@ model LoginToken {
   id         String   @id @default(cuid())
   token      String   @unique
   created_at DateTime
+}
+
+model Job {
+  id         String   @id @default(cuid())
+  relay      Relay    @relation(fields: [relayId], references: [id], onDelete: Cascade)
+  relayId    String
+  kind       String   @db.VarChar(50)  // e.g., "filter_sync", "event_query", "cleanup"
+  status     String   @db.VarChar(20)  // e.g., "pending", "running", "completed", "failed"
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  error_msg  String?  @db.Text         // Store error details if failed
+  output     String?  @db.Text
+
+  // The technique for jobs here is to retain flexibility, while also not over complicating the storage format.
+  // Sacrificing that we may have empty fields below vs. complexity.
+  // TODO: other fields?
+  pubkey    String?   @db.VarChar(255)
+  eventId    String?   @db.VarChar(255)
+
+  @@index([relayId])
+  @@index([status])
+  @@index([kind])
 }
