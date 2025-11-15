@@ -200,6 +200,7 @@ export default async function handle(req: any, res: any) {
             port: p,
             ip: useIP,
             referrer: referrer,
+            default_message_policy: false,
         }
     })
     const newbl = await prisma.blockList.create({
