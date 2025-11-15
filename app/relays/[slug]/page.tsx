@@ -1,6 +1,6 @@
 
 import prisma from '../../../lib/prisma'
-import { FaUser, FaShieldAlt, FaCheck, FaBan, FaGlobe, FaCalendarAlt, FaInfoCircle, FaLock, FaUnlock, FaChartLine, FaCrown, FaCog } from 'react-icons/fa'
+import { FaShieldAlt, FaGlobe, FaCalendarAlt, FaInfoCircle, FaLock, FaUnlock, FaChartLine } from 'react-icons/fa'
 import { RelayWithPublic } from '../../components/relayWithPublic'
 import { RelayWithEverything } from '../../components/relayWithEverything'
 import DinosaurPosts from '../../components/dinosaurPosts'
@@ -140,7 +140,6 @@ export default async function RelayPage({
     const woaBadge = relay.acl_sources && relay.acl_sources.length > 0 ? 
         <span className="badge badge-accent gap-1" title="Web of Access"><FaShieldAlt size={12} /> WOA</span> : null;
     
-
     // Check if banner_image exists and is not empty
     const bannerImage = relay.banner_image && relay.banner_image.trim() !== '' ? 
         relay.banner_image : '/green-check.png';
