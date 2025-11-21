@@ -53,6 +53,11 @@ export default async function handle(req: any, res: any) {
         out: false,
     });
 
+    let usePaymentRequest = newInvoice.payment_request
+    if(usePaymentRequest == null) {
+        usePaymentRequest = newInvoice.bolt11
+    }
+
     const newClientOrder = await prisma.clientOrder.create({
         data: {
             amount: useamount,
@@ -60,7 +65,7 @@ export default async function handle(req: any, res: any) {
             pubkey: pubkey,
             paid: false,
             payment_hash: newInvoice.payment_hash,
-            lnurl: newInvoice.payment_request,
+            lnurl: usePaymentRequest,
             order_type: orderType,
         }
     })

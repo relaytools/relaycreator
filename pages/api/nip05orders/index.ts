@@ -206,6 +206,12 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+
+    let usePaymentRequest = newInvoice?.payment_request
+    if(usePaymentRequest == null) {
+        usePaymentRequest = newInvoice?.bolt11
+    }
+
     const newNip05Order = await prisma.nip05Order.create({
         data: {
             userId: user.id,
@@ -213,7 +219,7 @@ export default async function handle(req: any, res: any) {
             amount: nip05Amount,
             paid: nip05Amount === 0, // Mark as paid if free (premium user)
             payment_hash: newInvoice?.payment_hash || "free-premium-nip05",
-            lnurl: newInvoice?.payment_request || "free-premium-nip05",
+            lnurl: usePaymentRequest || "free-premium-nip05",
             status: nip05Amount === 0 ? "completed" : "pending",
         }
     })
