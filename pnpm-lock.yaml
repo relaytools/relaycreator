@@ -61,7 +61,7 @@ importers:
         version: 15.5.3(eslint@9.23.0(jiti@2.6.0))(typescript@5.9.2)
       lnbits:
         specifier: github:jeremyd/lnbits-js#noyarn
-        version: https://codeload.github.com/jeremyd/lnbits-js/tar.gz/78381b332bd2df5332ba6e82b2da7e208e0e2e87
+        version: https://codeload.github.com/jeremyd/lnbits-js/tar.gz/4a2d3e98e2d442ee1117beb64a1a4933542b9275
       next:
         specifier: ^15.5.3
         version: 15.5.3(@babel/core@7.28.4)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -585,6 +585,10 @@ packages:
     resolution: {integrity: sha512-CCZCDJuduB9OUkFkY2IgppNZMi2lBQgD2qzwXkEia16cge2pijY/aXi96CJMquDMn3nJdlPV1A5KrJEXwfLNzQ==}
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
 
+  '@eslint-community/regexpp@4.12.2':
+    resolution: {integrity: sha512-EriSTlt5OC9/7SXkRSCAhfSxxoSUgBm33OH+IkwbdpgoqsSsUg7y3uh+IICI/Qg4BBWr3U2i39RpmycbxMq4ew==}
+    engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
+
   '@eslint/config-array@0.19.2':
     resolution: {integrity: sha512-GNKqxfHG2ySmJOBSHg7LxeUx4xpuCoFjacmlCoYWEbaPXLwvfIjixRI12xCQZeULksQb23uiA8F40w5TojpV7w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -609,8 +613,8 @@ packages:
     resolution: {integrity: sha512-35MJ8vCPU0ZMxo7zfev2pypqTwWTofFZO6m4KAtdoFhRpLJUpHTZZ+KB3C7Hb1d7bULYwO4lJXGCi5Se+8OMbw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@eslint/object-schema@2.1.6':
-    resolution: {integrity: sha512-RBMg5FRL0I0gs51M/guSAj5/e14VQ4tpZnQNWwuDT66P14I43ItmPfIZRhO9fUVIPOAQXU47atlywZ/czoqFPA==}
+  '@eslint/object-schema@2.1.7':
+    resolution: {integrity: sha512-VtAOaymWVfZcmZbp6E2mympDIHvyjXs/12LqWYjVw6qjrfF+VK+fyG33kChz3nnK+SU5/NeHOqrTEHS8sXO3OA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/plugin-kit@0.2.8':
@@ -2886,8 +2890,8 @@ packages:
     resolution: {integrity: sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==}
     hasBin: true
 
-  js-yaml@4.1.0:
-    resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
+  js-yaml@4.1.1:
+    resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
     hasBin: true
 
   jsdom@20.0.3:
@@ -3028,8 +3032,8 @@ packages:
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
-  lnbits@https://codeload.github.com/jeremyd/lnbits-js/tar.gz/78381b332bd2df5332ba6e82b2da7e208e0e2e87:
-    resolution: {tarball: https://codeload.github.com/jeremyd/lnbits-js/tar.gz/78381b332bd2df5332ba6e82b2da7e208e0e2e87}
+  lnbits@https://codeload.github.com/jeremyd/lnbits-js/tar.gz/4a2d3e98e2d442ee1117beb64a1a4933542b9275:
+    resolution: {tarball: https://codeload.github.com/jeremyd/lnbits-js/tar.gz/4a2d3e98e2d442ee1117beb64a1a4933542b9275}
     version: 1.1.7
 
   locate-path@5.0.0:
@@ -4778,9 +4782,11 @@ snapshots:
 
   '@eslint-community/regexpp@4.12.1': {}
 
+  '@eslint-community/regexpp@4.12.2': {}
+
   '@eslint/config-array@0.19.2':
     dependencies:
-      '@eslint/object-schema': 2.1.6
+      '@eslint/object-schema': 2.1.7
       debug: 4.4.3
       minimatch: 3.1.2
     transitivePeerDependencies:
@@ -4804,7 +4810,7 @@ snapshots:
       globals: 14.0.0
       ignore: 5.3.2
       import-fresh: 3.3.1
-      js-yaml: 4.1.0
+      js-yaml: 4.1.1
       minimatch: 3.1.2
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
@@ -4812,7 +4818,7 @@ snapshots:
 
   '@eslint/js@9.23.0': {}
 
-  '@eslint/object-schema@2.1.6': {}
+  '@eslint/object-schema@2.1.7': {}
 
   '@eslint/plugin-kit@0.2.8':
     dependencies:
@@ -6656,7 +6662,7 @@ snapshots:
   eslint@9.23.0(jiti@2.6.0):
     dependencies:
       '@eslint-community/eslint-utils': 4.9.0(eslint@9.23.0(jiti@2.6.0))
-      '@eslint-community/regexpp': 4.12.1
+      '@eslint-community/regexpp': 4.12.2
       '@eslint/config-array': 0.19.2
       '@eslint/config-helpers': 0.2.3
       '@eslint/core': 0.12.0
@@ -7640,7 +7646,7 @@ snapshots:
       argparse: 1.0.10
       esprima: 4.0.1
 
-  js-yaml@4.1.0:
+  js-yaml@4.1.1:
     dependencies:
       argparse: 2.0.1
 
@@ -7778,7 +7784,7 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  lnbits@https://codeload.github.com/jeremyd/lnbits-js/tar.gz/78381b332bd2df5332ba6e82b2da7e208e0e2e87:
+  lnbits@https://codeload.github.com/jeremyd/lnbits-js/tar.gz/4a2d3e98e2d442ee1117beb64a1a4933542b9275:
     dependencies:
       axios: 1.12.2
       typescript: 5.9.2

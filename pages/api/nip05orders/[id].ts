@@ -43,7 +43,7 @@ export default async function handle(req: any, res: any) {
                 id: nip05Order.id,
             },
             data: {
-                expires_at: new Date(checkinvoice.details.expiry * 1000),
+                expires_at: new Date(checkinvoice.details.expiry),
             }
         })
     }
