@@ -60,6 +60,8 @@ export default async function handle(req: any, res: any) {
         payment_hash: findOrder.payment_hash,
     });
 
+    console.log(checkinvoice)
+
     // if invoice is paid, update prisma
     // update the expire date for this order 
     if (findOrder.paid != true && findOrder.expires_at == null) {
@@ -68,7 +70,7 @@ export default async function handle(req: any, res: any) {
                 id: findOrder.id,
             },
             data: {
-                expires_at: new Date(checkinvoice.details.expiry * 1000),
+                expires_at: new Date(checkinvoice.details.expiry),
             }
         })
     }
