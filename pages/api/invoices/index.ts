@@ -82,6 +82,12 @@ export default async function handle(req: any, res: any) {
                 memo: relayname + " topup",
                 out: false,
             });
+            console.log(newInvoice)
+
+            let usePaymentRequest = newInvoice.payment_request
+            if(usePaymentRequest == null) {
+                usePaymentRequest = newInvoice.bolt11
+            }
 
             const orderCreated = await prisma.order.create({
                 data: {
@@ -240,6 +246,11 @@ export default async function handle(req: any, res: any) {
             memo: relayname + " " + pubkey,
             out: false,
         });
+        console.log(newInvoice)
+        let usePaymentRequest = newInvoice.payment_request
+        if(usePaymentRequest == null) {
+            usePaymentRequest = newInvoice.bolt11
+        }
 
         const orderCreated = await prisma.order.create({
             data: {
@@ -248,7 +259,7 @@ export default async function handle(req: any, res: any) {
                 status: "pending",
                 paid: false,
                 payment_hash: newInvoice.payment_hash,
-                lnurl: newInvoice.payment_request,
+                lnurl: usePaymentRequest,
                 amount: useAmount,
                 order_type: orderType,
             }
