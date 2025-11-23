@@ -80,7 +80,7 @@ export async function calculateRelayTimeBasedBalance(relayId: string) {
     return await calculateFallbackRelayBalance(relayId);
   }
 
-  // Get actual payments from Order and ClientOrder tables (source of truth)
+  // Get actual payments from Order table (relay owner payments)
   const orders = await prisma.order.findMany({
     where: {
       relayId,
@@ -91,6 +91,7 @@ export async function calculateRelayTimeBasedBalance(relayId: string) {
     }
   });
 
+  // Get client subscription payments (revenue for relay owner)
   const clientOrders = await prisma.clientOrder.findMany({
     where: {
       relayId,
@@ -101,32 +102,44 @@ export async function calculateRelayTimeBasedBalance(relayId: string) {
     }
   });
 
-  // Calculate total payments from actual payment records
+  // Calculate total: relay owner payments + client subscription revenue
   const totalAmountPaid = orders.reduce((sum, order) => sum + order.amount, 0) +
                          clientOrders.reduce((sum, order) => sum + order.amount, 0);
 
   const now = new Date();
   let totalCostAccrued = 0;
 
-  // CRITICAL FIX: Calculate costs from relay creation date, not just plan periods
+  // Get relay info including creation date
   const relay = await prisma.relay.findUnique({
     where: { id: relayId },
     select: { created_at: true }
   });
   
-  if (relay?.created_at) {
-    const totalDaysSinceCreation = (now.getTime() - relay.created_at.getTime()) / (1000 * 60 * 60 * 24);
+  if (!relay?.created_at) {
+    return totalAmountPaid; // No creation date, can't calculate costs
+  }
+
+  // FIXED: Calculate costs per plan period using ENVIRONMENT VARIABLE pricing
+  const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '7000');
+  const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '15000');
+  const standardDaily = standardPrice / 30;
+  const premiumDaily = premiumPrice / 30;
+
+  for (let i = 0; i < planHistory.length; i++) {
+    const planPeriod = planHistory[i];
+    const periodStart = planPeriod.started_at;
+    const periodEnd = planPeriod.ended_at || now;
     
-    // Determine plan type from most recent plan change or default to standard
-    const mostRecentPlan = planHistory.length > 0 ? planHistory[planHistory.length - 1] : null;
-    const isCurrentlyPremium = mostRecentPlan?.plan_type === 'premium';
+    // Calculate days in this period
+    const daysInPeriod = (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
     
-    const standardPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || '1000');
-    const premiumPrice = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || '2100');
+    // Use environment variable pricing for this period
+    const dailyCostForPeriod = planPeriod.plan_type === 'premium' 
+      ? premiumDaily 
+      : standardDaily;
     
-    const dailyCost = isCurrentlyPremium ? premiumPrice / 30 : standardPrice / 30;
-    
-    totalCostAccrued = totalDaysSinceCreation * dailyCost;
+    const costForPeriod = daysInPeriod * dailyCostForPeriod;
+    totalCostAccrued += costForPeriod;
   }
 
   // Balance = Total paid by relay owner - accrued costs

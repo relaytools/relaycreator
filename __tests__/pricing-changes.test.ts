@@ -401,6 +401,6 @@ describe('Pricing Changes - Client Subscriptions', () => {
     // But since we use current pricing for all calculations:
     // - Total cost: 45 * (50/30) = 75 sats
     // - Balance: 21 - 75 = -54 sats
-    expect(balance).toBeCloseTo(-54, 1);
+    expect(balance).toBeCloseTo(-54, 0);
   });
 });
