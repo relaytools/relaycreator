@@ -18,7 +18,9 @@
     "prisma:studio": "prisma studio",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:db:reset": "prisma migrate reset --force",
-    "build:css": "postcss app.css -o public/output.css"
+    "build:css": "postcss app.css -o public/output.css",
+    "rebuild-plan-changes-dry": "tsx scripts/rebuild-plan-changes.ts",
+    "rebuild-plan-changes-apply": "DRY_RUN=false tsx scripts/rebuild-plan-changes.ts"
   },
   "dependencies": {
     "20": "link:@heroicons/react/20",
@@ -68,6 +70,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-environment-node": "^29.7.0",
-    "ts-jest": "^29.4.4"
+    "ts-jest": "^29.4.4",
+    "tsx": "^4.20.6"
   }
 }

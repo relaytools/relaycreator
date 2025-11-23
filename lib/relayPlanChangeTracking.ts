@@ -14,6 +14,21 @@ export async function recordRelayPlanChange(
 ) {
   const now = startedAt || new Date();
   
+  // Check if a plan change already exists for this order to prevent duplicates
+  if (orderId) {
+    const existingPlanChange = await prisma.relayPlanChange.findFirst({
+      where: {
+        relayId,
+        orderId
+      }
+    });
+    
+    if (existingPlanChange) {
+      console.log(`Plan change already exists for order ${orderId}, skipping duplicate`);
+      return existingPlanChange;
+    }
+  }
+  
   // End the current plan period (if any)
   await prisma.relayPlanChange.updateMany({
     where: {
