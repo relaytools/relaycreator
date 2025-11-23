@@ -686,9 +686,10 @@ describe('Relay Owner Balance Calculations', () => {
   });
 
   describe('Real Customer Bug - Premium Upgrade', () => {
-    test('should calculate balance correctly for relay with plan upgrade from standard to premium', async () => {
-      // Real customer scenario: Relay owner made 6 standard payments, then upgraded to premium
-      // Bug: System applies premium rate to ENTIRE history instead of per-period rates
+    test('REAL PRODUCTION DATA - should calculate balance correctly with actual customer payment history', async () => {
+      // REAL CUSTOMER DATA FROM PRODUCTION
+      // Using PRODUCTION environment variables: 7000 standard, 15000 premium
+      // This test uses the EXACT payment dates and amounts from the real customer
       
       const customerUser = await prisma.user.create({
         data: {
@@ -700,100 +701,127 @@ describe('Relay Owner Balance Calculations', () => {
       const customerRelayId = `test-customer-relay-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
       try {
-        // Create relay with creation date matching first payment
-        // Relay owner pricing comes from ENVIRONMENT VARIABLES, not these DB fields
-        // (payment_amount/payment_premium_amount are for client subscriptions)
+        // REAL RELAY CREATION DATE
+        const relayCreationDate = new Date('2024-09-29T06:52:24.170Z');
+        
         await prisma.relay.create({
           data: {
             id: customerRelayId,
             name: 'Customer Relay',
             ownerId: customerUser.id,
-            created_at: new Date('2024-09-29T06:52:24.170Z')
+            created_at: relayCreationDate
           }
         });
 
-      // Create Order records matching real customer data
-      const orders = [
-        { amount: 12000, order_type: 'standard', paid_at: new Date('2024-09-29T06:52:24.170Z') },
-        { amount: 12000, order_type: 'standard', paid_at: new Date('2024-10-12T18:32:41.578Z') },
-        { amount: 3735, order_type: 'standard', paid_at: new Date('2024-12-07T15:00:56.245Z') },  // Custom amount
-        { amount: 24000, order_type: 'standard', paid_at: new Date('2024-12-08T00:10:00.298Z') },
-        { amount: 20000, order_type: 'standard', paid_at: new Date('2025-02-24T15:00:44.832Z') },
-        { amount: 20000, order_type: 'standard', paid_at: new Date('2025-03-31T08:30:59.311Z') },
-        { amount: 15000, order_type: 'premium', paid_at: new Date('2025-10-15T13:42:12.761Z') }  // Upgraded to premium
-      ];
+        // REAL CUSTOMER PAYMENT HISTORY - EXACT DATES AND AMOUNTS
+        const orders = [
+          { amount: 12000, order_type: 'standard', paid_at: new Date('2024-09-29T06:52:24.170Z') },
+          { amount: 12000, order_type: 'standard', paid_at: new Date('2024-10-12T18:32:41.578Z') },
+          { amount: 3735, order_type: 'standard', paid_at: new Date('2024-12-07T15:00:56.245Z') },  // Custom amount
+          { amount: 24000, order_type: 'standard', paid_at: new Date('2024-12-08T00:10:00.298Z') },
+          { amount: 20000, order_type: 'standard', paid_at: new Date('2025-02-24T15:00:44.832Z') },
+          { amount: 20000, order_type: 'standard', paid_at: new Date('2025-03-31T08:30:59.311Z') },
+          { amount: 15000, order_type: 'premium', paid_at: new Date('2025-10-15T13:42:12.761Z') }  // Upgraded to premium
+        ];
 
-      // Create Order records AND corresponding RelayPlanChange records
-      for (let i = 0; i < orders.length; i++) {
-        const order = orders[i];
-        await prisma.order.create({
-          data: {
-            userId: customerUser.id,
-            relayId: customerRelayId,
-            order_type: order.order_type as any,
-            amount: order.amount,
-            paid: true,
-            status: 'paid',
-            paid_at: order.paid_at,
-            payment_hash: `test-hash-${order.amount}`,
-            lnurl: `test-lnurl-${order.amount}`
+        // Create Order records AND corresponding RelayPlanChange records
+        for (let i = 0; i < orders.length; i++) {
+          const order = orders[i];
+          await prisma.order.create({
+            data: {
+              userId: customerUser.id,
+              relayId: customerRelayId,
+              order_type: order.order_type as any,
+              amount: order.amount,
+              paid: true,
+              status: 'paid',
+              paid_at: order.paid_at,
+              payment_hash: `test-hash-${i}-${order.amount}`,
+              lnurl: `test-lnurl-${i}-${order.amount}`
+            }
+          });
+
+          // Only create plan changes for standard/premium orders (not custom amounts)
+          if (order.order_type === 'standard' || order.order_type === 'premium') {
+            // End the previous plan period
+            await prisma.relayPlanChange.updateMany({
+              where: {
+                relayId: customerRelayId,
+                ended_at: null
+              },
+              data: {
+                ended_at: order.paid_at
+              }
+            });
+
+            // Create new plan period
+            await prisma.relayPlanChange.create({
+              data: {
+                relayId: customerRelayId,
+                plan_type: order.order_type,
+                amount_paid: order.amount,
+                started_at: order.paid_at,
+                ended_at: null
+              }
+            });
           }
-        });
-
-        // Only create plan changes for standard/premium orders (not custom)
-        if (order.order_type === 'standard' || order.order_type === 'premium') {
-          // End the previous plan period
-          await prisma.relayPlanChange.updateMany({
-            where: {
-              relayId: customerRelayId,
-              ended_at: null
-            },
-            data: {
-              ended_at: order.paid_at
-            }
-          });
-
-          // Create new plan period
-          // Note: amount_paid is stored for reference bur NOT used in calculation
-          // (we use environment variables for relay owner pricing)
-          await prisma.relayPlanChange.create({
-            data: {
-              relayId: customerRelayId,
-              plan_type: order.order_type,
-              amount_paid: order.amount, // Stored for audit trail only
-              started_at: order.paid_at,
-              ended_at: null // Current plan (will be ended by next payment)
-            }
-          });
         }
-      }
 
-      const balance = await calculateRelayTimeBasedBalance(customerRelayId);
+        // NO CLIENT ORDERS - relay has no revenue
 
-      const totalPaid = orders.reduce((sum, o) => sum + o.amount, 0);
-      const now = new Date();
-      const relayCreationDate = new Date('2024-09-29T06:52:24.170Z');
-      const premiumUpgradeDate = new Date('2025-10-15T13:42:12.761Z');
-      const daysSinceCreation = (now.getTime() - relayCreationDate.getTime()) / (1000 * 60 * 60 * 24);
-      
-      // Relay owner pricing comes from ENVIRONMENT VARIABLES (set at top of test file)
-      // PRODUCTION: 7000 standard, 15000 premium
-      const RELAY_STANDARD_DAILY = STANDARD_DAILY; // 233.33 sats/day
-      const RELAY_PREMIUM_DAILY = PREMIUM_DAILY;  // 500 sats/day
-      
-      // Calculate what the CORRECT balance should be (per-period rates)
-      const daysOnStandard = (premiumUpgradeDate.getTime() - relayCreationDate.getTime()) / (1000 * 60 * 60 * 24);
-      const daysOnPremium = (now.getTime() - premiumUpgradeDate.getTime()) / (1000 * 60 * 60 * 24);
-      const correctCost = (daysOnStandard * RELAY_STANDARD_DAILY) + (daysOnPremium * RELAY_PREMIUM_DAILY);
-      const correctBalance = totalPaid - correctCost;
-      
-      // Calculate what the BUGGY balance is (premium rate for entire history)
-      const buggyCost = daysSinceCreation * RELAY_PREMIUM_DAILY;
+        const balance = await calculateRelayTimeBasedBalance(customerRelayId);
+
+        const totalPaid = orders.reduce((sum, o) => sum + o.amount, 0); // 106,735 sats
+        const now = new Date();
+        const premiumUpgradeDate = new Date('2025-10-15T13:42:12.761Z');
+        
+        // CORRECT CALCULATION: Use per-period rates with PRODUCTION pricing
+        // Standard: 7000/30 = 233.33 sats/day
+        // Premium: 15000/30 = 500 sats/day
+        const daysOnStandard = (premiumUpgradeDate.getTime() - relayCreationDate.getTime()) / (1000 * 60 * 60 * 24);
+        const daysOnPremium = (now.getTime() - premiumUpgradeDate.getTime()) / (1000 * 60 * 60 * 24);
+        const correctCost = (daysOnStandard * STANDARD_DAILY) + (daysOnPremium * PREMIUM_DAILY);
+        const correctBalance = totalPaid - correctCost;
+        
+        // BUGGY CALCULATION: Apply premium rate to entire history
+        const daysSinceCreation = (now.getTime() - relayCreationDate.getTime()) / (1000 * 60 * 60 * 24);
+        const buggyCost = daysSinceCreation * PREMIUM_DAILY;
+        const buggyBalance = totalPaid - buggyCost;
+
+        console.log('\n=== REAL PRODUCTION DATA TEST ===');
+        console.log(`Relay Created: ${relayCreationDate.toISOString()}`);
+        console.log(`Premium Upgrade: ${premiumUpgradeDate.toISOString()}`);
+        console.log(`Total Paid: ${totalPaid.toLocaleString()} sats`);
+        console.log(`\n--- CORRECT CALCULATION (per-period rates) ---`);
+        console.log(`Days on Standard: ${daysOnStandard.toFixed(1)} @ ${STANDARD_DAILY.toFixed(2)} sats/day = ${(daysOnStandard * STANDARD_DAILY).toFixed(0)} sats`);
+        console.log(`Days on Premium: ${daysOnPremium.toFixed(1)} @ ${PREMIUM_DAILY.toFixed(2)} sats/day = ${(daysOnPremium * PREMIUM_DAILY).toFixed(0)} sats`);
+        console.log(`Total Cost: ${correctCost.toFixed(0)} sats`);
+        console.log(`Correct Balance: ${correctBalance.toFixed(0)} sats`);
+        console.log(`\n--- BUGGY CALCULATION (premium rate for entire history) ---`);
+        console.log(`Days Since Creation: ${daysSinceCreation.toFixed(1)}`);
+        console.log(`Buggy Cost (all @ premium): ${buggyCost.toFixed(0)} sats`);
+        console.log(`Buggy Balance: ${buggyBalance.toFixed(0)} sats`);
+        console.log(`\n--- ACTUAL RESULT ---`);
+        console.log(`Actual Balance: ${balance.toFixed(0)} sats`);
+        console.log(`Difference from correct: ${(balance - correctBalance).toFixed(0)} sats`);
+        console.log(`Difference from buggy: ${(balance - buggyBalance).toFixed(0)} sats`);
+        
+        if (Math.abs(balance - buggyBalance) < 100) {
+          console.log('\n🚨 BUG DETECTED: Balance matches buggy calculation!');
+        } else if (Math.abs(balance - correctBalance) < 100) {
+          console.log('\n✅ CORRECT: Balance matches per-period calculation!');
+        } else {
+          console.log('\n⚠️  UNEXPECTED: Balance matches neither calculation!');
+        }
 
         // Verify it's a number
         expect(Number.isNaN(balance)).toBe(false);
         
+        // Should match correct calculation (per-period rates), not buggy calculation
         expect(balance).toBeCloseTo(correctBalance, 0);
+        
+        // Should NOT match buggy calculation
+        expect(Math.abs(balance - buggyBalance)).toBeGreaterThan(1000); // Should be significantly different
       } finally {
         // Cleanup - runs even if test fails
         try {
