@@ -299,9 +299,13 @@ export default function Balances(
                                                     const currentPlan = relay.RelayPlanChange?.find((pc: any) => !pc.ended_at);
                                                     if (currentPlan) {
                                                         const planType = currentPlan.plan_type.charAt(0).toUpperCase() + currentPlan.plan_type.slice(1);
-                                                        return `${planType} - ${currentPlan.amount_paid} sats/mo`;
+                                                        // Use current environment variable pricing instead of historical amount_paid
+                                                        const currentAmount = currentPlan.plan_type === 'premium' 
+                                                            ? props.RelayPaymentAmount.premium 
+                                                            : props.RelayPaymentAmount.standard;
+                                                        return `${planType} - ${currentAmount} sats/mo`;
                                                     }
-                                                    // Fallback to standard plan
+                                                    // Fallback to standard plan with current pricing
                                                     return `Standard - ${props.RelayPaymentAmount.standard} sats/mo`;
                                                 })()}
                                             </div>

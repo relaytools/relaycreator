@@ -96,7 +96,7 @@ export default async function handle(req: any, res: any) {
                     status: "pending",
                     paid: false,
                     payment_hash: newInvoice.payment_hash,
-                    lnurl: newInvoice.payment_request,
+                    lnurl: usePaymentRequest,
                     amount: useAmount,
                     order_type: orderType,
                 }
