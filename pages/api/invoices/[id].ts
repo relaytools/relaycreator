@@ -33,6 +33,7 @@ export default async function handle(req: any, res: any) {
             expires_at: true,
             order_type: true,
             amount: true,
+            paid_at: true,
 
             relay: {
                 select: {
@@ -111,7 +112,7 @@ export default async function handle(req: any, res: any) {
         }
         // Only record plan changes for standard and premium plans, not custom payments
         if (findOrder.order_type === 'standard' || findOrder.order_type === 'premium') {
-            await recordRelayPlanChange(findOrder.relay.id, findOrder.order_type, findOrder.amount);
+            await recordRelayPlanChange(findOrder.relay.id, findOrder.order_type, findOrder.amount, findOrder.id, findOrder.paid_at || undefined);
         }
         res.status(200).json({ order: findOrder });
     } else {

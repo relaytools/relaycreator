@@ -177,16 +177,6 @@ export default async function ServerStatus(props: {
                 // Use the relay-focused balance calculation system (relay owner payments only)
                 const balance = await calculateRelayTimeBasedBalance(relay.id);
                 
-                // Debug logging for relay owner balance calculation
-                console.log(`[${relay.name}] Relay owner balance: ${balance} sats (relay owner payments only)`);
-                console.log(`[${relay.name}] Client revenue (separate): ${clientOrderAmount} sats`);
-                console.log(`[${relay.name}] Balance details - Relay ID: ${relay.id}, Owner: ${relay.owner.pubkey}`);
-                
-                // Log if this relay has negative balance
-                if (balance < 0) {
-                    console.log(`[${relay.name}] NEGATIVE BALANCE FOUND: ${balance} sats`);
-                }
-
                 return {
                     owner: relay.owner.pubkey,
                     clientPayments: clientOrderAmount,
