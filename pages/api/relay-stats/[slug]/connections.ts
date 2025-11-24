@@ -36,6 +36,9 @@ export default async function handle(req: any, res: any) {
         return res.status(200).json({ stats: result });
     } catch (e) {
         console.error('[InfluxDB] Error fetching connections for relay:', slug, e);
-        return res.status(200).json({ stats: [], error: 'Failed to fetch connection data' });
+        return res.status(200).json({ 
+            stats: [], 
+            error: e instanceof Error ? e.message : 'Failed to fetch connection data'
+        });
     }
 }
