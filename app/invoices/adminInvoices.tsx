@@ -139,9 +139,27 @@ export default function AdminInvoices(props: any) {
         return { type: 'standard', amount: standardAmount, startedAt: null };
     }
 
-    function getTopUpInvoice(b: any) {
+    async function getTopUpInvoice(b: any) {
         const amount = useAmount || Math.abs(b.balance).toString();
-        router.push(`/invoices?relayname=${b.relayName}&pubkey=${b.owner}&amount=${amount}`);
+        const currentPlan = getCurrentPlan(b);
+        const plan = currentPlan.type || "standard";
+        
+        // Create the invoice via API first
+        const response = await fetch(
+            `/api/invoices?relayname=${b.relayName}&topup=true&sats=${amount}&plan=${plan}`
+        );
+        const responseJson = await response.json();
+        console.log("Admin invoice creation response:", responseJson);
+
+        if (response.ok) {
+            // Navigate to payment page with order_id
+            router.push(
+                `/invoices?relayname=${b.relayName}&order_id=${responseJson.order_id}&pubkey=${b.owner}&sats=${amount}&plan=${plan}`
+            );
+        } else {
+            console.error("Failed to create invoice:", responseJson);
+            alert("Failed to create invoice. Please try again.");
+        }
     }
 
     function showOrdersFor(b: any) {
