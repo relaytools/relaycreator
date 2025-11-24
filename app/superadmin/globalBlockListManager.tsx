@@ -7,6 +7,17 @@ import "react-toastify/dist/ReactToastify.css";
 import { FaTrash, FaPlus, FaShieldAlt, FaCopy, FaBan, FaClock, FaServer, FaCheckCircle, FaSpinner, FaExclamationTriangle, FaTimesCircle, FaInfoCircle } from "react-icons/fa";
 import { nip19 } from "nostr-tools";
 
+// Format date consistently using UTC to avoid hydration errors
+function formatDate(date: Date | string): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const year = d.getUTCFullYear();
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const hours = String(d.getUTCHours()).padStart(2, '0');
+    const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+}
+
 interface ListEntryPubkey {
     id: string;
     pubkey: string;
@@ -302,7 +313,13 @@ export default function GlobalBlockListManager({ globalBlockList, userPubkey, jo
                                             )}
                                             {entry.expires_at && (
                                                 <div className="mt-1 text-xs text-slate-500 dark:text-slate-500">
-                                                    Expires: {new Date(entry.expires_at).toLocaleDateString()}
+                                                    Expires: {(() => {
+                                                        const d = new Date(entry.expires_at);
+                                                        const year = d.getUTCFullYear();
+                                                        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                                        const day = String(d.getUTCDate()).padStart(2, '0');
+                                                        return `${year}-${month}-${day}`;
+                                                    })()}
                                                 </div>
                                             )}
                                         </div>
@@ -431,10 +448,10 @@ export default function GlobalBlockListManager({ globalBlockList, userPubkey, jo
                                                     )}
                                                 </td>
                                                 <td className="text-xs text-slate-600 dark:text-slate-400">
-                                                    {new Date(job.created_at).toLocaleString()}
+                                                    {formatDate(job.created_at)}
                                                 </td>
                                                 <td className="text-xs text-slate-600 dark:text-slate-400">
-                                                    {new Date(job.updated_at).toLocaleString()}
+                                                    {formatDate(job.updated_at)}
                                                 </td>
                                                 <td>
                                                     {job.output ? (

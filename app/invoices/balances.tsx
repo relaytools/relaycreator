@@ -8,6 +8,21 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 
+// Format date consistently using UTC to avoid hydration errors
+// This shows dates in UTC timezone for consistency between server and client
+// If you need local timezone, format dates only on client side after hydration
+function formatDate(date: Date | string | null | undefined): string {
+    if (!date) return 'Unknown';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    // Use UTC methods to ensure server and client render the same output
+    const year = d.getUTCFullYear();
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const hours = String(d.getUTCHours()).padStart(2, '0');
+    const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+}
+
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();
     navigator.clipboard.writeText(bolt).then(() => {
@@ -419,7 +434,7 @@ export default function Balances(
                                                                             {order.amount} sats - Pending Payment
                                                                         </div>
                                                                         <div className="text-sm text-yellow-700 dark:text-yellow-300">
-                                                                            Expires: {order.expires_at ? new Date(order.expires_at).toLocaleString() : 'No expiration'}
+                                                                            Expires: {order.expires_at ? formatDate(order.expires_at) : 'No expiration'}
                                                                         </div>
                                                                     </div>
                                                                     <a
@@ -454,7 +469,7 @@ export default function Balances(
                                                                             {amountPrecision(order.amount)} sats
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                                                                            {order.paid_at ? new Date(order.paid_at).toLocaleString() : 'Not paid'}
+                                                                            {order.paid_at ? formatDate(order.paid_at) : 'Not paid'}
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                                             <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -604,7 +619,7 @@ export default function Balances(
                                                                                                         {amountPrecision(order.amount)} sats
                                                                                                     </td>
                                                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                                                                                                        {order.paid_at ? new Date(order.paid_at).toLocaleString() : ''}
+                                                                                                        {order.paid_at ? formatDate(order.paid_at) : ''}
                                                                                                     </td>
                                                                                                 </tr>
                                                                                             ))}

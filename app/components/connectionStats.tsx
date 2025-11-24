@@ -160,15 +160,24 @@ export default function ConnectionStats({ relayName }: { relayName: string }) {
                                     dataKey="time"
                                     type="number"
                                     domain={["dataMin", "dataMax"]}
-                                    tickFormatter={(time) =>
-                                        new Date(time).toLocaleTimeString()
-                                    }
+                                    tickFormatter={(time) => {
+                                        const d = new Date(time);
+                                        const hours = String(d.getUTCHours()).padStart(2, '0');
+                                        const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+                                        return `${hours}:${minutes}`;
+                                    }}
                                 />
                                 <YAxis />
                                 <Tooltip
-                                    labelFormatter={(time) =>
-                                        new Date(time).toLocaleString()
-                                    }
+                                    labelFormatter={(time) => {
+                                        const d = new Date(time);
+                                        const year = d.getUTCFullYear();
+                                        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                        const day = String(d.getUTCDate()).padStart(2, '0');
+                                        const hours = String(d.getUTCHours()).padStart(2, '0');
+                                        const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+                                        return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+                                    }}
                                     formatter={(value) => [
                                         `${value} connections`,
                                     ]}
