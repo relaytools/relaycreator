@@ -1,4 +1,4 @@
-import { getInfluxDBClient, resetInfluxDBClient } from "../../../../lib/influxDBClient";
+import { executeInfluxQuery } from "../../../../lib/influxDBClient";
 
 export default async function handle(req: any, res: any) {
     const slug = req.query.slug;
@@ -18,9 +18,6 @@ export default async function handle(req: any, res: any) {
     }
 
     try {
-        const influxDB = getInfluxDBClient();
-        const queryApi = influxDB.getQueryApi(process.env.INFLUXDB_ORG);
-
         const fluxQuery = `
       from(bucket: "${process.env.INFLUXDB_BUCKET}")
         |> range(start: -24h)
@@ -31,17 +28,10 @@ export default async function handle(req: any, res: any) {
         |> yield(name: "mean")
     `;
 
-    // |> filter(fn: (r) => r["proxy"] == "${slug}")
-        const result = await queryApi.collectRows(fluxQuery);
+        const result = await executeInfluxQuery(process.env.INFLUXDB_ORG, fluxQuery);
         return res.status(200).json({ stats: result });
     } catch (e: any) {
         console.error('[InfluxDB] Error fetching connections for relay:', slug, e);
-        
-        // Reset client on auth errors to force recreation on next request
-        if (e?.statusCode === 401 || e?.code === 'unauthorized') {
-            resetInfluxDBClient();
-        }
-        
         return res.status(200).json({ 
             stats: [], 
             error: e instanceof Error ? e.message : 'Failed to fetch connection data'
