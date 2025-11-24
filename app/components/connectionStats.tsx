@@ -57,7 +57,7 @@ export default function ConnectionStats({ relayName }: { relayName: string }) {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                
+
                 const data: ConnectionCountApiResponse = await response.json();
                 setActiveUserCount(data.stats?._value ? Math.round(data.stats._value) : 0);
             } catch (error) {

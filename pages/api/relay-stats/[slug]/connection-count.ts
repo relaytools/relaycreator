@@ -38,6 +38,11 @@ export default async function handle(req: any, res: any) {
           stats: result.length > 0 ? result[0] : null 
         });
     } catch (e) {
-        return res.status(200).json({ stats: [] });
+        console.error('[InfluxDB] Error fetching connection count for relay:', slug, e);
+        // Return error info to help debug
+        return res.status(200).json({ 
+            stats: null, 
+            error: e instanceof Error ? e.message : 'Unknown error'
+        });
     }
 }
