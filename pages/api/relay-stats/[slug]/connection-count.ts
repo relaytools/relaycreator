@@ -1,4 +1,4 @@
-import { getInfluxDBClient } from "../../../../lib/influxDBClient";
+import { getInfluxDBClient, resetInfluxDBClient } from "../../../../lib/influxDBClient";
 
 export default async function handle(req: any, res: any) {
     const slug = req.query.slug;
@@ -37,8 +37,14 @@ export default async function handle(req: any, res: any) {
         return res.status(200).json({ 
           stats: result.length > 0 ? result[0] : null 
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('[InfluxDB] Error fetching connection count for relay:', slug, e);
+        
+        // Reset client on auth errors to force recreation on next request
+        if (e?.statusCode === 401 || e?.code === 'unauthorized') {
+            resetInfluxDBClient();
+        }
+        
         // Return error info to help debug
         return res.status(200).json({ 
             stats: null, 

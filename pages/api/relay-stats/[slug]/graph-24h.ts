@@ -1,4 +1,4 @@
-import { getInfluxDBClient } from '../../../../lib/influxDBClient'
+import { getInfluxDBClient, resetInfluxDBClient } from '../../../../lib/influxDBClient'
 
 export default async function handle(req: any, res: any) {
   const slug = req.query.slug;
@@ -37,8 +37,14 @@ const fluxQuery = `
     `
     const result = await queryApi.collectRows(fluxQuery)
     return res.status(200).json({ stats: result })
-  } catch (e) {
+  } catch (e: any) {
     console.error('[InfluxDB] Error fetching 24h graph data for relay:', slug, 'blocked:', blocked, e);
+    
+    // Reset client on auth errors to force recreation on next request
+    if (e?.statusCode === 401 || e?.code === 'unauthorized') {
+      resetInfluxDBClient();
+    }
+    
     return res.status(200).json({ stats: [], error: 'Failed to fetch graph data' })
   }
 }
