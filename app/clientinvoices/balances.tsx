@@ -4,6 +4,18 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
+// Format date consistently using UTC to avoid hydration errors
+function formatDate(date: Date | string | null | undefined): string {
+    if (!date) return 'Unknown';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const year = d.getUTCFullYear();
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const hours = String(d.getUTCHours()).padStart(2, '0');
+    const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+}
+
 export async function alby(lnurl: string) {
     try {
         await (window as any).webln.enable();
@@ -458,7 +470,7 @@ export default function ClientBalances(
                                                                     <td className="px-4 py-2 text-left">{amountPrecision(order.amount)} sats</td>
                                                                     <td className="px-4 py-2 text-left">
                                                                         {order.paid_at != null
-                                                                            ? new Date(order.paid_at).toLocaleString()
+                                                                            ? formatDate(order.paid_at)
                                                                             : ""}
                                                                     </td>
                                                                 </tr>
@@ -481,7 +493,7 @@ export default function ClientBalances(
                                                                 <div className="font-medium">{order.amount} sats</div>
                                                                 <div className="text-sm opacity-70">
                                                                     Expires: {order.expires_at
-                                                                        ? new Date(order.expires_at).toLocaleString()
+                                                                        ? formatDate(order.expires_at)
                                                                         : "Unknown"}
                                                                 </div>
                                                             </div>

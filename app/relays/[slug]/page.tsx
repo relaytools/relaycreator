@@ -124,12 +124,14 @@ export default async function RelayPage({
         }) as RelayWithEverything | null;
     }
 
-    // Format creation date nicely
-    const createdAt = relay.created_at ? new Date(relay.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    }) : 'Unknown';
+    // Format creation date using UTC to avoid hydration issues
+    const createdAt = relay.created_at ? (() => {
+        const d = new Date(relay.created_at);
+        const year = d.getUTCFullYear();
+        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(d.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    })() : 'Unknown';
 
     // Auth required badge
     const authBadge = relay.auth_required ? 
