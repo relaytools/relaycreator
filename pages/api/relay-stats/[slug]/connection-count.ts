@@ -1,4 +1,4 @@
-import { getInfluxDBClient, resetInfluxDBClient } from "../../../../lib/influxDBClient";
+import { executeInfluxQuery } from "../../../../lib/influxDBClient";
 
 export default async function handle(req: any, res: any) {
     const slug = req.query.slug;
@@ -18,9 +18,6 @@ export default async function handle(req: any, res: any) {
     }
 
     try {
-        const influxDB = getInfluxDBClient();
-        const queryApi = influxDB.getQueryApi(process.env.INFLUXDB_ORG);
-
         const fluxQuery = `
       from(bucket: "${process.env.INFLUXDB_BUCKET}")
         |> range(start: -1h)
@@ -31,21 +28,13 @@ export default async function handle(req: any, res: any) {
         |> yield(name: "last")
     `;
 
-
-        const result = await queryApi.collectRows(fluxQuery);
+        const result = await executeInfluxQuery(process.env.INFLUXDB_ORG, fluxQuery);
         // Return just the latest measurement or null if no results
         return res.status(200).json({ 
           stats: result.length > 0 ? result[0] : null 
         });
     } catch (e: any) {
         console.error('[InfluxDB] Error fetching connection count for relay:', slug, e);
-        
-        // Reset client on auth errors to force recreation on next request
-        if (e?.statusCode === 401 || e?.code === 'unauthorized') {
-            resetInfluxDBClient();
-        }
-        
-        // Return error info to help debug
         return res.status(200).json({ 
             stats: null, 
             error: e instanceof Error ? e.message : 'Unknown error'
