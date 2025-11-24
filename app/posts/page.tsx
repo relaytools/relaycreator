@@ -780,8 +780,13 @@ export default function PostsPage(
 
     const showLocalTime = (unixTime: any) => {
         const date = new Date(unixTime * 1000); // Convert to milliseconds
-        const localTime = date.toLocaleString(); // Format as local time string
-        return localTime;
+        // Use UTC to ensure consistent formatting between server and client
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const hours = String(date.getUTCHours()).padStart(2, '0');
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
     };
 
     const parseOutAndShowImages = (content: string) => {
@@ -1505,17 +1510,24 @@ export default function PostsPage(
                                             dataKey="time"
                                             type="number"
                                             domain={["dataMin", "dataMax"]}
-                                            tickFormatter={(time) =>
-                                                new Date(
-                                                    time
-                                                ).toLocaleTimeString()
-                                            }
+                                            tickFormatter={(time) => {
+                                                const d = new Date(time);
+                                                const hours = String(d.getUTCHours()).padStart(2, '0');
+                                                const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+                                                return `${hours}:${minutes}`;
+                                            }}
                                         />
                                         <YAxis />
                                         <Tooltip
-                                            labelFormatter={(time) =>
-                                                new Date(time).toLocaleString()
-                                            }
+                                            labelFormatter={(time) => {
+                                                const d = new Date(time);
+                                                const year = d.getUTCFullYear();
+                                                const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                                const day = String(d.getUTCDate()).padStart(2, '0');
+                                                const hours = String(d.getUTCHours()).padStart(2, '0');
+                                                const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+                                                return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+                                            }}
                                             formatter={(value) => [
                                                 `${value} connections`,
                                             ]}
@@ -1589,11 +1601,12 @@ export default function PostsPage(
                                         type="number"
                                         domain={["dataMin", "dataMax"]}
                                         allowDuplicatedCategory={false}
-                                        tickFormatter={(unixTime) =>
-                                            new Date(
-                                                unixTime
-                                            ).toLocaleTimeString()
-                                        }
+                                        tickFormatter={(unixTime) => {
+                                            const d = new Date(unixTime);
+                                            const hours = String(d.getUTCHours()).padStart(2, '0');
+                                            const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+                                            return `${hours}:${minutes}`;
+                                        }}
                                     />
                                     <YAxis />
                                     <Tooltip
@@ -1617,9 +1630,15 @@ export default function PostsPage(
                                                 return (
                                                     <div className="custom-tooltip bg-base-100 border p-2 rounded-md">
                                                         <p>
-                                                            {new Date(
-                                                                label
-                                                            ).toLocaleString()}
+                                                            {(() => {
+                                                                const d = new Date(label);
+                                                                const year = d.getUTCFullYear();
+                                                                const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                                                const day = String(d.getUTCDate()).padStart(2, '0');
+                                                                const hours = String(d.getUTCHours()).padStart(2, '0');
+                                                                const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+                                                                return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+                                                            })()}
                                                         </p>
                                                         {sortedPayload.map(
                                                             (entry, index) => (

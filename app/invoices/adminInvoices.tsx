@@ -5,6 +5,17 @@ import { nip19 } from "nostr-tools";
 import NDK, { NDKEvent, NDKNip07Signer, NDKPublishError, NDKRelay, NDKRelayAuthPolicies, NDKAuthPolicy, NDKRelaySet, NDKSubscription } from "@nostr-dev-kit/ndk";
 import { getRelayListForUser, getRelayListForUsers } from "@nostr-dev-kit/ndk";
 
+// Format date consistently using UTC to avoid hydration errors
+function formatDate(date: Date | string): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const year = d.getUTCFullYear();
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const hours = String(d.getUTCHours()).padStart(2, '0');
+    const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+}
+
 function copyToClipboard(e: any, bolt: string) {
     e.preventDefault();
     navigator.clipboard.writeText(bolt).then(() => {
@@ -422,7 +433,13 @@ export default function AdminInvoices(props: any) {
                                     {currentPlan.startedAt && (
                                         <div>
                                             <div className="text-sm font-semibold">Plan Started</div>
-                                            <div className="text-xs opacity-70">{currentPlan.startedAt.toLocaleDateString()}</div>
+                                            <div className="text-xs opacity-70">{(() => {
+                                                const d = currentPlan.startedAt;
+                                                const year = d.getUTCFullYear();
+                                                const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                                const day = String(d.getUTCDate()).padStart(2, '0');
+                                                return `${year}-${month}-${day}`;
+                                            })()}</div>
                                         </div>
                                     )}
                                 </div>
@@ -520,7 +537,7 @@ export default function AdminInvoices(props: any) {
                                                                 <div>
                                                                     <div className="font-semibold">{order.amount} sats</div>
                                                                     <div className="text-sm opacity-70">
-                                                                        Expires: {order.expires_at ? new Date(order.expires_at).toLocaleString() : "No expiration"}
+                                                                        Expires: {order.expires_at ? formatDate(order.expires_at) : "No expiration"}
                                                                     </div>
                                                                 </div>
                                                                 <a
@@ -547,7 +564,7 @@ export default function AdminInvoices(props: any) {
                                                                 <div>
                                                                     <div className="font-semibold">{amountPrecision(order.amount)} sats</div>
                                                                     <div className="text-sm opacity-70">
-                                                                        Paid: {order.paid_at ? new Date(order.paid_at).toLocaleString() : "Unknown"}
+                                                                        Paid: {order.paid_at ? formatDate(order.paid_at) : "Unknown"}
                                                                     </div>
                                                                 </div>
                                                                 <div className="badge badge-success">Paid</div>
