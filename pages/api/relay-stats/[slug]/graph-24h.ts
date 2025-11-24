@@ -38,6 +38,7 @@ const fluxQuery = `
     const result = await queryApi.collectRows(fluxQuery)
     return res.status(200).json({ stats: result })
   } catch (e) {
-    return res.status(200).json({ stats: [] })
+    console.error('[InfluxDB] Error fetching 24h graph data for relay:', slug, 'blocked:', blocked, e);
+    return res.status(200).json({ stats: [], error: 'Failed to fetch graph data' })
   }
 }

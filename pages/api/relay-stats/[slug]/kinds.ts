@@ -36,6 +36,7 @@ export default async function handle(req: any, res: any) {
         const result = await queryApi.collectRows(fluxQuery);
         return res.status(200).json({ stats: result });
     } catch (e) {
-        return res.status(200).json({ stats: [] });
+        console.error('[InfluxDB] Error fetching kinds stats for relay:', slug, e);
+        return res.status(200).json({ stats: [], error: 'Failed to fetch kinds data' });
     }
 }
