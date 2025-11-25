@@ -21,14 +21,13 @@ class RobustInfluxDBClient {
             this.agent.destroy();
         }
 
-        // Create new agent with aggressive connection management
+        // Create new agent WITHOUT keep-alive to prevent stale connections
+        // This ensures every request uses a fresh TCP connection
         this.agent = new HttpsAgent({
-            keepAlive: true,
-            keepAliveMsecs: 10000,
-            maxSockets: 25,
-            maxFreeSockets: 5,
+            keepAlive: false,  // Disable connection pooling
+            maxSockets: Infinity,
+            maxFreeSockets: 0,
             timeout: 30000,
-            scheduling: 'lifo',
         });
 
         // Monitor agent for socket errors
@@ -78,6 +77,13 @@ class RobustInfluxDBClient {
             this.reconnectTimer = null;
         }
 
+        // Completely destroy old client and agent
+        this.destroy();
+        
+        // Force garbage collection hint
+        this.client = null;
+        this.agent = null;
+        
         // Reinitialize client with fresh agent
         this.initializeClient();
         console.log('[InfluxDB] Client reconnected');
@@ -122,10 +128,13 @@ class RobustInfluxDBClient {
     destroy() {
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
         }
         if (this.agent) {
             this.agent.destroy();
+            this.agent = null;
         }
+        this.client = null;
     }
 }
 
