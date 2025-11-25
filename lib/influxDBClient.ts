@@ -38,6 +38,18 @@ class RobustInfluxDBClient {
 
         // Create client
         console.log('[InfluxDB] Creating new client instance');
+        console.log('[InfluxDB] URL:', this.url);
+        console.log('[InfluxDB] Token length:', this.token?.length || 0);
+        console.log('[InfluxDB] Token prefix:', this.token?.substring(0, 10) + '...');
+        console.log('[InfluxDB] Token from env:', process.env.INFLUXDB_TOKEN?.substring(0, 10) + '...');
+        console.log('[InfluxDB] Token match:', this.token === process.env.INFLUXDB_TOKEN);
+        console.log('[InfluxDB] Env vars present:', {
+            url: !!process.env.INFLUXDB_URL,
+            token: !!process.env.INFLUXDB_TOKEN,
+            org: !!process.env.INFLUXDB_ORG,
+            bucket: !!process.env.INFLUXDB_BUCKET
+        });
+        
         this.client = new InfluxDB({
             url: this.url,
             token: this.token,
@@ -109,6 +121,20 @@ class RobustInfluxDBClient {
                     e?.code === 'ETIMEDOUT' ||
                     e?.statusCode === 401 ||
                     e?.code === 'unauthorized';
+
+                // Detailed error logging
+                console.error('[InfluxDB] Query failed:', {
+                    attempt: attempt + 1,
+                    maxAttempts,
+                    errorCode: e?.code,
+                    statusCode: e?.statusCode,
+                    statusMessage: e?.statusMessage,
+                    isConnectionError,
+                    errorBody: e?.body,
+                    tokenLength: this.token?.length,
+                    urlUsed: this.url,
+                    orgUsed: org
+                });
 
                 if (isConnectionError && attempt < maxAttempts - 1) {
                     console.log(`[InfluxDB] Connection error detected (${e?.code || e?.statusCode}), reconnecting...`);
