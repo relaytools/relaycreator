@@ -38,14 +38,14 @@
     "alby-js-sdk": "^2.3.0",
     "autoprefixer": "^10.4.22",
     "clsx": "^2.1.1",
-    "daisyui": "^5.5.5",
-    "eslint-config-next": "^15.5.6",
+    "daisyui": "^5.5.8",
+    "eslint-config-next": "^15.5.7",
     "lnbits": "github:jeremyd/lnbits-js#noyarn",
-    "next": "^15.5.6",
+    "next": "^15.5.7",
     "next-auth": "^4.24.13",
     "next-themes": "^0.4.6",
     "node-fetch": "^3.3.2",
-    "nostr-tools": "^2.18.0",
+    "nostr-tools": "^2.18.2",
     "postcss": "^8.5.6",
     "postcss-cli": "^11.0.1",
     "postcss-preset-env": "^9.6.0",
@@ -70,7 +70,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-environment-node": "^29.7.0",
-    "ts-jest": "^29.4.5",
-    "tsx": "^4.20.6"
+    "ts-jest": "^29.4.6",
+    "tsx": "^4.21.0"
   }
 }
