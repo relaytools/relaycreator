@@ -484,38 +484,42 @@ export default function Wizard(
                 } lg:translate-x-0 fixed lg:static w-64 h-full bg-base-200 p-4 transition-transform duration-300 ease-in-out z-10 flex flex-col`}
             >
                 <ul className="menu menu-vertical grow">
-                    <li>
-                        <button
-                            className={`${
-                                checked === 1 ? "active" : ""
-                            } flex justify-between items-center`}
-                            onClick={() => {
-                                setChecked(1);
-                                setMenuOpen(false);
-                            }}
-                        >
-                            <span>Relay Setup Wizard</span>
-                            {props.relay.relay_kind_description && (
-                                <span className="text-success">✓</span>
-                            )}
-                        </button>
-                    </li>
-                    <li>
-                        <button
-                            className={`${
-                                checked === 2 ? "active" : ""
-                            } flex justify-between items-center`}
-                            onClick={() => {
-                                setChecked(2);
-                                setMenuOpen(false);
-                            }}
-                        >
-                            <span>Choose Relay Type</span>
-                            {props.relay.relay_kind_description && (
-                                <span className="text-success">✓</span>
-                            )}
-                        </button>
-                    </li>
+                    {!relayKindDescription && (
+                        <>
+                            <li>
+                                <button
+                                    className={`${
+                                        checked === 1 ? "active" : ""
+                                    } flex justify-between items-center`}
+                                    onClick={() => {
+                                        setChecked(1);
+                                        setMenuOpen(false);
+                                    }}
+                                >
+                                    <span>Relay Setup Wizard</span>
+                                    {props.relay.relay_kind_description && (
+                                        <span className="text-success">✓</span>
+                                    )}
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    className={`${
+                                        checked === 2 ? "active" : ""
+                                    } flex justify-between items-center`}
+                                    onClick={() => {
+                                        setChecked(2);
+                                        setMenuOpen(false);
+                                    }}
+                                >
+                                    <span>Choose Relay Type</span>
+                                    {props.relay.relay_kind_description && (
+                                        <span className="text-success">✓</span>
+                                    )}
+                                </button>
+                            </li>
+                        </>
+                    )}
                     <li>
                         <button
                             className={`${checked === 3 ? "active" : ""}`}
@@ -1050,7 +1054,10 @@ export default function Wizard(
                             <div className="flex justify-center">
                                 <div
                                     className="btn btn-primary"
-                                    onClick={() => setChecked(6)}
+                                    onClick={() => {
+                                        setChecked(6);
+                                        setAclSection("allowed-pubkeys");
+                                    }}
                                 >
                                     Next
                                 </div>
@@ -1061,7 +1068,15 @@ export default function Wizard(
                     {checked === 6 && (
                         <div className="w-full">
                             <h2 className="text-lg font-bold mb-4">
-                                Access Control Lists (ACLs)
+                                {aclSection === "mode" && "Access Control Mode"}
+                                {aclSection === "auth" && "Authentication (NIP42)"}
+                                {aclSection === "tags" && "Allow Tags"}
+                                {aclSection === "allowed-pubkeys" && "Allowed Pubkeys"}
+                                {aclSection === "allowed-keywords" && "Allowed Keywords"}
+                                {aclSection === "allowed-kinds" && "Allowed Kinds"}
+                                {aclSection === "blocked-pubkeys" && "Blocked Pubkeys"}
+                                {aclSection === "blocked-keywords" && "Blocked Keywords"}
+                                {aclSection === "blocked-kinds" && "Blocked Kinds"}
                             </h2>
 
                             {aclSection === "mode" && (
