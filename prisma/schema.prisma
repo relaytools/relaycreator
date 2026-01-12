@@ -147,7 +147,7 @@ model Relay {
   block_list             BlockList?
   details                String?       @db.Text
   domain                 String?       @db.VarChar(255)
-  default_message_policy Boolean       @default(true)
+  default_message_policy Boolean       @default(false)
   listed_in_directory    Boolean       @default(false)
   payment_required       Boolean       @default(false)
   payment_amount         Int           @default(21)

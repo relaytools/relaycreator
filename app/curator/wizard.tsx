@@ -465,7 +465,7 @@ export default function Wizard(
     const [menuOpen, setMenuOpen] = useState(false);
 
     // Add new state for ACL submenu
-    const [aclSection, setAclSection] = useState("auth"); // Possible values: "auth", "tags", "allowed-pubkeys", "allowed-keywords", "allowed-kinds", "blocked-pubkeys", "blocked-keywords", "blocked-kinds"
+    const [aclSection, setAclSection] = useState("mode"); // Possible values: "mode", "auth", "tags", "allowed-pubkeys", "allowed-keywords", "allowed-kinds", "blocked-pubkeys", "blocked-keywords", "blocked-kinds"
 
     return (
         <div className="flex flex-row min-h-screen relative">
@@ -540,17 +540,6 @@ export default function Wizard(
                     </li>
                     <li>
                         <button
-                            className={`${checked === 5 ? "active" : ""}`}
-                            onClick={() => {
-                                setChecked(5);
-                                setMenuOpen(false);
-                            }}
-                        >
-                            Access Control Mode
-                        </button>
-                    </li>
-                    <li>
-                        <button
                             className={`${checked === 6 ? "active" : ""}`}
                             onClick={() => {
                                 setChecked(6);
@@ -561,6 +550,21 @@ export default function Wizard(
                         </button>
                         {checked === 6 && (
                             <ul className="menu menu-vertical pl-4">
+                                <li>
+                                    <button
+                                        className={
+                                            aclSection === "mode"
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() => {
+                                            setAclSection("mode");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Access Control Mode
+                                    </button>
+                                </li>
                                 <li>
                                     <button
                                         className={
@@ -1046,97 +1050,9 @@ export default function Wizard(
                             <div className="flex justify-center">
                                 <div
                                     className="btn btn-primary"
-                                    onClick={() => setChecked(5)}
-                                >
-                                    Next
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {checked === 5 && (
-                        <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">
-                                Access Control Mode
-                            </h2>
-                            <article className="prose">
-                                <p>
-                                    There are two different ways you can setup
-                                    access control for your relay.
-                                </p>
-                                <ul>
-                                    <li>
-                                        Block events by default and specifically
-                                        allow pubkeys, keywords or kinds. This
-                                        mode is easier to manage.
-                                    </li>
-                                    <li>
-                                        Allow events by default and specifically
-                                        block pubkeys, keywords or kinds. This
-                                        mode requires more moderation.
-                                    </li>
-                                </ul>
-                                <p>
-                                    You may still allow or block pubkeys,
-                                    keywords and kinds regardless of the default
-                                    mode.
-                                </p>
-                                {relayKindDescription == "Community Relay" && (
-                                    <p>
-                                        Since you would like a{" "}
-                                        {relayKindDescription} we recommend you
-                                        start with Blocking
-                                    </p>
-                                )}
-                                {relayKindDescription ==
-                                    "Private Community Relay" && (
-                                    <p>
-                                        Since you would like a{" "}
-                                        {relayKindDescription} we recommend you
-                                        start with Blocking
-                                    </p>
-                                )}
-                                {relayKindDescription ==
-                                    "Public Paid Relay" && (
-                                    <p>
-                                        Since you would like a{" "}
-                                        {relayKindDescription} we recommend you
-                                        start with Blocking
-                                    </p>
-                                )}
-                                {relayKindDescription ==
-                                    "Public Free Relay" && (
-                                    <p>
-                                        Since you would like a{" "}
-                                        {relayKindDescription} we recommend you
-                                        start with Allowing
-                                    </p>
-                                )}
-                            </article>
-                            <div className="mt-4">
-                                <div className="text-sm font-condensed">
-                                    current setting is:
-                                </div>
-                                <label
-                                    className={isAllow()}
-                                    onClick={(e) => handleAllowChange(e)}
-                                >
-                                    <div className="btn uppercase btn-primary swap-on">
-                                        Allow by default and block what I don't
-                                        want 🔨
-                                    </div>
-                                    <div className="btn uppercase btn-primary swap-off">
-                                        Block by default and then allow what I
-                                        want ✅
-                                    </div>
-                                </label>
-                            </div>
-                            <div className="flex justify-center">
-                                <div
-                                    className="btn btn-primary uppercase mt-4"
                                     onClick={() => setChecked(6)}
                                 >
-                                    next
+                                    Next
                                 </div>
                             </div>
                         </div>
@@ -1147,6 +1063,83 @@ export default function Wizard(
                             <h2 className="text-lg font-bold mb-4">
                                 Access Control Lists (ACLs)
                             </h2>
+
+                            {aclSection === "mode" && (
+                                <div>
+                                    <article className="prose">
+                                        <p>
+                                            There are two different ways you can setup
+                                            access control for your relay.
+                                        </p>
+                                        <ul>
+                                            <li>
+                                                Block events by default and specifically
+                                                allow pubkeys, keywords or kinds. This
+                                                mode is easier to manage.
+                                            </li>
+                                            <li>
+                                                Allow events by default and specifically
+                                                block pubkeys, keywords or kinds. This
+                                                mode requires more moderation.
+                                            </li>
+                                        </ul>
+                                        <p>
+                                            You may still allow or block pubkeys,
+                                            keywords and kinds regardless of the default
+                                            mode.
+                                        </p>
+                                        {relayKindDescription == "Community Relay" && (
+                                            <p>
+                                                Since you would like a{" "}
+                                                {relayKindDescription} we recommend you
+                                                start with Blocking
+                                            </p>
+                                        )}
+                                        {relayKindDescription ==
+                                            "Private Community Relay" && (
+                                            <p>
+                                                Since you would like a{" "}
+                                                {relayKindDescription} we recommend you
+                                                start with Blocking
+                                            </p>
+                                        )}
+                                        {relayKindDescription ==
+                                            "Public Paid Relay" && (
+                                            <p>
+                                                Since you would like a{" "}
+                                                {relayKindDescription} we recommend you
+                                                start with Blocking
+                                            </p>
+                                        )}
+                                        {relayKindDescription ==
+                                            "Public Free Relay" && (
+                                            <p>
+                                                Since you would like a{" "}
+                                                {relayKindDescription} we recommend you
+                                                start with Allowing
+                                            </p>
+                                        )}
+                                    </article>
+                                    <div className="mt-4">
+                                        <div className="text-sm font-condensed">
+                                            current setting is:
+                                        </div>
+                                        <label
+                                            className={isAllow()}
+                                            onClick={(e) => handleAllowChange(e)}
+                                        >
+                                            <div className="btn uppercase btn-primary swap-on">
+                                                Allow by default and block what I don't
+                                                want 🔨
+                                            </div>
+                                            <div className="btn uppercase btn-primary swap-off">
+                                                Block by default and then allow what I
+                                                want ✅
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
 
                             {aclSection === "auth" && (
                                 <div>
