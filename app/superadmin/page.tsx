@@ -4,6 +4,7 @@ import prisma from "../../lib/prisma";
 import { redirect } from "next/navigation";
 import GlobalBlockListManager from "./globalBlockListManager";
 import GlobalStreamsManager from "./globalStreamsManager";
+import JobsManager from "./jobsManager";
 
 export default async function SuperAdminPage() {
     const session = await getServerSession(authOptions);
@@ -44,7 +45,7 @@ export default async function SuperAdminPage() {
         },
     });
 
-    // Fetch all jobs ordered by timestamp (most recent first)
+    // Fetch all jobs (consolidated - all types)
     const jobs = await prisma.job.findMany({
         select: {
             id: true,
@@ -56,18 +57,21 @@ export default async function SuperAdminPage() {
             output: true,
             pubkey: true,
             eventId: true,
+            syncHost: true,
+            syncDirection: true,
             relay: {
                 select: {
                     id: true,
                     name: true,
                     status: true,
+                    port: true,
                 },
             },
         },
         orderBy: {
             created_at: "desc",
         },
-        take: 100, // Limit to most recent 100 jobs
+        take: 500,
     });
 
     // Fetch all running relays with their streams for the streams manager
@@ -119,8 +123,12 @@ export default async function SuperAdminPage() {
                     <GlobalBlockListManager
                         globalBlockList={globalBlockList}
                         userPubkey={user.pubkey}
-                        jobs={jobs}
                     />
+                </div>
+
+                {/* Jobs Manager Section */}
+                <div className="mb-8">
+                    <JobsManager initialJobs={jobs} />
                 </div>
 
                 {/* Streams Manager Section */}

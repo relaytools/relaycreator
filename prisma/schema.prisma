@@ -275,7 +275,7 @@ model Job {
   id         String   @id @default(cuid())
   relay      Relay    @relation(fields: [relayId], references: [id], onDelete: Cascade)
   relayId    String
-  kind       String   @db.VarChar(50)  // e.g., "filter_sync", "event_query", "cleanup"
+  kind       String   @db.VarChar(50)  // e.g., "sync", "event_query", "cleanup"
   status     String   @db.VarChar(20)  // e.g., "pending", "running", "completed", "failed"
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -287,6 +287,10 @@ model Job {
   // TODO: other fields?
   pubkey    String?   @db.VarChar(255)
   eventId    String?   @db.VarChar(255)
+  
+  // sync related
+  syncHost String?   @db.VarChar(255)
+  syncDirection String?   @db.VarChar(12)
 
   @@index([relayId])
   @@index([status])

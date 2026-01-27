@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaServer, FaPlus, FaTrash, FaSync, FaArrowUp, FaArrowDown, FaExchangeAlt, FaSpinner, FaCheckCircle, FaTimesCircle, FaInfoCircle } from "react-icons/fa";
+import { FaServer, FaPlus, FaTrash, FaSync, FaArrowUp, FaArrowDown, FaExchangeAlt, FaSpinner, FaCheckCircle, FaTimesCircle, FaPlay, FaInfoCircle } from "react-icons/fa";
 
 interface Stream {
     id: string;
@@ -39,6 +39,14 @@ export default function GlobalStreamsManager({ initialRelays }: Props) {
     const [searchTerm, setSearchTerm] = useState("");
     const [showOnlyWithStreams, setShowOnlyWithStreams] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+
+    // Sync job scheduling state
+    const [syncTargetServer, setSyncTargetServer] = useState("");
+    const [syncDirection, setSyncDirection] = useState("down");
+    const [syncProtocol, setSyncProtocol] = useState("wss");
+    const [isSchedulingSync, setIsSchedulingSync] = useState(false);
+    const [selectedRelayIds, setSelectedRelayIds] = useState<string[]>([]);
+    const [selectAllRelays, setSelectAllRelays] = useState(false);
 
     const refreshRelays = async () => {
         setIsRefreshing(true);
@@ -179,6 +187,86 @@ export default function GlobalStreamsManager({ initialRelays }: Props) {
                 return <span className="badge badge-error badge-sm gap-1"><FaTimesCircle size={10} /> Error</span>;
             default:
                 return <span className="badge badge-ghost badge-sm">{status}</span>;
+        }
+    };
+
+    const handleScheduleSyncJobs = async (bulk: boolean = true) => {
+        if (!syncTargetServer.trim()) {
+            toast.error("Please enter a target server hostname");
+            return;
+        }
+
+        const relayCount = bulk ? relays.filter(r => r.port).length : selectedRelayIds.length;
+        if (!bulk && relayCount === 0) {
+            toast.error("Please select at least one relay");
+            return;
+        }
+
+        const confirmMessage = bulk
+            ? `⚠️ This will schedule sync jobs for ALL ${relayCount} running relays.\n\n` +
+              `Target Server: ${syncTargetServer}\n` +
+              `Protocol: ${syncProtocol}\n` +
+              `Direction: ${syncDirection}\n` +
+              `Sync URL Pattern: ${syncProtocol}://${syncTargetServer}:<relay_port>\n\n` +
+              `Are you sure you want to proceed?`
+            : `⚠️ This will schedule sync jobs for ${relayCount} selected relay(s).\n\n` +
+              `Target Server: ${syncTargetServer}\n` +
+              `Protocol: ${syncProtocol}\n` +
+              `Direction: ${syncDirection}\n\n` +
+              `Are you sure you want to proceed?`;
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        setIsSchedulingSync(true);
+        try {
+            const response = await fetch("/api/superadmin/syncjobs", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    targetServer: syncTargetServer.trim(),
+                    direction: syncDirection,
+                    protocol: syncProtocol,
+                    relayIds: bulk ? undefined : selectedRelayIds,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to schedule sync jobs");
+            }
+
+            toast.success(data.message);
+            setSyncTargetServer("");
+            setSelectedRelayIds([]);
+            setSelectAllRelays(false);
+            router.refresh();
+        } catch (error: any) {
+            toast.error(error.message || "Error scheduling sync jobs");
+            console.error("Error scheduling sync jobs:", error);
+        } finally {
+            setIsSchedulingSync(false);
+        }
+    };
+
+    const toggleRelaySelection = (relayId: string) => {
+        setSelectedRelayIds(prev => 
+            prev.includes(relayId) 
+                ? prev.filter(id => id !== relayId)
+                : [...prev, relayId]
+        );
+    };
+
+    const handleSelectAllRelays = (checked: boolean) => {
+        setSelectAllRelays(checked);
+        if (checked) {
+            setSelectedRelayIds(filteredRelays.filter(r => r.port).map(r => r.id));
+        } else {
+            setSelectedRelayIds([]);
         }
     };
 
@@ -406,6 +494,89 @@ export default function GlobalStreamsManager({ initialRelays }: Props) {
                 </div>
             </div>
 
+            {/* Schedule Sync Jobs Section */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <FaSync className="text-blue-500" />
+                    Schedule Sync Jobs
+                </h2>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                    Schedule one-time sync jobs to synchronize data between relays. The sync URL will be constructed as 
+                    <code className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded mx-1">[protocol]://[target-server]:[relay-port]</code>
+                </p>
+                <div className="flex flex-col md:flex-row gap-4 mb-4">
+                    <div className="w-full md:w-32">
+                        <label className="label">
+                            <span className="label-text">Protocol</span>
+                        </label>
+                        <select
+                            className="select select-bordered w-full"
+                            value={syncProtocol}
+                            onChange={(e) => setSyncProtocol(e.target.value)}
+                            disabled={isSchedulingSync}
+                        >
+                            <option value="wss">wss://</option>
+                            <option value="ws">ws://</option>
+                        </select>
+                    </div>
+                    <div className="flex-1">
+                        <label className="label">
+                            <span className="label-text">Target Server Hostname</span>
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="e.g., source-server.example.com"
+                            className="input input-bordered w-full"
+                            value={syncTargetServer}
+                            onChange={(e) => setSyncTargetServer(e.target.value)}
+                            disabled={isSchedulingSync}
+                        />
+                    </div>
+                    <div className="w-full md:w-48">
+                        <label className="label">
+                            <span className="label-text">Direction</span>
+                        </label>
+                        <select
+                            className="select select-bordered w-full"
+                            value={syncDirection}
+                            onChange={(e) => setSyncDirection(e.target.value)}
+                            disabled={isSchedulingSync}
+                        >
+                            <option value="down">Down (Pull from source)</option>
+                            <option value="up">Up (Push to target)</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        className="btn btn-primary gap-2"
+                        onClick={() => handleScheduleSyncJobs(true)}
+                        disabled={isSchedulingSync || !syncTargetServer.trim()}
+                    >
+                        {isSchedulingSync ? (
+                            <>
+                                <FaSpinner className="animate-spin" />
+                                Scheduling...
+                            </>
+                        ) : (
+                            <>
+                                <FaPlay />
+                                Sync All Relays
+                            </>
+                        )}
+                    </button>
+                    <button
+                        className="btn btn-secondary gap-2"
+                        onClick={() => handleScheduleSyncJobs(false)}
+                        disabled={isSchedulingSync || !syncTargetServer.trim() || selectedRelayIds.length === 0}
+                    >
+                        <FaPlay />
+                        Sync Selected ({selectedRelayIds.length})
+                    </button>
+                </div>
+            </div>
+
             {/* Relay List Section */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -445,6 +616,17 @@ export default function GlobalStreamsManager({ initialRelays }: Props) {
                     <table className="table table-zebra w-full">
                         <thead>
                             <tr>
+                                <th>
+                                    <label className="cursor-pointer flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox checkbox-sm"
+                                            checked={selectAllRelays}
+                                            onChange={(e) => handleSelectAllRelays(e.target.checked)}
+                                        />
+                                        <span className="text-xs">Select</span>
+                                    </label>
+                                </th>
                                 <th>Relay Name</th>
                                 <th>Port</th>
                                 <th>Streams</th>
@@ -457,7 +639,16 @@ export default function GlobalStreamsManager({ initialRelays }: Props) {
                                 const regularStreams = relay.streams.filter(s => !s.internal);
                                 
                                 return (
-                                    <tr key={relay.id}>
+                                    <tr key={relay.id} className={selectedRelayIds.includes(relay.id) ? "bg-blue-50 dark:bg-blue-900/20" : ""}>
+                                        <td>
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-sm"
+                                                checked={selectedRelayIds.includes(relay.id)}
+                                                onChange={() => toggleRelaySelection(relay.id)}
+                                                disabled={!relay.port}
+                                            />
+                                        </td>
                                         <td>
                                             <div className="font-medium text-slate-900 dark:text-white">
                                                 {relay.name}
