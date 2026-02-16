@@ -81,6 +81,15 @@ export default async function Nip05Page() {
         (relay) => `${relay.name}.${relay.domain}`
     );
 
+    // Add root domains for owners/moderators only
+    const isOwnerOrModerator = combinedRelays.length > 0;
+    if (isOwnerOrModerator) {
+        const creatorDomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN || "nostr1.com";
+        const rootDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "https://relay.tools").replace(/^https?:\/\//, '');
+        // Add root domains at the beginning of the list
+        relayDomainNames = [creatorDomain, rootDomain, ...relayDomainNames];
+    }
+
     const otherNip05 = await prisma.nip05.findMany({
         where: {
             domain: {

@@ -15,19 +15,17 @@ export default async function handle(req: any, res: any) {
             return;
         }
 
-        // Check if this is the root domain - return ALL nip05s
-        const rootDomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN?.toLowerCase() || "nostr1.com";
-        const isRootDomain = domain.toLowerCase() === rootDomain;
-
+        // Always query for the specific domain - no special "return all" behavior
+        // Each domain (including root domains) only returns NIP-05s explicitly created for that domain
         let result = {
             names: {} as { [key: string]: string },
             relays: {} as { [key: string]: string[] },
         };
 
         if (name != null) {
-            //fetch one
+            //fetch one for this specific domain
             const nip05 = await prisma.nip05.findFirst({
-                where: isRootDomain ? { name: name } : { domain: domain, name: name },
+                where: { domain: domain, name: name },
                 include: {
                     relayUrls: true,
                 },
@@ -43,9 +41,9 @@ export default async function handle(req: any, res: any) {
             );
 
         } else {
-            // fetch all
+            // fetch all for this specific domain
             const nip05s = await prisma.nip05.findMany({
-                where: isRootDomain ? {} : { domain: domain },
+                where: { domain: domain },
                 include: { relayUrls: true },
             });
             nip05s.forEach((nip05) => {
