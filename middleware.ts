@@ -38,14 +38,34 @@ export async function middleware(req: NextRequest) {
         if( process.env.NEXT_PUBLIC_CREATOR_DOMAIN ) {
             skipThis = process.env.NEXT_PUBLIC_CREATOR_DOMAIN.toLowerCase()
         }
+
+        // Extract domain from NEXT_PUBLIC_ROOT_DOMAIN (removing https:// or http:// prefix)
+        let rootDomain = "relay.tools"
+        if( process.env.NEXT_PUBLIC_ROOT_DOMAIN ) {
+            rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN.replace(/^https?:\/\//, '').toLowerCase()
+        }
         
         // Skip root domains and local IPs
-        if (host == "relay.tools"
+        if (host == rootDomain
          || host == skipThis
          || host?.includes("10.0")
          || host?.includes("192.168")
          || host?.includes("127.0")
          || host?.includes("localhost")) {
+            // Handle .well-known/nostr.json for root domains
+            if (url.pathname.includes('/.well-known/nostr.json')) {
+                console.log(`>>> Rewriting for nip05 rootDM: ${url.pathname} to /api/nip05/${host}`);
+                url.pathname = `/api/nip05/${host}`;
+                const requestHeaders = new Headers(req.headers)
+                requestHeaders.set('middleware-rewritten', host || "true")
+                const response = NextResponse.next({
+                    request: {
+                        headers: requestHeaders,
+                    },
+                })
+                return NextResponse.rewrite(url, response);
+            }
+            
             const pathHeaders = new Headers(req.headers)
             pathHeaders.set('next-url', url.pathname)
             return NextResponse.next({
@@ -86,7 +106,7 @@ export async function middleware(req: NextRequest) {
         } else {
             if(url.pathname.includes('/.well-known/nostr.json')) {
                 // root domains nip05
-                console.log(`>>> Rewriting for nip05: ${url.pathname} to ->`)
+                console.log(`>>> Rewriting for nip05 rootDM: ${url.pathname} to ->`)
                 url.pathname = `/api/nip05/${host}`;
             }
         }

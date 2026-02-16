@@ -218,7 +218,7 @@ export default async function RelayPage({
                 <div className="card-body">
                     <h2 className="card-title">About</h2>
                     <div className="divider my-1"></div>
-                    <p>{relay.details || 'A Nostr relay powered by relay.tools'}</p>
+                    <p>{relay.details || `A Nostr relay powered by ${(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')}`}</p>
                 </div>
             </div>
             

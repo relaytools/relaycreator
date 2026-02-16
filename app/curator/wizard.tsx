@@ -77,7 +77,7 @@ export default function Wizard(
             // Extract pubkey from session name
             const pubkey = session.user.name;
             setUserPubkey(pubkey);
-            // Don't auto-fill observer pubkey - let it default to relay.tools default
+            // Don't auto-fill observer pubkey - let it default to the platform default
         }
     }, [session]);
     
@@ -154,7 +154,7 @@ export default function Wizard(
                 // Use custom observer pubkey
                 finalUrl = `${brainstormBaseUrl}?observerPubkey=${brainstormObserverPubkey}`;
             } else {
-                // Use relay.tools default (no observerPubkey parameter)
+                // Use platform default (no observerPubkey parameter)
                 finalUrl = brainstormBaseUrl;
             }
         }
@@ -1589,7 +1589,7 @@ export default function Wizard(
                                             <h3 className="font-bold">Brainstorm Scores</h3>
                                             <div className="text-sm">
                                                 Uses your social network to determine who can access the relay. 
-                                                Will use relay.tools default observer for scoring unless you specify a custom observer in advanced options.
+                                                Will use {(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')} default observer for scoring unless you specify a custom observer in advanced options.
                                                 Additional Info: <a href="">soon</a>
                                             </div>
                                         </div>
@@ -1615,7 +1615,7 @@ export default function Wizard(
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    placeholder="Leave blank for relay.tools default observer"
+                                                    placeholder={`Leave blank for ${(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')} default observer`}
                                                     className="input input-bordered w-full"
                                                     value={brainstormObserverPubkey}
                                                     onChange={(e) => setBrainstormObserverPubkey(e.target.value)}

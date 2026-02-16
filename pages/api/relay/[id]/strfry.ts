@@ -97,7 +97,7 @@ relay {
         name = "${thisRelay.name}"
 
         # NIP-11: Detailed information about relay, free-form
-        description = "managed by relay.tools"
+        description = "managed by ${(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')}"
 
         # NIP-11: Administrative nostr pubkey, for contact purposes
         pubkey = "${thisRelay.owner.pubkey}"

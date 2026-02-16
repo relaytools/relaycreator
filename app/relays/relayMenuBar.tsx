@@ -45,7 +45,7 @@ export default function RelayMenuBar(
                             width={48}
                             height={48}
                         ></Image>
-                        <div className="font-condensed text:lg mr-2">RELAY.TOOLS</div>
+                        <div className="font-condensed text:lg mr-2">{(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '').toUpperCase()}</div>
                     </a>
                 </div>
             </div>
