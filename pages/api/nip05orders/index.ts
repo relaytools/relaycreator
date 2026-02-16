@@ -159,6 +159,25 @@ export default async function handle(req: any, res: any) {
         return
     }
 
+    // Limit root domain NIP-05s to 2 per user
+    if (isRootDomain) {
+        const userRootDomainNip05Count = await prisma.nip05.count({
+            where: {
+                pubkey: pubkey,
+                OR: [
+                    { domain: creatorDomain },
+                    { domain: rootDomainFromEnv },
+                ],
+            },
+        });
+        
+        if (userRootDomainNip05Count >= 2) {
+            console.log("User has reached root domain NIP-05 limit:", pubkey);
+            res.status(400).json({ "error": "You can only register up to 2 NIP-05 identities on root domains" });
+            return;
+        }
+    }
+
     // Determine pricing based on domain type
     let nip05Amount: number;
     let hasPremiumPlan = false;
