@@ -6,8 +6,18 @@ export default async function handle(req: any, res: any) {
     if (req.method == "GET") {
         // serve .well-known/nostr.json
 
-        const domain = req.query.id;
+        const domain = req.headers['middleware-rewritten'] || req.query.id;
         const name = req.query.name;
+
+        // Add this validation
+        if (!domain || typeof domain !== 'string' || domain.trim() === '') {
+            res.status(400).json({ error: "domain required" });
+            return;
+        }
+
+        // Check if this is the root domain - return ALL nip05s
+        const rootDomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN?.toLowerCase() || "nostr1.com";
+        const isRootDomain = domain.toLowerCase() === rootDomain;
 
         let result = {
             names: {} as { [key: string]: string },
@@ -17,7 +27,7 @@ export default async function handle(req: any, res: any) {
         if (name != null) {
             //fetch one
             const nip05 = await prisma.nip05.findFirst({
-                where: { domain: domain, name: name },
+                where: isRootDomain ? { name: name } : { domain: domain, name: name },
                 include: {
                     relayUrls: true,
                 },
@@ -35,7 +45,7 @@ export default async function handle(req: any, res: any) {
         } else {
             // fetch all
             const nip05s = await prisma.nip05.findMany({
-                where: { domain: domain },
+                where: isRootDomain ? {} : { domain: domain },
                 include: { relayUrls: true },
             });
             nip05s.forEach((nip05) => {

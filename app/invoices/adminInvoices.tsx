@@ -199,10 +199,11 @@ export default function AdminInvoices(props: any) {
             recipientName = recipientProfile.name;
         }
 
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "https://relay.tools";
         if(notifyType == "pause") {
-            newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + " Your relay has been paused for non-payment.  Please visit https://relay.tools/invoices to top up your balance and resume service.  Your relay data is still available, but may be deleted if left paused for too long.  Contact me for more details.";
+            newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + ` Your relay has been paused for non-payment.  Please visit ${rootDomain}/invoices to top up your balance and resume service.  Your relay data is still available, but may be deleted if left paused for too long.  Contact me for more details.`;
         } else if(notifyType == "notify" ) {
-            newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + " Please visit https://relay.tools/invoices to top up your balance.";
+            newEvent.content = "Hello " + "nostr:" + nip19.npubEncode(relayBalance.owner) + ` Please visit ${rootDomain}/invoices to top up your balance.`;
         }
 
         newEvent.tag(recipient, "mention");
