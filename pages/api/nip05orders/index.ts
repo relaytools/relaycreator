@@ -20,40 +20,49 @@ export default async function handle(req: any, res: any) {
         },
     })
 
-    // Parse domain to extract subdomain and base domain
-    const domainParts = domain.split('.');
-    let relayName = '';
-    let baseDomain = '';
-    
-    if (domainParts.length >= 2) {
-        relayName = domainParts[0]; // subdomain (relay name)
-        baseDomain = domainParts.slice(1).join('.'); // base domain
-    } else {
-        console.log("Invalid domain format");
-        res.status(400).json({ "error": "Invalid domain format" });
-        return;
-    }
+    // Check if this is a root domain (not a subdomain)
+    const creatorDomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN?.toLowerCase() || "nostr1.com";
+    const rootDomainFromEnv = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "https://relay.tools").replace(/^https?:\/\//, '').toLowerCase();
+    const isRootDomain = domain.toLowerCase() === creatorDomain || domain.toLowerCase() === rootDomainFromEnv;
 
-    // Find the specific relay that matches the subdomain and domain
-    const targetRelay = await prisma.relay.findFirst({
-        where: {
-            AND: [
-                { name: relayName },
-                { domain: baseDomain },
-                {
-                    OR: [
-                        { status: "running" },
-                        { status: "provision" },
-                    ]
-                }
-            ]
-        },
-    });
+    let targetRelay: any = null;
 
-    if (!targetRelay) {
-        console.log("Relay not found for domain:", domain);
-        res.status(404).json({ "error": "Relay not found for this domain" });
-        return;
+    if (!isRootDomain) {
+        // Parse domain to extract subdomain and base domain
+        const domainParts = domain.split('.');
+        let relayName = '';
+        let baseDomain = '';
+        
+        if (domainParts.length >= 2) {
+            relayName = domainParts[0]; // subdomain (relay name)
+            baseDomain = domainParts.slice(1).join('.'); // base domain
+        } else {
+            console.log("Invalid domain format");
+            res.status(400).json({ "error": "Invalid domain format" });
+            return;
+        }
+
+        // Find the specific relay that matches the subdomain and domain
+        targetRelay = await prisma.relay.findFirst({
+            where: {
+                AND: [
+                    { name: relayName },
+                    { domain: baseDomain },
+                    {
+                        OR: [
+                            { status: "running" },
+                            { status: "provision" },
+                        ]
+                    }
+                ]
+            },
+        });
+
+        if (!targetRelay) {
+            console.log("Relay not found for domain:", domain);
+            res.status(404).json({ "error": "Relay not found for this domain" });
+            return;
+        }
     }
 
     const relays = await prisma.relay.findMany({
@@ -123,15 +132,24 @@ export default async function handle(req: any, res: any) {
     });
 
     let authorized = false
-    relayDomainNames.forEach(d => {
-        if(domain.toLowerCase() == d.toLowerCase()) {
-            authorized = true
+    
+    if (isRootDomain) {
+        // For root domains, user must be owner or moderator of at least one relay
+        if (userOwnedRelays.length > 0 || userModeratedRelays.length > 0) {
+            authorized = true;
         }
-    })
+    } else {
+        // For subdomain, check if user has access to this specific domain
+        relayDomainNames.forEach(d => {
+            if(domain.toLowerCase() == d.toLowerCase()) {
+                authorized = true
+            }
+        })
+    }
 
     if(!authorized) {
-        console.log("unauthorized user for domain")
-        res.status(500).json({"error": "unauthorized user for domain"})
+        console.log("unauthorized user for domain:", domain, "isRootDomain:", isRootDomain)
+        res.status(500).json({"error": isRootDomain ? "Only relay owners and moderators can create root domain NIP-05s" : "unauthorized user for domain"})
         return
     }
 
@@ -141,23 +159,32 @@ export default async function handle(req: any, res: any) {
         return
     }
 
-    // Check if user has premium subscription to this relay
-    const userClientOrders = await prisma.clientOrder.findMany({
-        where: {
-            pubkey: pubkey,
-            relayId: targetRelay.id,
-            paid: true,
-        },
-        orderBy: {
-            paid_at: 'desc'
-        },
-        take: 1
-    });
+    // Determine pricing based on domain type
+    let nip05Amount: number;
+    let hasPremiumPlan = false;
 
-    // Determine if user has premium plan (free NIP-05) or needs to pay
-    // If nip05_payment_amount is 0 or null, bypass payments entirely
-    let nip05Amount = targetRelay.nip05_payment_amount ?? 0;
-    const hasPremiumPlan = userClientOrders.length > 0 && userClientOrders[0].order_type === 'premium';
+    if (isRootDomain) {
+        // Root domain NIP-05s are free for owners/moderators
+        nip05Amount = 0;
+    } else {
+        // Check if user has premium subscription to this specific relay
+        const userClientOrders = await prisma.clientOrder.findMany({
+            where: {
+                pubkey: pubkey,
+                relayId: targetRelay.id,
+                paid: true,
+            },
+            orderBy: {
+                paid_at: 'desc'
+            },
+            take: 1
+        });
+
+        // Determine if user has premium plan (free NIP-05) or needs to pay
+        // If nip05_payment_amount is 0 or null, bypass payments entirely
+        nip05Amount = targetRelay.nip05_payment_amount ?? 0;
+        hasPremiumPlan = userClientOrders.length > 0 && userClientOrders[0].order_type === 'premium';
+    }
     
     if (hasPremiumPlan) {
         nip05Amount = 0; // Free for premium subscribers
