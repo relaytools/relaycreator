@@ -81,9 +81,8 @@ export default async function Nip05Page() {
         (relay) => `${relay.name}.${relay.domain}`
     );
 
-    // Add root domains for owners/moderators only
-    const isOwnerOrModerator = combinedRelays.length > 0;
-    if (isOwnerOrModerator) {
+    // Add root domains for superadmin only
+    if (user.admin) {
         const creatorDomain = process.env.NEXT_PUBLIC_CREATOR_DOMAIN || "nostr1.com";
         const rootDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "https://relay.tools").replace(/^https?:\/\//, '');
         // Add root domains at the beginning of the list
@@ -135,7 +134,18 @@ export default async function Nip05Page() {
     });
 
     
-    const filteredOther = otherNip05.filter(n => (n.pubkey != user.pubkey))
+    // Filter out user's own NIP-05s AND root domain NIP-05s from other users (root domain NIP-05s are private)
+    const creatorDomainLower = (process.env.NEXT_PUBLIC_CREATOR_DOMAIN || "nostr1.com").toLowerCase();
+    const rootDomainLower = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "https://relay.tools").replace(/^https?:\/\//, '').toLowerCase();
+    
+    const filteredOther = otherNip05.filter(n => {
+        // Exclude user's own NIP-05s
+        if (n.pubkey === user.pubkey) return false;
+        // Exclude root domain NIP-05s from other users (they're private)
+        const domainLower = n.domain.toLowerCase();
+        if (domainLower === creatorDomainLower || domainLower === rootDomainLower) return false;
+        return true;
+    });
 
     relayDomainNames = Array.from(new Set(relayDomainNames));
 
