@@ -50,7 +50,22 @@ export async function checkSessionForNip05(
         return null;
     }
 
-    // Relay admins and mods :
+    // Check if this is a root domain NIP-05
+    const creatorDomain = (process.env.NEXT_PUBLIC_CREATOR_DOMAIN || "nostr1.com").toLowerCase();
+    const rootDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "https://relay.tools").replace(/^https?:\/\//, '').toLowerCase();
+    const isRootDomainNip05 = nip05.domain.toLowerCase() === creatorDomain || nip05.domain.toLowerCase() === rootDomain;
+
+    // For root domain NIP-05s, ONLY the creator can modify (not other superadmins)
+    if (isRootDomainNip05) {
+        if (user.pubkey === nip05.pubkey) {
+            return nip05;
+        } else {
+            res.status(403).json({ error: "Only the creator can modify root domain NIP-05s" });
+            return null;
+        }
+    }
+
+    // Relay admins and mods (for non-root domain NIP-05s):
     if (user.pubkey == nip05.pubkey) {
         // authorized
         return nip05;

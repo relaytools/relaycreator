@@ -131,11 +131,16 @@ export default async function handle(req: any, res: any) {
         }
     });
 
+    // Get user to check admin status
+    const requestingUser = await prisma.user.findUnique({
+        where: { pubkey: pubkey },
+    });
+
     let authorized = false
     
     if (isRootDomain) {
-        // For root domains, user must be owner or moderator of at least one relay
-        if (userOwnedRelays.length > 0 || userModeratedRelays.length > 0) {
+        // For root domains, user must be superadmin
+        if (requestingUser?.admin === true) {
             authorized = true;
         }
     } else {
@@ -149,7 +154,7 @@ export default async function handle(req: any, res: any) {
 
     if(!authorized) {
         console.log("unauthorized user for domain:", domain, "isRootDomain:", isRootDomain)
-        res.status(500).json({"error": isRootDomain ? "Only relay owners and moderators can create root domain NIP-05s" : "unauthorized user for domain"})
+        res.status(500).json({"error": isRootDomain ? "Only superadmins can create root domain NIP-05s" : "unauthorized user for domain"})
         return
     }
 
