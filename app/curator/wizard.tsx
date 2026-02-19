@@ -834,14 +834,13 @@ export default function Wizard(
                                 <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
                                     <div className="card-body">
                                         <h2 className="card-title">
-                                            Public Community Relay
+                                            Publishing Relay
                                         </h2>
                                         <p>
                                             This relay can shared with multiple
-                                            people. You can use this relay for
-                                            backups of your notes. You can
-                                            optionally setup lightning payments
-                                            and invite friends.
+                                            authors. This relay is open to everyone to read from. 
+                                            This is a good choice for publishing 
+                                            content to the wider nostr network. 
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -863,14 +862,13 @@ export default function Wizard(
                                 <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
                                     <div className="card-body">
                                         <h2 className="card-title">
-                                            Private Community Relay
+                                            Read-restricted Relay
                                         </h2>
                                         <p>
                                             This relay can shared with multiple
-                                            people. You can use this relay for
-                                            backups of your notes. Enhanced
-                                            privacy for Nostr DMs, and read
-                                            access controls.
+                                            readers/writers. This relay provides
+                                            enhanced privacy for Nostr DMs, and
+                                            read access is only allowed for members.
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -885,63 +883,6 @@ export default function Wizard(
                                                     setAndPostAuthRequired(
                                                         true
                                                     );
-                                                }}
-                                            >
-                                                select
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
-                                    <div className="card-body">
-                                        <h2 className="card-title">
-                                            Public Paid Relay
-                                        </h2>
-                                        <p>
-                                            This relay can be setup for the
-                                            general public with lightning
-                                            payments to join.
-                                        </p>
-                                        <div className="card-actions justify-end">
-                                            <button
-                                                className="btn btn-primary uppercase"
-                                                onClick={(e) => {
-                                                    setAndPostRelayKindDescription(
-                                                        "Public Paid Relay"
-                                                    );
-                                                    setChecked(3);
-                                                    setAndPostAllow(false);
-                                                    setAndPostAllowTagged(
-                                                        false
-                                                    );
-                                                }}
-                                            >
-                                                select
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="card bg-base-100 w-96 shadow-xl mb-4">
-                                    <div className="card-body">
-                                        <h2 className="card-title">
-                                            Public Free Relay
-                                        </h2>
-                                        <p>
-                                            This relay allows free access. This
-                                            is not recommended unless you have a
-                                            solid moderation team.
-                                        </p>
-                                        <div className="card-actions justify-end">
-                                            <button
-                                                className="btn btn-primary uppercase"
-                                                onClick={(e) => {
-                                                    setAndPostRelayKindDescription(
-                                                        "Public Free Relay"
-                                                    );
-                                                    setChecked(3);
-                                                    setAndPostAllow(true);
                                                 }}
                                             >
                                                 select
