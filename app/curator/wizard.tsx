@@ -465,7 +465,7 @@ export default function Wizard(
     const [menuOpen, setMenuOpen] = useState(false);
 
     // Add new state for ACL submenu
-    const [aclSection, setAclSection] = useState("mode"); // Possible values: "mode", "auth", "tags", "allowed-pubkeys", "allowed-keywords", "allowed-kinds", "blocked-pubkeys", "blocked-keywords", "blocked-kinds"
+    const [aclSection, setAclSection] = useState("allowed-pubkeys"); // Possible values: "allowed-pubkeys", "tags", "allowed-keywords", "allowed-kinds", "blocked-pubkeys", "blocked-keywords", "blocked-kinds", "auth", "mode"
 
     return (
         <div className="flex flex-row min-h-screen relative">
@@ -554,39 +554,8 @@ export default function Wizard(
                         </button>
                         {checked === 6 && (
                             <ul className="menu menu-vertical pl-4">
-                                <li>
-                                    <button
-                                        className={
-                                            aclSection === "auth"
-                                                ? "active"
-                                                : ""
-                                        }
-                                        onClick={() => {
-                                            setAclSection("auth");
-                                            setMenuOpen(false);
-                                        }}
-                                    >
-                                        Authentication (NIP42)
-                                    </button>
-                                </li>
-
                                 {!allow && (
                                     <>
-                                        <li>
-                                            <button
-                                                className={
-                                                    aclSection === "tags"
-                                                        ? "active"
-                                                        : ""
-                                                }
-                                                onClick={() => {
-                                                    setAclSection("tags");
-                                                    setMenuOpen(false);
-                                                }}
-                                            >
-                                                Allow Tags
-                                            </button>
-                                        </li>
                                         <li>
                                             <button
                                                 className={
@@ -603,6 +572,21 @@ export default function Wizard(
                                                 }}
                                             >
                                                 Allowed Pubkeys
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button
+                                                className={
+                                                    aclSection === "tags"
+                                                        ? "active"
+                                                        : ""
+                                                }
+                                                onClick={() => {
+                                                    setAclSection("tags");
+                                                    setMenuOpen(false);
+                                                }}
+                                            >
+                                                Allow Tags
                                             </button>
                                         </li>
                                         <li>
@@ -686,6 +670,21 @@ export default function Wizard(
                                         }}
                                     >
                                         Blocked Kinds
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        className={
+                                            aclSection === "auth"
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() => {
+                                            setAclSection("auth");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Authentication (NIP42)
                                     </button>
                                 </li>
                                 <li>
