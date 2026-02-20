@@ -782,43 +782,54 @@ export default function Wizard(
                     {/* Content sections - only show the active one */}
                     {checked === 1 && (
                         <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">
-                                Relay Setup Wizard
-                            </h2>
-                            <article className="prose">
-                                <p>
-                                    This wizard will walk you through the
-                                    process of setting up your relay. You can
-                                    always re-configure your relay after you
-                                    complete the setup.
+                            {/* Hero Section */}
+                            <div className="text-center mb-6">
+                                <div className="text-6xl mb-4">🚀</div>
+                                <h2 className="text-2xl font-bold mb-2">
+                                    Relay Setup Wizard
+                                </h2>
+                                <p className="opacity-70">
+                                    Configure your relay in just a few steps. You can always change settings later.
                                 </p>
-                                <p>
-                                    There are many capabilities available for
-                                    all types of relays and you can
-                                    mix-and-match them to suit your needs.
-                                </p>
-                                <ul>
-                                    <li>Lightning Payments</li>
-                                    <li>Moderation</li>
-                                    <li>
-                                        Access Control by Pubkey, Event Kind,
-                                        and Keywords
-                                    </li>
-                                    <li>Access Control for read/write</li>
-                                    <li>
-                                        Specialized support for DMs, private
-                                        groups, and lists.
-                                    </li>
-                                </ul>
-                            </article>
-
+                            </div>
+                            
+                            {/* Feature Cards Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                                <div className="card bg-base-200 p-3 text-center">
+                                    <div className="text-2xl mb-1">⚡</div>
+                                    <div className="text-sm font-semibold">Lightning Payments</div>
+                                </div>
+                                <div className="card bg-base-200 p-3 text-center">
+                                    <div className="text-2xl mb-1">🛡️</div>
+                                    <div className="text-sm font-semibold">Moderation</div>
+                                </div>
+                                <div className="card bg-base-200 p-3 text-center">
+                                    <div className="text-2xl mb-1">🔐</div>
+                                    <div className="text-sm font-semibold">Access Control</div>
+                                </div>
+                                <div className="card bg-base-200 p-3 text-center">
+                                    <div className="text-2xl mb-1">📖</div>
+                                    <div className="text-sm font-semibold">Read/Write Rules</div>
+                                </div>
+                                <div className="card bg-base-200 p-3 text-center">
+                                    <div className="text-2xl mb-1">💬</div>
+                                    <div className="text-sm font-semibold">Private DMs</div>
+                                </div>
+                                <div className="card bg-base-200 p-3 text-center">
+                                    <div className="text-2xl mb-1">👥</div>
+                                    <div className="text-sm font-semibold">Groups & Lists</div>
+                                </div>
+                            </div>
+                            
+                            {/* CTA Button */}
                             <div className="flex justify-center">
-                                <div
-                                    className="btn btn-primary"
+                                <button
+                                    className="btn btn-primary btn-lg gap-2"
                                     onClick={() => setChecked(2)}
                                 >
-                                    Let's Go!
-                                </div>
+                                    Let's Go! 
+                                    <span>→</span>
+                                </button>
                             </div>
                         </div>
                     )}
@@ -834,13 +845,18 @@ export default function Wizard(
                                 <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
                                     <div className="card-body">
                                         <h2 className="card-title">
-                                            Publishing Relay
+                                            📢 Publishing Relay
                                         </h2>
-                                        <p>
-                                            This relay can be shared with multiple
-                                            authors. This relay is open to everyone to read from. 
-                                            This is a good choice for publishing 
-                                            content to the wider nostr network. 
+                                        
+                                        {/* Permission Summary */}
+                                        <div className="flex flex-wrap gap-2 my-3">
+                                            <div className="badge badge-success gap-1">🌐 Public Read</div>
+                                            <div className="badge badge-primary gap-1">👤 Members Write</div>
+                                        </div>
+                                        
+                                        <p className="text-sm">
+                                            Open to everyone to read. Members can write.
+                                            Great for publishing content to the wider nostr network.
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -862,13 +878,18 @@ export default function Wizard(
                                 <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
                                     <div className="card-body">
                                         <h2 className="card-title">
-                                            Read-restricted Relay
+                                            🔒 Read-restricted Relay
                                         </h2>
-                                        <p>
-                                            This relay can be shared with multiple
-                                            readers/writers. This relay provides
-                                            enhanced privacy for Nostr DMs, and
-                                            read access is only allowed for members.
+                                        
+                                        {/* Permission Summary */}
+                                        <div className="flex flex-wrap gap-2 my-3">
+                                            <div className="badge badge-warning gap-1">🔒 Members Only</div>
+                                            <div className="badge badge-error gap-1">🚫 No Public Access</div>
+                                        </div>
+                                        
+                                        <p className="text-sm">
+                                            Members only for read and write. Enhanced privacy
+                                            for Nostr DMs. Non-members cannot access content.
                                         </p>
                                         <div className="card-actions justify-end">
                                             <button
@@ -897,74 +918,74 @@ export default function Wizard(
                     {checked === 3 && (
                         <div className="w-full">
                             <h2 className="text-lg font-bold mb-4">
-                                Relay Profile and Directory Listing
+                                Relay Profile
                             </h2>
                             <article className="prose">
                                 <p>
-                                    Setup your relay banner image and details.
-                                </p>
-                                <p>
-                                    This will be the icon used for your relay
-                                    and it's public facing image.
-                                </p>
-                                <p>
-                                    Decide if you want the relay to be listed in
-                                    the public directory.
+                                    Customize how your relay appears to users. Set a description and banner image
+                                    that represents your relay.
                                 </p>
                             </article>
-                            <div className="form-control mt-4">
-                                <div className="mt-4">
-                                    <label
-                                        className={isListed()}
-                                        onClick={(e) => handleListedChange(e)}
-                                    >
-                                        <div className="btn uppercase btn-primary swap-on">
-                                            Relay is listed in the public
-                                            directory ✅
-                                        </div>
-                                        <div className="btn uppercase btn-primary swap-off">
-                                            Relay is NOT listed in the public
-                                            directory 🙈
-                                        </div>
+                            
+                            {/* Profile Settings Section */}
+                            <div className="card bg-base-200 p-4 mt-4">
+                                <h3 className="font-semibold mb-3">📝 Profile Settings</h3>
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Description</span>
                                     </label>
-                                </div>
-                                <label className="label">
-                                    <span className="label-text">
-                                        Relay Profile
-                                    </span>
-                                </label>
-                                <textarea
-                                    id={props.relay.id + "textareaedit"}
-                                    className="textarea textarea-bordered h-24 w-full"
-                                    placeholder="description"
-                                    value={profileDetail || ""}
-                                    onChange={(e) =>
-                                        setProfileDetails(e.target.value)
-                                    }
-                                ></textarea>
-                                <label className="label">
-                                    <span className="label-text">
-                                        Banner image url
-                                    </span>
-                                </label>
-                                <input
-                                    id={props.relay.id + "urlid"}
-                                    type="text"
-                                    placeholder="enter image url"
-                                    className="input input-bordered w-full"
+                                    <textarea
+                                        id={props.relay.id + "textareaedit"}
+                                        className="textarea textarea-bordered h-24 w-full"
+                                        placeholder="Describe your relay..."
+                                        value={profileDetail || ""}
+                                        onChange={(e) =>
+                                            setProfileDetails(e.target.value)
+                                        }
+                                    ></textarea>
+                                    <label className="label">
+                                        <span className="label-text">Banner Image URL</span>
+                                    </label>
+                                    <input
+                                        id={props.relay.id + "urlid"}
+                                        type="text"
+                                        placeholder="https://example.com/image.png"
+                                        className="input input-bordered w-full"
                                     onChange={(e) =>
                                         setProfileBanner(e.target.value)
                                     }
                                     value={profileBanner || ""}
                                 />
-                                <div className="flex justify-center gap-2">
-                                    <button
-                                        className="btn uppercase btn-primary mt-2"
-                                        onClick={(e) => handleSubmitProfile(e)}
-                                    >
-                                        Next
-                                    </button>
                                 </div>
+                            </div>
+                            
+                            {/* Directory Listing Section */}
+                            <div className="card bg-base-200 p-4 mt-4">
+                                <h3 className="font-semibold mb-3">📂 Directory Listing <span className="badge badge-ghost">Optional</span></h3>
+                                <p className="text-sm opacity-70 mb-3">
+                                    Choose whether to list your relay in the public directory. 
+                                    This is optional - your relay works the same either way.
+                                </p>
+                                <label
+                                    className={isListed()}
+                                    onClick={(e) => handleListedChange(e)}
+                                >
+                                    <div className="btn uppercase btn-primary swap-on">
+                                        Advertised in the public directory ✅
+                                    </div>
+                                    <div className="btn uppercase btn-secondary swap-off">
+                                        Not advertised 🙈
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div className="flex justify-center gap-2 mt-4">
+                                <button
+                                    className="btn uppercase btn-primary"
+                                    onClick={(e) => handleSubmitProfile(e)}
+                                >
+                                    Next
+                                </button>
                             </div>
                         </div>
                     )}
@@ -1720,79 +1741,81 @@ export default function Wizard(
                                 </p>
                             </article>
 
-                            {/* Web of Access Diagram */}
+                            {/* Web of Access Diagram - Funnel/Filter Model */}
                             <div className="card bg-base-200 shadow-md my-6">
                                 <div className="card-body p-6">
                                     <h3 className="card-title justify-center mb-4">How Web of Access Works</h3>
                                     
-                                    {/* Visual Flow Diagram */}
-                                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 py-4">
-                                        {/* External Sources */}
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="text-sm font-semibold opacity-70">3rd Party Sources</div>
-                                            <div className="flex gap-3">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center border-2 border-secondary">
-                                                        <span className="text-2xl">🧠</span>
+                                    {/* Vertical Funnel Diagram */}
+                                    <div className="flex flex-col items-center gap-2 py-4">
+                                        {/* Incoming Events */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-2xl">📝</span>
+                                            <span className="text-2xl">📝</span>
+                                            <span className="text-2xl">📝</span>
+                                        </div>
+                                        <div className="font-semibold text-sm">Incoming Events</div>
+                                        
+                                        {/* Arrow Down */}
+                                        <div className="text-2xl">⬇️</div>
+                                        
+                                        {/* Filter Layer - Funnel Shape */}
+                                        <div className="relative w-full max-w-xs">
+                                            {/* Funnel top (wide) */}
+                                            <div className="bg-gradient-to-b from-warning/30 to-warning/50 rounded-t-xl p-4 border-2 border-warning border-b-0">
+                                                <div className="text-center font-bold text-sm mb-2">🛡️ WOA Filter Layer</div>
+                                                <div className="flex justify-center gap-4">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-xl">🧠</span>
+                                                        <span className="text-xs">Brainstorm</span>
                                                     </div>
-                                                    <span className="text-xs mt-1">Brainstorm</span>
-                                                </div>
-                                                <div className="flex flex-col items-center">
-                                                    <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center border-2 border-accent">
-                                                        <span className="text-2xl">📧</span>
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-xl">📧</span>
+                                                        <span className="text-xs">NIP-05</span>
                                                     </div>
-                                                    <span className="text-xs mt-1">NIP-05</span>
                                                 </div>
                                             </div>
-                                        </div>
-                                        
-                                        {/* Arrow */}
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-2xl">➡️</span>
-                                            <span className="text-xs opacity-70">at runtime</span>
-                                        </div>
-                                        
-                                        {/* Your Relay */}
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center border-2 border-success relative">
-                                                <span className="text-3xl">🏠</span>
-                                                <div className="absolute -bottom-1 -right-1 badge badge-warning badge-sm">🛡️</div>
-                                            </div>
-                                            <span className="font-bold mt-2">Your Relay</span>
-                                        </div>
-                                        
-                                        {/* Arrow */}
-                                        <div className="flex flex-col items-center">
-                                            <div className="flex flex-col gap-1">
-                                                <span className="badge badge-success badge-sm">✅ Allow</span>
-                                                <span className="badge badge-error badge-sm">❌ Reject</span>
+                                            {/* Funnel bottom (narrow) */}
+                                            <div className="flex justify-center">
+                                                <div className="w-0 h-0 border-l-[100px] border-r-[100px] border-t-[40px] border-l-transparent border-r-transparent border-t-warning/50"></div>
                                             </div>
                                         </div>
                                         
-                                        {/* Events */}
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-16 h-16 rounded-lg bg-primary/20 flex items-center justify-center border-2 border-primary">
-                                                <span className="text-2xl">📝</span>
+                                        {/* Arrow Down */}
+                                        <div className="text-2xl mt-2">⬇️</div>
+                                        
+                                        {/* Results */}
+                                        <div className="flex items-center gap-8">
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-14 h-14 rounded-full bg-success/30 flex items-center justify-center border-2 border-success">
+                                                    <span className="text-xl">✅</span>
+                                                </div>
+                                                <span className="text-xs mt-1 font-semibold text-success">Allowed</span>
                                             </div>
-                                            <span className="text-xs mt-1">Events</span>
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-14 h-14 rounded-full bg-error/30 flex items-center justify-center border-2 border-error">
+                                                    <span className="text-xl">❌</span>
+                                                </div>
+                                                <span className="text-xs mt-1 font-semibold text-error">Rejected</span>
+                                            </div>
                                         </div>
                                     </div>
                                     
-                                    {/* Info Notices */}
+                                    {/* Info Cards */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                                        <div className="alert alert-info">
-                                            <span className="text-lg">🧠</span>
-                                            <div>
-                                                <div className="font-bold text-sm">Brainstorm Scores</div>
-                                                <div className="text-xs">Uses your social graph to score pubkeys. Higher scores = trusted users.</div>
+                                        <div className="bg-base-100 rounded-lg p-3">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span>🧠</span>
+                                                <span className="font-bold text-sm">Brainstorm Scores</span>
                                             </div>
+                                            <div className="text-xs opacity-70">Uses your social graph to score pubkeys. Higher scores = trusted users.</div>
                                         </div>
-                                        <div className="alert alert-info">
-                                            <span className="text-lg">📧</span>
-                                            <div>
-                                                <div className="font-bold text-sm">NIP-05 Domains</div>
-                                                <div className="text-xs">Allow users verified by specific domains (e.g., company@example.com).</div>
+                                        <div className="bg-base-100 rounded-lg p-3">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span>📧</span>
+                                                <span className="font-bold text-sm">NIP-05 Domains</span>
                                             </div>
+                                            <div className="text-xs opacity-70">Allow users verified by specific domains (e.g., user@company.com).</div>
                                         </div>
                                     </div>
                                     
