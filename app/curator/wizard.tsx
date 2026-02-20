@@ -1212,6 +1212,30 @@ export default function Wizard(
                                         These are keywords that will be allowed
                                         to post.
                                     </p>
+                                    
+                                    {/* Keyword + Pubkey Mode Toggle */}
+                                    <div className="form-control bg-base-200 rounded-lg p-4 my-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <span className="label-text font-semibold">Matching Mode</span>
+                                                <p className="text-sm opacity-70 mt-1">
+                                                    {allowKeywordPubkey 
+                                                        ? "Keyword AND Pubkey: Both must match for the event to be allowed"
+                                                        : "Keyword OR Pubkey: Either a keyword match or pubkey match will allow the event"
+                                                    }
+                                                </p>
+                                            </div>
+                                            <label
+                                                className={isAllowKeywordPubkey()}
+                                                onClick={handleAllowKeywordPubkey}
+                                            >
+                                                <input type="checkbox" checked={allowKeywordPubkey} readOnly />
+                                                <div className="swap-on btn btn-sm btn-primary">AND</div>
+                                                <div className="swap-off btn btn-sm btn-secondary">OR</div>
+                                            </label>
+                                        </div>
+                                    </div>
+
                                     {props.relay?.allow_list?.list_keywords && (
                                         <ListEntryKeywords
                                             keywords={
