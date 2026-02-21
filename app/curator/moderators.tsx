@@ -19,6 +19,7 @@ export default function Moderators(
     props: React.PropsWithChildren<{
         moderators: Moderator[];
         relay_id: string;
+        owner?: { pubkey: string };
     }>
 ) {
     const [pubkey, setPubkey] = useState("");
@@ -136,10 +137,32 @@ export default function Moderators(
 
     return (
         <div className="space-y-4">
+            {/* Owner - always a moderator */}
+            {props.owner && (
+                <div className="bg-base-200 rounded-lg border border-primary/30 p-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <span className="text-xl">👑</span>
+                            <ProfileWrapper 
+                                pubkey={props.owner.pubkey} 
+                                size="medium" 
+                                showName={true}
+                                showCopy={true}
+                                showPubkey={false}
+                            />
+                        </div>
+                        <span className="badge badge-primary">Owner</span>
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
+                        {props.owner.pubkey}
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Relay Moderators ({moderators.length})
+                    Additional Moderators ({moderators.length})
                 </h3>
                 {!newpubkey && (
                     <button
