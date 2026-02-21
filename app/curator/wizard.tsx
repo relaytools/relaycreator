@@ -589,6 +589,55 @@ export default function Wizard(
                                                 Allow Tags
                                             </button>
                                         </li>
+                                    </>
+                                )}
+                                <li>
+                                    <button
+                                        className={
+                                            aclSection === "blocked-kinds"
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() => {
+                                            setAclSection("blocked-kinds");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Blocked Kinds
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        className={
+                                            aclSection === "blocked-pubkeys"
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() => {
+                                            setAclSection("blocked-pubkeys");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Blocked Pubkeys
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        className={
+                                            aclSection === "blocked-keywords"
+                                                ? "active"
+                                                : ""
+                                        }
+                                        onClick={() => {
+                                            setAclSection("blocked-keywords");
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        Blocked Keywords
+                                    </button>
+                                </li>
+                                {!allow && (
+                                    <>
                                         <li>
                                             <button
                                                 className={
@@ -627,51 +676,6 @@ export default function Wizard(
                                         </li>
                                     </>
                                 )}
-                                <li>
-                                    <button
-                                        className={
-                                            aclSection === "blocked-pubkeys"
-                                                ? "active"
-                                                : ""
-                                        }
-                                        onClick={() => {
-                                            setAclSection("blocked-pubkeys");
-                                            setMenuOpen(false);
-                                        }}
-                                    >
-                                        Blocked Pubkeys
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        className={
-                                            aclSection === "blocked-keywords"
-                                                ? "active"
-                                                : ""
-                                        }
-                                        onClick={() => {
-                                            setAclSection("blocked-keywords");
-                                            setMenuOpen(false);
-                                        }}
-                                    >
-                                        Blocked Keywords
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        className={
-                                            aclSection === "blocked-kinds"
-                                                ? "active"
-                                                : ""
-                                        }
-                                        onClick={() => {
-                                            setAclSection("blocked-kinds");
-                                            setMenuOpen(false);
-                                        }}
-                                    >
-                                        Blocked Kinds
-                                    </button>
-                                </li>
                                 <li>
                                     <button
                                         className={
@@ -840,6 +844,16 @@ export default function Wizard(
                                     ? "Choose a Relay Type"
                                     : relayKindDescription}
                             </h2>
+                            
+                            {/* Reassurance Notice */}
+                            <div className="alert alert-info mb-4">
+                                <span className="text-xl">💡</span>
+                                <div>
+                                    <p className="font-medium">Just a starting point!</p>
+                                    <p className="text-sm opacity-80">This sets up suggested defaults. You can change any setting at any time from the menu.</p>
+                                </div>
+                            </div>
+                            
                             <div className="flex flex-wrap">
                                 <div className="card bg-base-100 w-96 shadow-xl lg:mr-4 mb-4">
                                     <div className="card-body">
@@ -857,7 +871,7 @@ export default function Wizard(
                                             Open to everyone to read. Members can write.
                                             Great for publishing content to the wider nostr network.
                                         </p>
-                                        <div className="card-actions justify-end">
+                                        <div className="card-actions justify-center">
                                             <button
                                                 className="btn btn-primary uppercase"
                                                 onClick={(e) => {
@@ -890,7 +904,7 @@ export default function Wizard(
                                             Members only for read and write. Enhanced privacy
                                             for Nostr DMs. Non-members cannot access content.
                                         </p>
-                                        <div className="card-actions justify-end">
+                                        <div className="card-actions justify-center">
                                             <button
                                                 className="btn btn-primary uppercase"
                                                 onClick={(e) => {
@@ -962,8 +976,8 @@ export default function Wizard(
                             <div className="card bg-base-200 p-4 mt-4">
                                 <h3 className="font-semibold mb-3">📂 Directory Listing <span className="badge badge-ghost">Optional</span></h3>
                                 <p className="text-sm opacity-70 mb-3">
-                                    Choose whether to list your relay in the public directory. 
-                                    This is optional - your relay works the same either way.
+                                    Choose whether to list your relay in the public directory on {process.env.NEXT_PUBLIC_ROOT_DOMAIN}. 
+                                    This is optional - your relay works the same either way.  It can still be discovered by network crawlers such as nostr.watch even if you do not turn this on.
                                 </p>
                                 <label
                                     className={isListed()}
@@ -1004,11 +1018,13 @@ export default function Wizard(
                                     default.
                                 </p>
                             </article>
+                            
                             {props.relay != null &&
                                 props.relay.moderators != null && (
                                     <Moderators
                                         moderators={props.relay.moderators}
                                         relay_id={props.relay.id}
+                                        owner={props.relay.owner}
                                     ></Moderators>
                                 )}
 
@@ -1096,9 +1112,18 @@ export default function Wizard(
                                             </p>
                                         )}
                                     </article>
+                                    
+                                    <div className="alert alert-warning my-4">
+                                        <span className="text-lg">⚠️</span>
+                                        <div>
+                                            <p className="font-medium">Not Recommended</p>
+                                            <p className="text-sm opacity-80">Changing to "Allow by default" will make your relay an open relay, allowing anyone to post. This requires significant moderation effort.</p>
+                                        </div>
+                                    </div>
+                                    
                                     <div className="mt-4">
-                                        <div className="text-sm font-condensed">
-                                            current setting is:
+                                        <div className="text-sm">
+                                            Current setting is:
                                         </div>
                                         <label
                                             className={isAllow()}
@@ -1128,7 +1153,7 @@ export default function Wizard(
                                         <p>
                                             You can turn this on or off at any time. If you experience problems connecting you can try turning it off. 
                                         </p>
-                                        <p>This follows the NIP42 spec found <a href="https://github.com/nostr-protocol/nips/blob/master/42.md">here</a></p>
+                                        <p>This follows the NIP42 spec found <a href="https://github.com/nostr-protocol/nips/blob/master/42.md" target="_blank" rel="noopener noreferrer">here</a></p>
                                     </article>
                                     
                                     {/* Authentication Diagram */}
@@ -1185,11 +1210,10 @@ export default function Wizard(
                                             onClick={(e) => handleAuthChange(e)}
                                         >
                                             <div className="btn uppercase btn-primary swap-on">
-                                                Relay requires AUTH (NIP42) ✅
+                                                AUTH: ON ✅
                                             </div>
                                             <div className="btn uppercase btn-primary swap-off">
-                                                Relay does not require AUTH
-                                                (NIP42) 🙈
+                                                AUTH: OFF 🙈
                                             </div>
                                         </label>
                                     </div>
@@ -1274,14 +1298,20 @@ export default function Wizard(
                                             }
                                         >
                                             <div className="btn uppercase btn-primary swap-on">
-                                                Allow Events Tagged to Pubkeys
-                                                ✅
+                                                TAGS: ON ✅
                                             </div>
                                             <div className="btn uppercase btn-primary swap-off">
-                                                Do NOT Allow Events Tagged to
-                                                Pubkeys 🙈
+                                                TAGS: OFF 🙈
                                             </div>
                                         </label>
+                                    </div>
+                                    <div className="flex justify-center mt-4">
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={() => setChecked(7)}
+                                        >
+                                            Next
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -1303,12 +1333,27 @@ export default function Wizard(
                                             kind="Allowed Pubkeys ✅"
                                         />
                                     )}
+                                    <div className="flex justify-center mt-4">
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={() => setAclSection("tags")}
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
                             {/* Add similar sections for other ACL components */}
                             {aclSection === "allowed-keywords" && !allow && (
                                 <div>
+                                    <div className="alert alert-info mb-4">
+                                        <span className="text-lg">💡</span>
+                                        <div>
+                                            <p className="font-medium">Blanket Override</p>
+                                            <p className="text-sm opacity-80">Events matching these keywords are allowed from <strong>any pubkey</strong>, bypassing the Allowed Pubkeys list (unless AND mode is enabled below).</p>
+                                        </div>
+                                    </div>
                                     <p>
                                         These are keywords that will be allowed
                                         to post.
@@ -1352,10 +1397,23 @@ export default function Wizard(
 
                             {aclSection === "allowed-kinds" && !allow && (
                                 <div>
+                                    <div className="alert alert-info mb-4">
+                                        <span className="text-lg">💡</span>
+                                        <div>
+                                            <p className="font-medium">Blanket Override</p>
+                                            <p className="text-sm opacity-80">These kinds are allowed from <strong>any pubkey</strong>, bypassing the Allowed Pubkeys list. For example, add kind 9735 to allow all zaps.</p>
+                                        </div>
+                                    </div>
                                     <p>
                                         These are kinds that will be allowed to
                                         post.
                                     </p>
+                                    <p className="text-sm opacity-70 mb-2">For a reference of nostr kinds, see:</p>
+                                    <div className="flex gap-2 mb-4">
+                                        <a href="https://nostr.dev/ai-reference/" target="_blank" rel="noopener noreferrer" className="link link-primary text-sm">📖 nostr.dev Reference</a>
+                                        <span className="opacity-50">|</span>
+                                        <a href="https://nostr-protocol.github.io/registry-of-kinds/" target="_blank" rel="noopener noreferrer" className="link link-primary text-sm">📋 Registry of Kinds</a>
+                                    </div>
                                     {props.relay?.allow_list?.list_kinds && (
                                         <ListEntryKinds
                                             kinds={
@@ -1414,6 +1472,12 @@ export default function Wizard(
                                         These are kinds that will be blocked
                                         from posting.
                                     </p>
+                                    <p className="text-sm opacity-70 mb-2">For a reference of nostr kinds, see:</p>
+                                    <div className="flex gap-2 mb-4">
+                                        <a href="https://nostr.dev/ai-reference/" target="_blank" rel="noopener noreferrer" className="link link-primary text-sm">📖 nostr.dev Reference</a>
+                                        <span className="opacity-50">|</span>
+                                        <a href="https://nostr-protocol.github.io/registry-of-kinds/" target="_blank" rel="noopener noreferrer" className="link link-primary text-sm">📋 Registry of Kinds</a>
+                                    </div>
                                     {props.relay?.block_list?.list_kinds && (
                                         <ListEntryKinds
                                             kinds={
@@ -1455,6 +1519,24 @@ export default function Wizard(
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
                                 <div className="card bg-base-200 shadow-md">
                                     <div className="card-body p-4">
+                                        <h3 className="card-title text-base justify-center">📴 PAYMENTS OFF</h3>
+                                        <div className="divider my-1"></div>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span>✋</span>
+                                                <span>Manual allow list management</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span>👥</span>
+                                                <span>Invite-only style</span>
+                                            </div>
+                                        </div>
+                                        <div className="divider my-1"></div>
+                                        <p className="text-xs opacity-70 text-center">You control who joins</p>
+                                    </div>
+                                </div>
+                                <div className="card bg-base-200 shadow-md">
+                                    <div className="card-body p-4">
                                         <h3 className="card-title text-base justify-center">⚡ PAYMENTS ON</h3>
                                         <div className="divider my-1"></div>
                                         <div className="space-y-2 text-sm">
@@ -1473,24 +1555,6 @@ export default function Wizard(
                                         </div>
                                         <div className="divider my-1"></div>
                                         <p className="text-xs opacity-70 text-center">Revenue offsets hosting costs</p>
-                                    </div>
-                                </div>
-                                <div className="card bg-base-200 shadow-md">
-                                    <div className="card-body p-4">
-                                        <h3 className="card-title text-base justify-center">📴 PAYMENTS OFF</h3>
-                                        <div className="divider my-1"></div>
-                                        <div className="space-y-2 text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <span>✋</span>
-                                                <span>Manual allow list management</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span>👥</span>
-                                                <span>Invite-only style</span>
-                                            </div>
-                                        </div>
-                                        <div className="divider my-1"></div>
-                                        <p className="text-xs opacity-70 text-center">You control who joins</p>
                                     </div>
                                 </div>
                             </div>
@@ -1569,6 +1633,14 @@ export default function Wizard(
                                     </button>
                                 </div>
                             )}
+                            <div className="flex justify-center mt-4">
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => setChecked(8)}
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -1726,6 +1798,14 @@ export default function Wizard(
                                     </div>
                                 ))}
                             </div>
+                            <div className="flex justify-center mt-4">
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => setChecked(9)}
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -1736,7 +1816,7 @@ export default function Wizard(
                             </h2>
                             <article className="prose">
                                 <p>
-                                    Add additional access control lists to manage who can use your relay. Choose from <span title="Web of Access">WOA</span> systems or NIP-05 domain verification.
+                                    Add additional access control lists to manage who can use your relay. You can add multiple sources from <span title="Web of Access">WOA</span> systems and NIP-05 domain verification.
                                 </p>
                             </article>
 
