@@ -46,6 +46,7 @@ export default function AdminInvoices(props: any) {
     const [statusFilter, setStatusFilter] = useState("all");
     const [balanceDueFilter, setBalanceDueFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
+    const [planFilter, setPlanFilter] = useState("all");
     const [sortBy, setSortBy] = useState("balance");
     const [sortOrder, setSortOrder] = useState("desc");
     const [showDetails, setShowDetails] = useState<string[]>([]);
@@ -96,8 +97,8 @@ export default function AdminInvoices(props: any) {
     // Helper function to get current plan info
     function getCurrentPlan(relay: any) {
         // Check if relay has plan changes
-        if (relay.relayPlanChanges && relay.relayPlanChanges.length > 0) {
-            const currentPlan = relay.relayPlanChanges.find((pc: any) => !pc.ended_at);
+        if (relay.RelayPlanChange && relay.RelayPlanChange.length > 0) {
+            const currentPlan = relay.RelayPlanChange.find((pc: any) => !pc.ended_at);
             if (currentPlan) {
                 return {
                     type: currentPlan.plan_type,
@@ -251,6 +252,14 @@ export default function AdminInvoices(props: any) {
                     return false;
                 }
                 
+                // Plan type filter
+                if (planFilter !== "all") {
+                    const plan = getCurrentPlan(relayBalance);
+                    if (plan.type !== planFilter) {
+                        return false;
+                    }
+                }
+
                 // Search filter
                 if (searchTerm) {
                     const searchLower = searchTerm.toLowerCase();
@@ -304,7 +313,7 @@ export default function AdminInvoices(props: any) {
                     return aValue < bValue ? 1 : -1;
                 }
             });
-    }, [props.RelayBalances, statusFilter, balanceDueFilter, searchTerm, sortBy, sortOrder]);
+    }, [props.RelayBalances, statusFilter, balanceDueFilter, planFilter, searchTerm, sortBy, sortOrder]);
 
     function amountPrecision(amount: number) {
         return Math.round(amount * 100) / 100;
@@ -327,7 +336,7 @@ export default function AdminInvoices(props: any) {
             </div>
             
             {/* Search and Filter Controls */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <input 
                     type="text"
                     placeholder="Search relays, owners..."
@@ -346,6 +355,17 @@ export default function AdminInvoices(props: any) {
                     <option value="paused">Paused</option>
                 </select>
                 
+                <select 
+                    className="select select-bordered w-full"
+                    value={planFilter}
+                    onChange={(e) => setPlanFilter(e.target.value)}
+                >
+                    <option value="all">All Plans</option>
+                    <option value="standard">Standard</option>
+                    <option value="premium">Premium</option>
+                    <option value="custom">Custom</option>
+                </select>
+
                 <select 
                     className="select select-bordered w-full"
                     value={balanceDueFilter}
@@ -542,8 +562,65 @@ export default function AdminInvoices(props: any) {
 
                                 {/* Orders Section */}
                                 {showOrdersFor(b.relayId) && (
-                                    <div className="bg-base-300 rounded-lg p-4">
-                                        <h3 className="font-semibold mb-3">Order History</h3>
+                                    <div className="bg-base-300 rounded-lg p-4 space-y-4">
+                                        <h3 className="font-semibold text-lg">Order History & Plan Changes</h3>
+
+                                        {/* Plan Change Timeline */}
+                                        {b.RelayPlanChange && b.RelayPlanChange.length > 0 && (
+                                            <div className="mb-4">
+                                                <h4 className="font-medium mb-2 flex items-center gap-2">
+                                                    <span>📋</span> Plan Change History ({b.RelayPlanChange.length})
+                                                </h4>
+                                                <div className="overflow-x-auto">
+                                                    <table className="table table-xs w-full">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Plan</th>
+                                                                <th>Amount Paid</th>
+                                                                <th>Started</th>
+                                                                <th>Ended</th>
+                                                                <th>Duration</th>
+                                                                <th>Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {[...b.RelayPlanChange]
+                                                                .sort((x: any, y: any) => new Date(y.started_at).getTime() - new Date(x.started_at).getTime())
+                                                                .map((pc: any) => {
+                                                                    const start = new Date(pc.started_at);
+                                                                    const end = pc.ended_at ? new Date(pc.ended_at) : new Date();
+                                                                    const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                                                                    const isActive = !pc.ended_at;
+                                                                    return (
+                                                                        <tr key={pc.id} className={isActive ? 'bg-base-200 font-semibold' : ''}>
+                                                                            <td>
+                                                                                <div className={`badge badge-sm ${pc.plan_type === 'premium' ? 'badge-secondary' : pc.plan_type === 'custom' ? 'badge-accent' : 'badge-primary'}`}>
+                                                                                    {pc.plan_type}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td>{pc.amount_paid} sats</td>
+                                                                            <td>{formatDate(pc.started_at)}</td>
+                                                                            <td>{pc.ended_at ? formatDate(pc.ended_at) : '—'}</td>
+                                                                            <td>{days} days</td>
+                                                                            <td>
+                                                                                {isActive ? (
+                                                                                    <div className="badge badge-sm badge-success">Active</div>
+                                                                                ) : (
+                                                                                    <div className="badge badge-sm badge-ghost">Ended</div>
+                                                                                )}
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {(!b.RelayPlanChange || b.RelayPlanChange.length === 0) && (
+                                            <div className="text-sm opacity-60 italic mb-4">No plan change history recorded</div>
+                                        )}
                                         
                                         {/* Unpaid Orders */}
                                         {b.unpaidOrders.length > 0 && (
@@ -553,18 +630,23 @@ export default function AdminInvoices(props: any) {
                                                     <div key={order.id + "colkey"} className="card bg-base-100 shadow-sm mb-2">
                                                         <div className="card-body p-3">
                                                             <div className="flex justify-between items-center">
-                                                                <div>
+                                                                <div className="flex items-center gap-2">
                                                                     <div className="font-semibold">{order.amount} sats</div>
+                                                                    <div className={`badge badge-sm ${order.order_type === 'premium' ? 'badge-secondary' : order.order_type === 'custom' ? 'badge-accent' : 'badge-primary'}`}>
+                                                                        {order.order_type || 'standard'}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
                                                                     <div className="text-sm opacity-70">
                                                                         Expires: {order.expires_at ? formatDate(order.expires_at) : "No expiration"}
                                                                     </div>
+                                                                    <a
+                                                                        className="btn btn-sm btn-primary"
+                                                                        href={`/invoices?relayname=${b.relayName}&pubkey=${b.owner}&order_id=${order.id}`}
+                                                                    >
+                                                                        View Invoice
+                                                                    </a>
                                                                 </div>
-                                                                <a
-                                                                    className="btn btn-sm btn-primary"
-                                                                    href={`/invoices?relayname=${b.relayName}&pubkey=${b.owner}&order_id=${order.id}`}
-                                                                >
-                                                                    View Invoice
-                                                                </a>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -576,21 +658,40 @@ export default function AdminInvoices(props: any) {
                                         {b.orders.length > 0 && (
                                             <div>
                                                 <h4 className="font-medium text-success mb-2">Paid Orders ({b.orders.length})</h4>
-                                                {b.orders.map((order: any) => (
-                                                    <div key={order.id + "colkey"} className="card bg-base-100 shadow-sm mb-2">
-                                                        <div className="card-body p-3">
-                                                            <div className="flex justify-between items-center">
-                                                                <div>
-                                                                    <div className="font-semibold">{amountPrecision(order.amount)} sats</div>
-                                                                    <div className="text-sm opacity-70">
-                                                                        Paid: {order.paid_at ? formatDate(order.paid_at) : "Unknown"}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="badge badge-success">Paid</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                <div className="overflow-x-auto">
+                                                    <table className="table table-xs w-full">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Amount</th>
+                                                                <th>Plan</th>
+                                                                <th>Paid At</th>
+                                                                <th>Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {[...b.orders]
+                                                                .sort((x: any, y: any) => {
+                                                                    if (!x.paid_at) return 1;
+                                                                    if (!y.paid_at) return -1;
+                                                                    return new Date(y.paid_at).getTime() - new Date(x.paid_at).getTime();
+                                                                })
+                                                                .map((order: any) => (
+                                                                    <tr key={order.id + "colkey"}>
+                                                                        <td className="font-semibold">{amountPrecision(order.amount)} sats</td>
+                                                                        <td>
+                                                                            <div className={`badge badge-sm ${order.order_type === 'premium' ? 'badge-secondary' : order.order_type === 'custom' ? 'badge-accent' : 'badge-primary'}`}>
+                                                                                {order.order_type || 'standard'}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="text-sm opacity-70">
+                                                                            {order.paid_at ? formatDate(order.paid_at) : "Unknown"}
+                                                                        </td>
+                                                                        <td><div className="badge badge-sm badge-success">Paid</div></td>
+                                                                    </tr>
+                                                                ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
