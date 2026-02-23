@@ -100,9 +100,13 @@ export default function AdminInvoices(props: any) {
         if (relay.RelayPlanChange && relay.RelayPlanChange.length > 0) {
             const currentPlan = relay.RelayPlanChange.find((pc: any) => !pc.ended_at);
             if (currentPlan) {
+                const standardAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || "21");
+                const premiumAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || "2100");
+                // Use current environment variable pricing, not historical amount_paid
+                const currentAmount = currentPlan.plan_type === 'premium' ? premiumAmount : standardAmount;
                 return {
                     type: currentPlan.plan_type,
-                    amount: currentPlan.amount_paid,
+                    amount: currentAmount,
                     startedAt: new Date(currentPlan.started_at)
                 };
             }
