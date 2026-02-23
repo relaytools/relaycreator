@@ -54,6 +54,11 @@ export default function Wizard(
         });
     };
 
+    // Check if relay is on premium plan
+    const isPremiumPlan = props.relay.RelayPlanChange && 
+        props.relay.RelayPlanChange.length > 0 && 
+        props.relay.RelayPlanChange[0].plan_type === 'premium';
+
     // streams
     const [streams, setStreams] = useState(props.relay.streams);
     const [streamUrl, setStreamUrl] = useState("");
@@ -102,6 +107,13 @@ export default function Wizard(
         url: string;
         direction: string;
     }) => {
+        // Validate URL starts with wss:// or ws://
+        const urlLower = newStream.url.trim().toLowerCase();
+        if (!urlLower.startsWith('wss://') && !urlLower.startsWith('ws://')) {
+            toast.error("Invalid stream URL. Must start with wss:// or ws://");
+            return;
+        }
+
         const response = await fetch(`/api/relay/${props.relay.id}/streams`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -321,6 +333,39 @@ export default function Wizard(
         }
     };
 
+    // Use WOA for tagged events
+    const [useWoaForTagged, setUseWoaForTagged] = useState(props.relay.use_woa_for_tagged);
+
+    const handleUseWoaForTaggedChange = async (e: any) => {
+        e.preventDefault();
+        const newValue = !useWoaForTagged;
+        
+        // If enabling WOA for tagged, also enable allow_tagged
+        const settings: any = { use_woa_for_tagged: newValue };
+        if (newValue && !allowTagged) {
+            settings.allow_tagged = true;
+        }
+        
+        const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(settings),
+        });
+        
+        setUseWoaForTagged(newValue);
+        if (newValue && !allowTagged) {
+            setAllowTagged(true);
+        }
+    };
+
+    const isUseWoaForTagged = () => {
+        if (useWoaForTagged) {
+            return "swap swap-active";
+        } else {
+            return "swap";
+        }
+    };
+
     // NIP42 AUTH setting
     const [authRequired, setAuthRequired] = useState(props.relay.auth_required);
 
@@ -489,7 +534,7 @@ export default function Wizard(
                             <li>
                                 <button
                                     className={`${
-                                        checked === 1 ? "active" : ""
+                                        checked === 1 ? "active bg-primary text-primary-content" : ""
                                     } flex justify-between items-center`}
                                     onClick={() => {
                                         setChecked(1);
@@ -505,7 +550,7 @@ export default function Wizard(
                             <li>
                                 <button
                                     className={`${
-                                        checked === 2 ? "active" : ""
+                                        checked === 2 ? "active bg-primary text-primary-content" : ""
                                     } flex justify-between items-center`}
                                     onClick={() => {
                                         setChecked(2);
@@ -522,7 +567,7 @@ export default function Wizard(
                     )}
                     <li>
                         <button
-                            className={`${checked === 3 ? "active" : ""}`}
+                            className={`${checked === 3 ? "active bg-primary text-primary-content" : ""}`}
                             onClick={() => {
                                 setChecked(3);
                                 setMenuOpen(true);
@@ -533,7 +578,7 @@ export default function Wizard(
                     </li>
                     <li>
                         <button
-                            className={`${checked === 4 ? "active" : ""}`}
+                            className={`${checked === 4 ? "active bg-primary text-primary-content" : ""}`}
                             onClick={() => {
                                 setChecked(4);
                                 setMenuOpen(false);
@@ -544,7 +589,7 @@ export default function Wizard(
                     </li>
                     <li>
                         <button
-                            className={`${checked === 6 ? "active" : ""}`}
+                            className={`${checked === 6 ? "active bg-primary text-primary-content" : ""}`}
                             onClick={() => {
                                 setChecked(6);
                                 setMenuOpen(true);
@@ -561,7 +606,7 @@ export default function Wizard(
                                                 className={
                                                     aclSection ===
                                                     "allowed-pubkeys"
-                                                        ? "active"
+                                                        ? "active bg-primary/20"
                                                         : ""
                                                 }
                                                 onClick={() => {
@@ -574,11 +619,29 @@ export default function Wizard(
                                                 Allowed Pubkeys
                                             </button>
                                         </li>
+                                        {isPremiumPlan && (
+                                            <li>
+                                                <button
+                                                    className={
+                                                        aclSection === "woa"
+                                                            ? "active bg-primary/20"
+                                                            : ""
+                                                    }
+                                                    onClick={() => {
+                                                        setAclSection("woa");
+                                                        setMenuOpen(false);
+                                                    }}
+                                                >
+                                                    Web of Access
+                                                    <span className="badge badge-secondary badge-xs ml-1">⭐</span>
+                                                </button>
+                                            </li>
+                                        )}
                                         <li>
                                             <button
                                                 className={
                                                     aclSection === "tags"
-                                                        ? "active"
+                                                        ? "active bg-primary/20"
                                                         : ""
                                                 }
                                                 onClick={() => {
@@ -595,7 +658,7 @@ export default function Wizard(
                                     <button
                                         className={
                                             aclSection === "blocked-kinds"
-                                                ? "active"
+                                                ? "active bg-primary/20"
                                                 : ""
                                         }
                                         onClick={() => {
@@ -610,7 +673,7 @@ export default function Wizard(
                                     <button
                                         className={
                                             aclSection === "blocked-pubkeys"
-                                                ? "active"
+                                                ? "active bg-primary/20"
                                                 : ""
                                         }
                                         onClick={() => {
@@ -625,7 +688,7 @@ export default function Wizard(
                                     <button
                                         className={
                                             aclSection === "blocked-keywords"
-                                                ? "active"
+                                                ? "active bg-primary/20"
                                                 : ""
                                         }
                                         onClick={() => {
@@ -643,7 +706,7 @@ export default function Wizard(
                                                 className={
                                                     aclSection ===
                                                     "allowed-keywords"
-                                                        ? "active"
+                                                        ? "active bg-primary/20"
                                                         : ""
                                                 }
                                                 onClick={() => {
@@ -661,7 +724,7 @@ export default function Wizard(
                                                 className={
                                                     aclSection ===
                                                     "allowed-kinds"
-                                                        ? "active"
+                                                        ? "active bg-primary/20"
                                                         : ""
                                                 }
                                                 onClick={() => {
@@ -680,7 +743,7 @@ export default function Wizard(
                                     <button
                                         className={
                                             aclSection === "auth"
-                                                ? "active"
+                                                ? "active bg-primary/20"
                                                 : ""
                                         }
                                         onClick={() => {
@@ -695,7 +758,7 @@ export default function Wizard(
                                     <button
                                         className={
                                             aclSection === "mode"
-                                                ? "active"
+                                                ? "active bg-primary/20"
                                                 : ""
                                         }
                                         onClick={() => {
@@ -711,7 +774,7 @@ export default function Wizard(
                     </li>
                     <li>
                         <button
-                            className={`${checked === 7 ? "active" : ""}`}
+                            className={`${checked === 7 ? "active bg-primary text-primary-content" : ""}`}
                             onClick={() => {
                                 setChecked(7);
                                 setMenuOpen(false);
@@ -720,28 +783,20 @@ export default function Wizard(
                             Lightning Payments
                         </button>
                     </li>
-                    <li>
-                        <button
-                            className={`${checked === 8 ? "active" : ""}`}
-                            onClick={() => {
-                                setChecked(8);
-                                setMenuOpen(false);
-                            }}
-                        >
-                            Streams Configuration
-                        </button>
-                    </li>
-                    <li>
-                        <button
-                            className={`${checked === 8 ? "active" : ""}`}
-                            onClick={() => {
-                                setChecked(9);
-                                setMenuOpen(false);
-                            }}
-                        >
-                            Web of Access 
-                        </button>
-                    </li>
+                    {isPremiumPlan && (
+                        <li>
+                            <button
+                                className={`${checked === 8 ? "active bg-primary text-primary-content" : ""}`}
+                                onClick={() => {
+                                    setChecked(8);
+                                    setMenuOpen(false);
+                                }}
+                            >
+                                Streams Configuration
+                                <span className="badge badge-secondary badge-xs ml-1">⭐</span>
+                            </button>
+                        </li>
+                    )}
                     <div className="divider"></div>
                     <li>
                         <button
@@ -1045,6 +1100,7 @@ export default function Wizard(
                     {checked === 6 && (
                         <div className="w-full">
                             <h2 className="text-lg font-bold mb-4">
+                                {aclSection === "woa" && (<>Web of Access <span className="badge badge-secondary ml-2">Premium Feature</span></>)}
                                 {aclSection === "mode" && "Advanced"}
                                 {aclSection === "auth" && "Authentication (NIP42)"}
                                 {aclSection === "tags" && "Allow Tags"}
@@ -1226,8 +1282,8 @@ export default function Wizard(
                                         <p>
                                             This setting will allow users on the
                                             wider nostr network to send events
-                                            to this relay that are tagged to
-                                            your pubkeys.
+                                            to this relay that are replying to
+                                            your member's events.
                                         </p>
                                         <p>
                                             This is useful if you want people to
@@ -1240,7 +1296,7 @@ export default function Wizard(
                                             Since this is a commonly requested
                                             feature we recommend you start with
                                             this turned on. However if you get a
-                                            lot of unwanted comments or stalkers
+                                            lot of unwanted comments from spammers
                                             and get tired of blocking them you
                                             can turn it off at any time.
                                         </p>
@@ -1305,6 +1361,41 @@ export default function Wizard(
                                             </div>
                                         </label>
                                     </div>
+                                    
+                                    {/* Use WOA for tagged events - Premium only */}
+                                    {allowTagged && isPremiumPlan && (
+                                        <div className="form-control bg-base-200 rounded-lg p-4 my-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <span className="label-text font-semibold">Use Web of Access for Tagged Events</span>
+                                                    <p className="text-sm opacity-70 mt-1">
+                                                        Only allow tagged events from pubkeys in your WOA sources
+                                                    </p>
+                                                </div>
+                                                <label
+                                                    className={isUseWoaForTagged()}
+                                                    onClick={handleUseWoaForTaggedChange}
+                                                >
+                                                    <input type="checkbox" checked={useWoaForTagged} readOnly />
+                                                    <div className="swap-on btn btn-sm btn-primary">ON</div>
+                                                    <div className="swap-off btn btn-sm btn-secondary">OFF</div>
+                                                </label>
+                                            </div>
+                                            {aclSources.length === 0 && (
+                                                <div className="alert alert-warning mt-3">
+                                                    <span>⚠️</span>
+                                                    <span>No WOA sources configured.</span>
+                                                    <button
+                                                        className="btn btn-sm btn-primary"
+                                                        onClick={() => setChecked(9)}
+                                                    >
+                                                        Configure WOA →
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    
                                     <div className="flex justify-center mt-4">
                                         <button
                                             className="btn btn-primary"
@@ -1336,7 +1427,7 @@ export default function Wizard(
                                     <div className="flex justify-center mt-4">
                                         <button
                                             className="btn btn-primary"
-                                            onClick={() => setAclSection("tags")}
+                                            onClick={() => setAclSection(isPremiumPlan ? "woa" : "tags")}
                                         >
                                             Next
                                         </button>
@@ -1490,6 +1581,317 @@ export default function Wizard(
                                     )}
                                 </div>
                             )}
+
+                            {aclSection === "woa" && (
+                                <div>
+                                    {/* WOA Diagram */}
+                                    <div className="card bg-base-200 shadow-md mb-6">
+                                        <div className="card-body p-4">
+                                            <h3 className="card-title justify-center text-base mb-3">How Web of Access Works</h3>
+                                            
+                                            <div className="flex flex-col items-center gap-2">
+                                                {/* Incoming Events */}
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">📝</span>
+                                                    <span className="text-xl">📝</span>
+                                                    <span className="text-xl">📝</span>
+                                                </div>
+                                                <div className="font-semibold text-xs">Incoming Events</div>
+                                                
+                                                <div className="text-xl">⬇️</div>
+                                                
+                                                {/* Filter Layer */}
+                                                <div className="bg-warning/30 rounded-lg p-3 border-2 border-warning w-full max-w-xs">
+                                                    <div className="text-center font-bold text-sm mb-2">🛡️ WOA Filter</div>
+                                                    <div className="flex justify-center gap-4">
+                                                        <div className="flex flex-col items-center">
+                                                            <span>🧠</span>
+                                                            <span className="text-xs">Brainstorm</span>
+                                                        </div>
+                                                        <div className="flex flex-col items-center">
+                                                            <span>📧</span>
+                                                            <span className="text-xs">NIP-05</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="text-xl">⬇️</div>
+                                                
+                                                {/* Results */}
+                                                <div className="flex items-center gap-6">
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="w-10 h-10 rounded-full bg-success/30 flex items-center justify-center border-2 border-success">
+                                                            <span>✅</span>
+                                                        </div>
+                                                        <span className="text-xs mt-1 font-semibold text-success">Allowed</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="w-10 h-10 rounded-full bg-error/30 flex items-center justify-center border-2 border-error">
+                                                            <span>❌</span>
+                                                        </div>
+                                                        <span className="text-xs mt-1 font-semibold text-error">Rejected</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Step 1: Add Sources */}
+                                    <div className="mb-6">
+                                        <h3 className="font-bold text-lg mb-2">Step 1: Add WOA Sources</h3>
+                                        <p className="text-sm opacity-70 mb-4">
+                                            Add sources that determine which pubkeys can interact with your relay.
+                                        </p>
+
+                                        {/* Existing Sources */}
+                                        {aclSources.length > 0 && (
+                                            <div className="mb-4 flex flex-col gap-2">
+                                                {aclSources.map((source, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
+                                                    >
+                                                        <div className="grow break-all">
+                                                            <span className="badge badge-outline mr-2">{source.aclType}</span>
+                                                            <span className="font-condensed text-sm">{source.url}</span>
+                                                        </div>
+                                                        <button
+                                                            className="btn btn-sm btn-error"
+                                                            onClick={() => handleRemoveAclSource(index)}
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {aclSources.length === 0 && (
+                                            <div className="alert alert-warning mb-4">
+                                                <span>⚠️</span>
+                                                <span>No WOA sources added yet. Add at least one source below.</span>
+                                            </div>
+                                        )}
+
+                                        <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text font-medium">ACL Source Type</span>
+                                        </label>
+                                        <select
+                                            className="select select-bordered w-full"
+                                            value={aclSourceType}
+                                            onChange={(e) => {
+                                                setAclSourceType(e.target.value);
+                                                setAclSourceUrl("");
+                                                setBrainstormObserverPubkey("");
+                                            }}
+                                        >
+                                            <option value="brainstorm">Brainstorm Scores</option>
+                                            <option value="nip05">NIP-05 Domain Verification</option>
+                                        </select>
+                                    </div>
+
+                                    {aclSourceType === "brainstorm" && (
+                                        <div className="mt-4">
+                                            <div className="alert alert-info mb-4">
+                                                <div>
+                                                    <h3 className="font-bold">Brainstorm Scores</h3>
+                                                    <div className="text-sm">
+                                                        Uses your social network to determine who can access the relay. 
+                                                        Will use {(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')} default observer for scoring unless you specify a custom observer in advanced options.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="form-control mt-4">
+                                                <label className="cursor-pointer label justify-start gap-2">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="checkbox checkbox-sm" 
+                                                        checked={showAdvancedBrainstorm}
+                                                        onChange={(e) => setShowAdvancedBrainstorm(e.target.checked)}
+                                                    />
+                                                    <span className="label-text text-sm">Advanced: Custom Observer & API URL</span>
+                                                </label>
+                                            </div>
+
+                                            {showAdvancedBrainstorm && (
+                                                <div className="mt-2 space-y-4">
+                                                    <div className="form-control">
+                                                        <label className="label">
+                                                            <span className="label-text font-medium">Observer Pubkey</span>
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder={`Leave blank for ${(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')} default observer`}
+                                                            className="input input-bordered w-full"
+                                                            value={brainstormObserverPubkey}
+                                                            onChange={(e) => setBrainstormObserverPubkey(e.target.value)}
+                                                        />
+                                                        {userPubkey && (
+                                                            <label className="label">
+                                                                <span className="label-text-alt text-info cursor-pointer" 
+                                                                      onClick={() => setBrainstormObserverPubkey(userPubkey)}>
+                                                                    Click to use your logged-in pubkey
+                                                                </span>
+                                                            </label>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <div className="form-control">
+                                                        <label className="label">
+                                                            <span className="label-text font-medium">Brainstorm API Base URL</span>
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="https://straycat.brainstorm.social/api/get-whitelist"
+                                                            className="input input-bordered w-full"
+                                                            value={brainstormBaseUrl}
+                                                            onChange={(e) => setBrainstormBaseUrl(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                className="btn btn-primary mt-4"
+                                                onClick={() => {
+                                                    handleAddAclSource({
+                                                        url: "",
+                                                        type: "brainstorm",
+                                                    });
+                                                }}
+                                            >
+                                                Add Brainstorm WOA Source
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {aclSourceType === "nip05" && (
+                                        <div className="mt-4">
+                                            <div className="alert alert-info mb-4">
+                                                <div>
+                                                    <h3 className="font-bold">NIP-05 Domain Verification</h3>
+                                                    <div className="text-sm">
+                                                        Only users with verified NIP-05 identifiers from specific domains will be allowed.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="form-control">
+                                                <label className="label">
+                                                    <span className="label-text font-medium">NIP-05 API URL</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter NIP-05 verification API URL (https://...)"
+                                                    className="input input-bordered w-full"
+                                                    value={aclSourceUrl}
+                                                    onChange={(e) => setAclSourceUrl(e.target.value)}
+                                                />
+                                            </div>
+
+                                            <button
+                                                className="btn btn-primary mt-4"
+                                                onClick={() => {
+                                                    if (aclSourceUrl && aclSourceUrl.startsWith('https://')) {
+                                                        handleAddAclSource({
+                                                            url: aclSourceUrl,
+                                                            type: aclSourceType,
+                                                        });
+                                                    } else {
+                                                        toast.error("URL must start with https://");
+                                                    }
+                                                }}
+                                                disabled={!aclSourceUrl.trim() || !aclSourceUrl.startsWith('https://')}
+                                            >
+                                                Add NIP-05 Source
+                                            </button>
+                                        </div>
+                                    )}
+                                    </div>
+
+                                    {/* Step 2: Choose Mode */}
+                                    <div className="mb-6">
+                                        <h3 className="font-bold text-lg mb-2">Step 2: Choose How to Use WOA</h3>
+                                        <p className="text-sm opacity-70 mb-4">
+                                            Select how pubkeys from your WOA sources can interact with your relay.
+                                        </p>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Full WOA Access Card */}
+                                            <div 
+                                                className={`card cursor-pointer transition-all ${
+                                                    !useWoaForTagged 
+                                                        ? "bg-primary/20 border-2 border-primary shadow-lg" 
+                                                        : "bg-base-200 border-2 border-base-300 hover:border-primary/50"
+                                                }`}
+                                                onClick={(e) => {
+                                                    if (useWoaForTagged) {
+                                                        handleUseWoaForTaggedChange(e);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="card-body p-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <input 
+                                                            type="radio" 
+                                                            className="radio radio-primary" 
+                                                            checked={!useWoaForTagged}
+                                                            readOnly
+                                                        />
+                                                        <h3 className="card-title text-base">Full Access</h3>
+                                                    </div>
+                                                    <p className="text-sm opacity-80 mt-2">
+                                                        Allow <strong>all events</strong> from WOA pubkeys to post to your relay.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Tagged Events Only Card */}
+                                            <div 
+                                                className={`card cursor-pointer transition-all ${
+                                                    useWoaForTagged 
+                                                        ? "bg-secondary/20 border-2 border-secondary shadow-lg" 
+                                                        : "bg-base-200 border-2 border-base-300 hover:border-secondary/50"
+                                                }`}
+                                                onClick={(e) => {
+                                                    if (!useWoaForTagged) {
+                                                        handleUseWoaForTaggedChange(e);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="card-body p-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <input 
+                                                            type="radio" 
+                                                            className="radio radio-secondary" 
+                                                            checked={useWoaForTagged}
+                                                            readOnly
+                                                        />
+                                                        <h3 className="card-title text-base">Replies Only</h3>
+                                                    </div>
+                                                    <p className="text-sm opacity-80 mt-2">
+                                                        Only allow <strong>replies and mentions</strong> to your members.
+                                                    </p>
+                                                    {useWoaForTagged && allowTagged && (
+                                                        <div className="badge badge-success badge-sm mt-2">Tags enabled ✓</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-center mt-4">
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={() => setAclSection("tags")}
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -1633,21 +2035,23 @@ export default function Wizard(
                                     </button>
                                 </div>
                             )}
-                            <div className="flex justify-center mt-4">
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={() => setChecked(8)}
-                                >
-                                    Next
-                                </button>
-                            </div>
+                            {isPremiumPlan && (
+                                <div className="flex justify-center mt-4">
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => setChecked(8)}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {checked === 8 && (
+                    {checked === 8 && isPremiumPlan && (
                         <div className="w-full">
                             <h2 className="text-lg font-bold mb-4">
-                                Streams Configuration
+                                Streams Configuration <span className="badge badge-secondary ml-2">Premium Feature</span>
                             </h2>
                             <article className="prose">
                                 <p>
@@ -1725,7 +2129,7 @@ export default function Wizard(
                             <div className="form-control mt-4">
                                 <input
                                     type="text"
-                                    placeholder="Enter relay URL"
+                                    placeholder="Enter relay URL (wss://examplerelay.com)"
                                     className="input input-bordered w-full"
                                     value={streamUrl}
                                     onChange={(e) =>
@@ -1791,289 +2195,6 @@ export default function Wizard(
                                             className="btn btn-sm btn-error"
                                             onClick={() =>
                                                 handleRemoveStream(stream)
-                                            }
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex justify-center mt-4">
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={() => setChecked(9)}
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {checked === 9 && (
-                        <div className="w-full">
-                            <h2 className="text-lg font-bold mb-4">
-                                Web of Access Configuration
-                            </h2>
-                            <article className="prose">
-                                <p>
-                                    Add additional access control lists to manage who can use your relay. You can add multiple sources from <span title="Web of Access">WOA</span> systems and NIP-05 domain verification.
-                                </p>
-                            </article>
-
-                            {/* Web of Access Diagram - Funnel/Filter Model */}
-                            <div className="card bg-base-200 shadow-md my-6">
-                                <div className="card-body p-6">
-                                    <h3 className="card-title justify-center mb-4">How Web of Access Works</h3>
-                                    
-                                    {/* Vertical Funnel Diagram */}
-                                    <div className="flex flex-col items-center gap-2 py-4">
-                                        {/* Incoming Events */}
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-2xl">📝</span>
-                                            <span className="text-2xl">📝</span>
-                                            <span className="text-2xl">📝</span>
-                                        </div>
-                                        <div className="font-semibold text-sm">Incoming Events</div>
-                                        
-                                        {/* Arrow Down */}
-                                        <div className="text-2xl">⬇️</div>
-                                        
-                                        {/* Filter Layer - Funnel Shape */}
-                                        <div className="relative w-full max-w-xs">
-                                            {/* Funnel top (wide) */}
-                                            <div className="bg-gradient-to-b from-warning/30 to-warning/50 rounded-t-xl p-4 border-2 border-warning border-b-0">
-                                                <div className="text-center font-bold text-sm mb-2">🛡️ WOA Filter Layer</div>
-                                                <div className="flex justify-center gap-4">
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-xl">🧠</span>
-                                                        <span className="text-xs">Brainstorm</span>
-                                                    </div>
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-xl">📧</span>
-                                                        <span className="text-xs">NIP-05</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {/* Funnel bottom (narrow) */}
-                                            <div className="flex justify-center">
-                                                <div className="w-0 h-0 border-l-[100px] border-r-[100px] border-t-[40px] border-l-transparent border-r-transparent border-t-warning/50"></div>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Arrow Down */}
-                                        <div className="text-2xl mt-2">⬇️</div>
-                                        
-                                        {/* Results */}
-                                        <div className="flex items-center gap-8">
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-14 h-14 rounded-full bg-success/30 flex items-center justify-center border-2 border-success">
-                                                    <span className="text-xl">✅</span>
-                                                </div>
-                                                <span className="text-xs mt-1 font-semibold text-success">Allowed</span>
-                                            </div>
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-14 h-14 rounded-full bg-error/30 flex items-center justify-center border-2 border-error">
-                                                    <span className="text-xl">❌</span>
-                                                </div>
-                                                <span className="text-xs mt-1 font-semibold text-error">Rejected</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Info Cards */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                                        <div className="bg-base-100 rounded-lg p-3">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span>🧠</span>
-                                                <span className="font-bold text-sm">Brainstorm Scores</span>
-                                            </div>
-                                            <div className="text-xs opacity-70">Uses your social graph to score pubkeys. Higher scores = trusted users.</div>
-                                        </div>
-                                        <div className="bg-base-100 rounded-lg p-3">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span>📧</span>
-                                                <span className="font-bold text-sm">NIP-05 Domains</span>
-                                            </div>
-                                            <div className="text-xs opacity-70">Allow users verified by specific domains (e.g., user@company.com).</div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Runtime Notice */}
-                                    <div className="alert alert-warning mt-3">
-                                        <span className="text-lg">⚡</span>
-                                        <div>
-                                            <div className="font-bold text-sm">Applied at Runtime</div>
-                                            <div className="text-xs">These lists are checked when events arrive. They won't appear in your Allowed Pubkeys list but are applied automatically.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="form-control mt-4">
-                                <label className="label">
-                                    <span className="label-text font-medium">ACL Source Type</span>
-                                </label>
-                                <select
-                                    className="select select-bordered w-full"
-                                    value={aclSourceType}
-                                    onChange={(e) => {
-                                        setAclSourceType(e.target.value);
-                                        // Reset form when type changes
-                                        setAclSourceUrl("");
-                                        setBrainstormObserverPubkey("");
-                                    }}
-                                >
-                                    <option value="brainstorm">Brainstorm Scores</option>
-                                    <option value="nip05">NIP-05 Domain Verification</option>
-                                </select>
-                            </div>
-
-                            {aclSourceType === "brainstorm" && (
-                                <div className="mt-4">
-                                    <div className="alert alert-info mb-4">
-                                        <div>
-                                            <h3 className="font-bold">Brainstorm Scores</h3>
-                                            <div className="text-sm">
-                                                Uses your social network to determine who can access the relay. 
-                                                Will use {(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')} default observer for scoring unless you specify a custom observer in advanced options.
-                                                Additional Info: <a href="">soon</a>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-control mt-4">
-                                        <label className="cursor-pointer label justify-start gap-2">
-                                            <input 
-                                                type="checkbox" 
-                                                className="checkbox checkbox-sm" 
-                                                checked={showAdvancedBrainstorm}
-                                                onChange={(e) => setShowAdvancedBrainstorm(e.target.checked)}
-                                            />
-                                            <span className="label-text text-sm">Advanced: Custom Observer & API URL</span>
-                                        </label>
-                                    </div>
-
-                                    {showAdvancedBrainstorm && (
-                                        <div className="mt-2 space-y-4">
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Observer Pubkey</span>
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    placeholder={`Leave blank for ${(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://relay.tools').replace(/^https?:\/\//, '')} default observer`}
-                                                    className="input input-bordered w-full"
-                                                    value={brainstormObserverPubkey}
-                                                    onChange={(e) => setBrainstormObserverPubkey(e.target.value)}
-                                                />
-                                                {userPubkey && (
-                                                    <label className="label">
-                                                        <span className="label-text-alt text-info cursor-pointer" 
-                                                              onClick={() => setBrainstormObserverPubkey(userPubkey)}>
-                                                            Click to use your logged-in pubkey
-                                                        </span>
-                                                    </label>
-                                                )}
-                                            </div>
-                                            
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">Brainstorm API Base URL</span>
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="https://straycat.brainstorm.social/api/get-whitelist"
-                                                    className="input input-bordered w-full"
-                                                    value={brainstormBaseUrl}
-                                                    onChange={(e) => setBrainstormBaseUrl(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <button
-                                        className="btn btn-primary mt-4"
-                                        onClick={() => {
-                                            handleAddAclSource({
-                                                url: "", // Will be constructed in handleAddAclSource
-                                                type: "brainstorm",
-                                            });
-                                        }}
-                                    >
-                                        Add Brainstorm WOA Source
-                                    </button>
-                                </div>
-                            )}
-
-                            {aclSourceType === "nip05" && (
-                                <div className="mt-4">
-                                    <div className="alert alert-info mb-4">
-                                        <div>
-                                            <h3 className="font-bold">NIP-05 Domain Verification</h3>
-                                            <div className="text-sm">
-                                                Only users with verified NIP-05 identifiers from specific domains will be allowed.
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="form-control">
-                                        <label className="label">
-                                            <span className="label-text font-medium">NIP-05 API URL</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter NIP-05 verification API URL (https://...)"
-                                            className="input input-bordered w-full"
-                                            value={aclSourceUrl}
-                                            onChange={(e) => setAclSourceUrl(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <button
-                                        className="btn btn-primary mt-4"
-                                        onClick={() => {
-                                            if (aclSourceUrl && aclSourceUrl.startsWith('https://')) {
-                                                handleAddAclSource({
-                                                    url: aclSourceUrl,
-                                                    type: aclSourceType,
-                                                });
-                                            } else {
-                                                toast.error("URL must start with https://");
-                                            }
-                                        }}
-                                        disabled={!aclSourceUrl.trim() || !aclSourceUrl.startsWith('https://')}
-                                    >
-                                        Add NIP-05 Source
-                                    </button>
-                                </div>
-                            )}
-
-                            <div className="mt-4 flex flex-col gap-4">
-                                {aclSources.map((source, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-base-200 rounded-lg border"
-                                    >
-                                        <div className="grow break-all font-bold">
-                                            <span className="font-bold mr-4">
-                                                source url
-                                            </span>
-                                            <span className="font-condensed">
-                                                {source.url}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <span className="font-bold">
-                                                type
-                                            </span>
-                                            <span className="font-condensed">
-                                                {source.aclType}
-                                            </span>
-                                        </div>
-                                        <button
-                                            className="btn btn-sm btn-error"
-                                            onClick={() =>
-                                                handleRemoveAclSource(index)
                                             }
                                         >
                                             Remove

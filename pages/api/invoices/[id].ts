@@ -112,7 +112,40 @@ export default async function handle(req: any, res: any) {
         }
         // Only record plan changes for standard and premium plans, not custom payments
         if (findOrder.order_type === 'standard' || findOrder.order_type === 'premium') {
+            // Check if this is a downgrade from premium to standard
+            const currentPlan = await prisma.relayPlanChange.findFirst({
+                where: {
+                    relayId: findOrder.relay.id,
+                    ended_at: null
+                },
+                select: { plan_type: true }
+            });
+            
+            const isDowngrade = currentPlan?.plan_type === 'premium' && findOrder.order_type === 'standard';
+            
+            // Record the plan change
             await recordRelayPlanChange(findOrder.relay.id, findOrder.order_type, findOrder.amount, findOrder.id, findOrder.paid_at || undefined);
+            
+            // If downgrading from premium to standard, remove premium-only features
+            if (isDowngrade) {
+                console.log(`Downgrading relay ${findOrder.relay.id} from premium to standard - removing WOA sources and streams`);
+                
+                // Remove WOA sources
+                await prisma.aclSource.deleteMany({
+                    where: { relayId: findOrder.relay.id }
+                });
+                
+                // Remove streams
+                await prisma.stream.deleteMany({
+                    where: { relayId: findOrder.relay.id }
+                });
+                
+                // Reset use_woa_for_tagged setting
+                await prisma.relay.update({
+                    where: { id: findOrder.relay.id },
+                    data: { use_woa_for_tagged: false }
+                });
+            }
         }
         res.status(200).json({ order: findOrder });
     } else {

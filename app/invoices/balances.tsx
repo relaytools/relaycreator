@@ -101,7 +101,8 @@ export default function Balances(
             if (plan === "premium") {
                 amount = props.RelayPaymentAmount.premium?.toString() || "2100";
             } else {
-                amount = Math.abs(amountPrecision(b.balance)).toString();
+                // Use standard plan amount, not balance
+                amount = props.RelayPaymentAmount.standard?.toString() || "1000";
             }
         }
         

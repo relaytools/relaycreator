@@ -163,6 +163,7 @@ model Relay {
   is_proxied            Boolean       @default(false)
   allow_giftwrap             Boolean       @default(true)
   allow_tagged          Boolean       @default(false)
+  use_woa_for_tagged    Boolean       @default(false)
   auth_required          Boolean       @default(false)
   // false is keyword -or- pubkey, true is keyword -and- pubkey. default to false.
   allow_keyword_pubkey   Boolean       @default(false)
