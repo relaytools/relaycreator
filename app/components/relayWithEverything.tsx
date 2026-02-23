@@ -75,6 +75,10 @@ export const modWithRelays = Prisma.validator<Prisma.ModeratorArgs>()({
                     },
                 },
                 acl_sources: true,
+                RelayPlanChange: {
+                    orderBy: { started_at: 'desc' },
+                    take: 1,
+                },
             },
         },
     },

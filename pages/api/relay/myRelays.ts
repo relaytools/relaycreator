@@ -56,6 +56,11 @@ export default async function handle(req: any, res: any) {
                     list_kinds: true,
                 },
             },
+            acl_sources: true,
+            RelayPlanChange: {
+                orderBy: { started_at: 'desc' },
+                take: 1,
+            },
         },
     });
 
@@ -92,6 +97,11 @@ export default async function handle(req: any, res: any) {
                         list_pubkeys: true,
                         list_kinds: true,
                     },
+                },
+                acl_sources: true,
+                RelayPlanChange: {
+                    orderBy: { started_at: 'desc' },
+                    take: 1,
                 },
             },
         });
@@ -131,6 +141,11 @@ export default async function handle(req: any, res: any) {
                             list_pubkeys: true,
                             list_kinds: true,
                         },
+                    },
+                    acl_sources: true,
+                    RelayPlanChange: {
+                        orderBy: { started_at: 'desc' },
+                        take: 1,
                     },
                 },
             },
