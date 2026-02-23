@@ -53,20 +53,27 @@ export default async function handle(req: any, res: any) {
 
             // make sure the relay is active
             if (r.status != null) {
-                // allow top up of any amount (custom amount overrides plan selection)
+                // allow top up of any amount
                 if(sats != null) {
                     useAmount = parseInt(sats)
-                    // For custom amounts, check if they match exact plan amounts
-                    const standardAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || "21")
-                    const premiumAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || "2100")
-                    
-                    if (useAmount === standardAmount) {
-                        orderType = "standard"
-                    } else if (useAmount === premiumAmount) {
-                        orderType = "premium"
+                    // If plan parameter was explicitly provided, use it
+                    // Otherwise, try to detect based on amount
+                    if (plan === "standard" || plan === "premium") {
+                        // Plan was explicitly set, keep it
+                        orderType = plan
                     } else {
-                        // Custom amount - should not trigger plan changes
-                        orderType = "custom"
+                        // No explicit plan, detect from amount
+                        const standardAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_AMOUNT || "21")
+                        const premiumAmount = parseInt(process.env.NEXT_PUBLIC_INVOICE_PREMIUM_AMOUNT || "2100")
+                        
+                        if (useAmount === standardAmount) {
+                            orderType = "standard"
+                        } else if (useAmount === premiumAmount) {
+                            orderType = "premium"
+                        } else {
+                            // Custom amount - should not trigger plan changes
+                            orderType = "custom"
+                        }
                     }
                 }
             }

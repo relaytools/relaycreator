@@ -2,6 +2,14 @@ import prisma from '../../../../lib/prisma'
 import { checkSessionForRelay } from "../../../../lib/checkSession"
 import { checkSessionForSuperAdmin } from '../../../../lib/checkSessionForSuperAdmin'
 
+async function isPremiumPlan(relayId: string): Promise<boolean> {
+    const planChange = await prisma.relayPlanChange.findFirst({
+        where: { relayId },
+        orderBy: { started_at: 'desc' },
+    });
+    return planChange?.plan_type === 'premium';
+}
+
 export default async function handle(req: any, res: any) {
     // check owner and relay, to create blank BlockList
     const isMyRelay = await checkSessionForRelay(req, res)
@@ -20,6 +28,14 @@ export default async function handle(req: any, res: any) {
                     // update status only if superadmin
                     if(await checkSessionForSuperAdmin(req, res)) {
                         updateFields[key] = req.body[key];
+                    }
+                } else if(key == "use_woa_for_tagged" && req.body[key] === true) {
+                    // use_woa_for_tagged requires premium plan
+                    if(await isPremiumPlan(isMyRelay.id)) {
+                        updateFields[key] = req.body[key];
+                    } else {
+                        res.status(403).json({ "error": "Web of Access for tagged events requires a premium plan" })
+                        return
                     }
                 } else {
                     updateFields[key] = req.body[key];

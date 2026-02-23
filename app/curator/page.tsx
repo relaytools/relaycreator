@@ -69,6 +69,10 @@ export default async function Curator({
                 },
             },
             acl_sources: true,
+            RelayPlanChange: {
+                orderBy: { started_at: 'desc' },
+                take: 1,
+            },
         }
     })
 

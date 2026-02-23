@@ -38,6 +38,7 @@ export default async function handle(req: any, res: any) {
             allow_giftwrap: true,
             allow_tagged: true,
             allow_keyword_pubkey: true,
+            use_woa_for_tagged: true,
             allow_list: {
                 select: {
                     list_keywords: true,

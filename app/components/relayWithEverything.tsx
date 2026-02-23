@@ -31,6 +31,10 @@ export const relayWithEverything = Prisma.validator<Prisma.RelayArgs>()({
             },
         },
         acl_sources: true,
+        RelayPlanChange: {
+            orderBy: { started_at: 'desc' },
+            take: 1,
+        },
     },
 });
 

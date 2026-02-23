@@ -1,6 +1,14 @@
 import prisma from '../../../../lib/prisma'
 import { checkSessionForRelay } from "../../../../lib/checkSession"
 
+async function isPremiumPlan(relayId: string): Promise<boolean> {
+    const planChange = await prisma.relayPlanChange.findFirst({
+        where: { relayId },
+        orderBy: { started_at: 'desc' },
+    });
+    return planChange?.plan_type === 'premium';
+}
+
 function validateAclSourceUrl(url: string): boolean {
     // Must start with https://
     if (!url.match(/^https:\/\//)) {
@@ -42,6 +50,12 @@ export default async function handle(req: any, res: any) {
     }
 
     if (req.method == "POST") {
+        // Check premium plan
+        if (!await isPremiumPlan(isMyRelay.id)) {
+            res.status(403).json({ "error": "Web of Access requires a premium plan" })
+            return
+        }
+
         const { url, type } = req.body
         
         if (!validateAclType(type)) {
