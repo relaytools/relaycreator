@@ -334,7 +334,7 @@ frontend secured
 	# Concurrent connections: more than 50 simultaneous plain HTTP connections
 	acl conn_cur_limit sc0_conn_cur gt 50
 	# Concurrent websocket tunnels: more than 50 simultaneous
-	acl ws_conn_cur_limit sc0_conn_cur gt 50
+	acl ws_conn_cur_limit sc0_conn_cur gt 80
 	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
 	acl ip_rate_offender sc1_get_gpc0(bk_stick_blocked) gt 2
 	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 2
