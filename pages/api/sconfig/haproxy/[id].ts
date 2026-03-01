@@ -284,11 +284,11 @@ defaults
     timeout connect 10s
     timeout client  30s
     timeout server  30s
-	timeout tunnel 300s
-	timeout http-keep-alive 10s
+	timeout tunnel 60s
+	timeout http-keep-alive 5s
 	timeout http-request 10s
-	timeout client-fin 5s
-	timeout server-fin 5s
+	timeout client-fin 2s
+	timeout server-fin 2s
 	errorfile 400 /etc/haproxy/errors/400.http
 	errorfile 403 /etc/haproxy/errors/403.http
 	errorfile 408 /etc/haproxy/errors/408.http
