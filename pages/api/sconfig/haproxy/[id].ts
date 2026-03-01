@@ -283,13 +283,13 @@ defaults
 	option	dontlognull
 	option	http-server-close
     timeout connect 10s
-    timeout client  30s
-    timeout server  30s
-	timeout tunnel 60s
-	timeout http-keep-alive 5s
-	timeout http-request 10s
-	timeout client-fin 2s
-	timeout server-fin 2s
+    timeout client  10s
+    timeout server  5s
+	timeout tunnel 30s
+	timeout http-keep-alive 2s
+	timeout http-request 2s
+	timeout client-fin 1s
+	timeout server-fin 1s
 	errorfile 400 /etc/haproxy/errors/400.http
 	errorfile 403 /etc/haproxy/errors/403.http
 	errorfile 408 /etc/haproxy/errors/408.http
@@ -317,25 +317,24 @@ frontend secured
 
    	# Track HTTP request rate only on these URLs
 	acl throttled_url path_beg -i /
+	# Detect WebSocket upgrade requests (long-lived tunnels, not counted against conn_cur)
+	acl is_websocket hdr(Upgrade) -i websocket
 	# IPs excluded from throttling (whitelist)
 	acl throttle_exclude src -f /etc/haproxy/throttle_exclude.lst
-	# Identify unique clients based on Host + IP + User-Agent
-	http-request set-header X-SB-Track %[req.fhdr(Host)]_%[src]_%[req.fhdr(User-Agent)]
-	# base64 encode temporary tracking header
-	http-request set-header X-Concat %[req.fhdr(X-SB-Track),base64]
-	# Remove temporary tracking header
-	http-request del-header X-SB-Track
-	# stick-table for tracking HTTP request rate and new connection rate per client fingerprint
-	# conn_cur is unreliable for websockets (stays high while tunnels open); use conn_rate instead
-	stick-table type binary len 64 size 100k store http_req_rate(10s),conn_cur,conn_rate(10s) expire 4m
-	# Track fingerprint in the rate-limit table
-	http-request track-sc0 hdr(X-Concat) if throttled_url
-	# Track source IP in the blocklist table
-	http-request track-sc1 src table bk_stick_blocked if throttled_url
+	# stick-table for tracking HTTP request rate and new connection rate per source IP
+	stick-table type ip size 100k store http_req_rate(10s),conn_cur,conn_rate(10s) expire 4m
+	# Track source IP in the rate-limit table (skip whitelisted IPs)
+	http-request track-sc0 src if throttled_url !throttle_exclude
+	# Track source IP in the blocklist table (skip whitelisted IPs)
+	http-request track-sc1 src table bk_stick_blocked if throttled_url !throttle_exclude
 	# Rate limit: more than 100 requests in 10 seconds
 	acl fast_refresher sc0_http_req_rate gt 100
-	# Connection rate: more than 100 new connections in 10 seconds from same fingerprint
-	acl conn_limit sc0_conn_rate gt 100
+	# Connection rate: more than 50 new connections in 10 seconds
+	acl conn_rate_limit sc0_conn_rate gt 50
+	# Concurrent connections: more than 50 simultaneous plain HTTP connections
+	acl conn_cur_limit sc0_conn_cur gt 50
+	# Concurrent websocket tunnels: more than 50 simultaneous
+	acl ws_conn_cur_limit sc0_conn_cur gt 50
 	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
 	acl ip_rate_offender sc1_get_gpc0(bk_stick_blocked) gt 2
 	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 2
@@ -344,17 +343,23 @@ frontend secured
 	http-request deny deny_status 403 if ip_conn_offender !throttle_exclude
 	# Increment rate offense counter (gpc0) when rate limit violated
 	http-request sc-inc-gpc0(1) if fast_refresher !throttle_exclude
-	# Increment connection offense counter (gpc1) when connection limit violated
-	http-request sc-inc-gpc1(1) if conn_limit !throttle_exclude
+	# Increment connection offense counter (gpc1) when any connection limit violated
+	http-request sc-inc-gpc1(1) if conn_rate_limit !throttle_exclude
+	http-request sc-inc-gpc1(1) if conn_cur_limit !throttle_exclude !is_websocket
+	http-request sc-inc-gpc1(1) if ws_conn_cur_limit !throttle_exclude is_websocket
 	# Return 429 for current violations (skip whitelisted IPs)
 	use_backend bk_429 if fast_refresher !throttle_exclude
-	use_backend bk_429 if conn_limit !throttle_exclude
+	use_backend bk_429 if conn_rate_limit !throttle_exclude
+	use_backend bk_429 if conn_cur_limit !throttle_exclude !is_websocket
+	use_backend bk_429 if ws_conn_cur_limit !throttle_exclude is_websocket
 
 	http-request del-header x-real-ip
 	option forwardfor except 127.0.0.1 header x-real-ip
 
     http-request set-header host %[hdr(host),field(1,:)]
     capture request header Host len 30
+	capture request header User-Agent len 100
+	capture request header Upgrade len 9
 
 	http-request return content-type image/x-icon file /etc/haproxy/static/favicon.ico if { path /favicon.ico }
 	http-request return content-type image/png file /etc/haproxy/static/favicon-32x32.png if { path /favicon-32x32.png }
