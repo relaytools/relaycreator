@@ -331,8 +331,8 @@ frontend secured
 	http-request track-sc0 hdr(X-Concat) if throttled_url
 	# Track source IP in the blocklist table
 	http-request track-sc1 src table bk_stick_blocked if throttled_url
-	# Rate limit: more than 200 requests in 10 seconds
-	acl fast_refresher sc0_http_req_rate gt 200
+	# Rate limit: more than 100 requests in 10 seconds
+	acl fast_refresher sc0_http_req_rate gt 100
 	# Connection limit: more than 100 concurrent connections from same fingerprint
 	acl conn_limit sc0_conn_cur gt 100
 	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
