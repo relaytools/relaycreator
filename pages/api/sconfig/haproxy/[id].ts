@@ -280,14 +280,15 @@ defaults
 	mode	http
 	option	httplog
 	option	dontlognull
-    timeout connect 20s
-    timeout client  20s
-    timeout server  60s
-	timeout tunnel 60s
-	#timeout http-keep-alive 1s
-	#timeout http-request 15s
-	#timeout queue 30s
-	#timeout tarpit 60s
+	option	http-server-close
+    timeout connect 10s
+    timeout client  30s
+    timeout server  30s
+	timeout tunnel 3600s
+	timeout http-keep-alive 10s
+	timeout http-request 10s
+	timeout client-fin 5s
+	timeout server-fin 5s
 	errorfile 400 /etc/haproxy/errors/400.http
 	errorfile 403 /etc/haproxy/errors/403.http
 	errorfile 408 /etc/haproxy/errors/408.http
@@ -312,6 +313,42 @@ frontend secured
 	backlog			4096
 	maxconn			60000      
 	default_backend		main	
+
+   	# Track HTTP request rate only on these URLs
+	acl throttled_url path_beg -i /
+	# IPs excluded from throttling (whitelist)
+	acl throttle_exclude src -f /etc/haproxy/throttle_exclude.lst
+	# Identify unique clients based on Host + IP + User-Agent
+	http-request set-header X-SB-Track %[req.fhdr(Host)]_%[src]_%[req.fhdr(User-Agent)]
+	# base64 encode temporary tracking header
+	http-request set-header X-Concat %[req.fhdr(X-SB-Track),base64]
+	# Remove temporary tracking header
+	http-request del-header X-SB-Track
+	# stick-table for tracking HTTP request rate and concurrent connections per client fingerprint
+	# Tracks request count (http_req_rate) over 10-second sliding window, expires after 4 minutes
+	stick-table type binary len 64 size 100k store http_req_rate(10s),conn_cur expire 4m
+	# Track fingerprint in the rate-limit table
+	http-request track-sc0 hdr(X-Concat) if throttled_url
+	# Track source IP in the blocklist table
+	http-request track-sc1 src table bk_stick_blocked if throttled_url
+	# Rate limit: more than 200 requests in 10 seconds
+	acl fast_refresher sc0_http_req_rate gt 200
+	# Connection limit: more than 100 concurrent connections from same fingerprint
+	acl conn_limit sc0_conn_cur gt 100
+	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
+	acl ip_rate_offender sc1_get_gpc0(bk_stick_blocked) gt 2
+	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 2
+	# Hard block repeat offenders (skip whitelisted IPs)
+	http-request deny deny_status 403 if ip_rate_offender !throttle_exclude
+	http-request deny deny_status 403 if ip_conn_offender !throttle_exclude
+	# Increment rate offense counter (gpc0) when rate limit violated
+	http-request sc-inc-gpc0(1) if fast_refresher !throttle_exclude
+	# Increment connection offense counter (gpc1) when connection limit violated
+	http-request sc-inc-gpc1(1) if conn_limit !throttle_exclude
+	# Return 429 for current violations (skip whitelisted IPs)
+	use_backend bk_429 if fast_refresher !throttle_exclude
+	use_backend bk_429 if conn_limit !throttle_exclude
+
 	http-request del-header x-real-ip
 	option forwardfor except 127.0.0.1 header x-real-ip
 
@@ -331,6 +368,13 @@ frontend secured
 	${haproxy_subdomains_cfg}
     
     ${previewFrontend}
+
+backend bk_stick_blocked
+    stick-table type ip size 100k expire 1h store gpc0,gpc1
+
+backend bk_429
+    errorfile 429 /etc/haproxy/errors/429.http
+    http-request deny deny_status 429
 
 backend main
 	mode  		        http
