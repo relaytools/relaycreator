@@ -232,6 +232,7 @@ backend ${element.name}
 backend ${element.name}
 	mode  		        http
 	option 		        redispatch
+	option		        abortonclose
 	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip
 	server     ${element.name} ${element.ip}:${element.port} ${useSSLVerify} maxconn 50000 weight 10 check
@@ -324,17 +325,17 @@ frontend secured
 	http-request set-header X-Concat %[req.fhdr(X-SB-Track),base64]
 	# Remove temporary tracking header
 	http-request del-header X-SB-Track
-	# stick-table for tracking HTTP request rate and concurrent connections per client fingerprint
-	# Tracks request count (http_req_rate) over 10-second sliding window, expires after 4 minutes
-	stick-table type binary len 64 size 100k store http_req_rate(10s),conn_cur expire 4m
+	# stick-table for tracking HTTP request rate and new connection rate per client fingerprint
+	# conn_cur is unreliable for websockets (stays high while tunnels open); use conn_rate instead
+	stick-table type binary len 64 size 100k store http_req_rate(10s),conn_cur,conn_rate(10s) expire 4m
 	# Track fingerprint in the rate-limit table
 	http-request track-sc0 hdr(X-Concat) if throttled_url
 	# Track source IP in the blocklist table
 	http-request track-sc1 src table bk_stick_blocked if throttled_url
 	# Rate limit: more than 100 requests in 10 seconds
 	acl fast_refresher sc0_http_req_rate gt 100
-	# Connection limit: more than 100 concurrent connections from same fingerprint
-	acl conn_limit sc0_conn_cur gt 100
+	# Connection rate: more than 100 new connections in 10 seconds from same fingerprint
+	acl conn_limit sc0_conn_rate gt 100
 	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
 	acl ip_rate_offender sc1_get_gpc0(bk_stick_blocked) gt 2
 	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 2
@@ -379,6 +380,7 @@ backend bk_429
 backend main
 	mode  		        http
 	option 		        redispatch
+	option		        abortonclose
 	balance 	        source
 	option forwardfor except 127.0.0.1 header x-real-ip
     ${app_servers_cfg}
