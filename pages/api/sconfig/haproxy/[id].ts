@@ -284,7 +284,7 @@ defaults
     timeout connect 10s
     timeout client  30s
     timeout server  30s
-	timeout tunnel 3600s
+	timeout tunnel 300s
 	timeout http-keep-alive 10s
 	timeout http-request 10s
 	timeout client-fin 5s
