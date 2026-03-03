@@ -321,20 +321,23 @@ frontend secured
 	acl is_websocket hdr(Upgrade) -i websocket
 	# IPs excluded from throttling (whitelist)
 	acl throttle_exclude src -f /etc/haproxy/throttle_exclude.lst
-	# stick-table for tracking HTTP request rate and new connection rate per source IP
-	stick-table type ip size 100k store http_req_rate(10s),conn_cur,conn_rate(10s) expire 4m
-	# Track source IP in the rate-limit table (skip whitelisted IPs)
-	http-request track-sc0 src if throttled_url !throttle_exclude
+	# Build composite key: host_ip (so limits apply per relay subdomain, not globally)
+	http-request set-header X-Track-Key %[req.hdr(host)]_%[src]
+	# stick-table for tracking HTTP request rate and connection counts per IP per hostname
+	stick-table type string len 128 size 100k store http_req_rate(10s),conn_cur,conn_rate(10s) expire 4m
+	# Track composite key in the rate-limit table (skip whitelisted IPs)
+	http-request track-sc0 hdr(X-Track-Key) if throttled_url !throttle_exclude
+	http-request del-header X-Track-Key
 	# Track source IP in the blocklist table (skip whitelisted IPs)
 	http-request track-sc1 src table bk_stick_blocked if throttled_url !throttle_exclude
-	# Rate limit: more than 100 requests in 10 seconds
-	acl fast_refresher sc0_http_req_rate gt 100
-	# Connection rate: more than 50 new connections in 10 seconds
-	acl conn_rate_limit sc0_conn_rate gt 50
-	# Concurrent connections: more than 50 simultaneous plain HTTP connections
-	acl conn_cur_limit sc0_conn_cur gt 50
-	# Concurrent websocket tunnels: more than 50 simultaneous
-	acl ws_conn_cur_limit sc0_conn_cur gt 80
+	# Rate limit: more than 200 requests in 10 seconds
+	acl fast_refresher sc0_http_req_rate gt 200
+	# Connection rate: more than 100 new connections in 10 seconds
+	acl conn_rate_limit sc0_conn_rate gt 100
+	# Concurrent connections: more than 100 simultaneous plain HTTP connections
+	acl conn_cur_limit sc0_conn_cur gt 100 
+	# Concurrent websocket tunnels: more than 100 simultaneous
+	acl ws_conn_cur_limit sc0_conn_cur gt 100
 	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
 	acl ip_rate_offender sc1_get_gpc0(bk_stick_blocked) gt 2
 	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 2
