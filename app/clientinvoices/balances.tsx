@@ -92,8 +92,9 @@ export default function ClientBalances(
     }
 
     async function renewSubscription(relay: any, overrideAmount?: string) {
-        if (!session || !session.user?.name) {
-            alert("Please login to renew your subscription");
+        const userPubkey = session?.user?.name || urlPubkey;
+        if (!userPubkey) {
+            alert("Please login or return to the relay page and enter your pubkey to subscribe.");
             return;
         }
 
@@ -103,14 +104,14 @@ export default function ClientBalances(
         }
 
         const response = await fetch(
-            `/api/clientorders?relayid=${relay.relayId}&pubkey=${session.user.name}&sats=${useAmount}`
+            `/api/clientorders?relayid=${relay.relayId}&pubkey=${userPubkey}&sats=${useAmount}`
         );
         const responseJson = await response.json();
         console.log(responseJson);
 
         if (response.ok) {
             router.push(
-                `/clientinvoices?relayid=${relay.relayId}&order_id=${responseJson.clientOrder.id}&pubkey=${session.user.name}&sats=${useAmount}`
+                `/clientinvoices?relayid=${relay.relayId}&order_id=${responseJson.clientOrder.id}&pubkey=${userPubkey}&sats=${useAmount}`
             );
         }
     }
@@ -375,7 +376,7 @@ export default function ClientBalances(
                             
                         // Only show first-time subscription form for logged-in users who need initial subscription
                         // For non-logged-in users, always show the regular subscription form
-                        if (session && relay.needsInitialSubscription) {
+                        if ((session || urlPubkey) && relay.needsInitialSubscription) {
                             return renderFirstTimeSubscription(relay);
                         }
 

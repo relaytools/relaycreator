@@ -254,6 +254,59 @@ export default async function ServerStatus(props: {
                 }
             }
 
+            // If a specific relay was requested via relayid URL param but not found in user's orders/allowlist
+            const foundOrderForRelayId = relayClientOrders.some((r) => r.relayId === relayid);
+            if (relayid && !foundOrderForRelayId) {
+                const requestedRelay = await prisma.relay.findFirst({
+                    where: {
+                        id: relayid,
+                        OR: [{ status: "running" }, { status: "paused" }, { status: null }],
+                    },
+                    include: { owner: true }
+                });
+
+                if (requestedRelay) {
+                    const existingPaidOrders = await prisma.clientOrder.findMany({
+                        where: {
+                            relayId: requestedRelay.id,
+                            pubkey: userPubkey,
+                            paid: true
+                        }
+                    });
+
+                    const needsInitial = existingPaidOrders.length === 0;
+
+                    let calculatedBalance = 0;
+                    try {
+                        if (requestedRelay.payment_required) {
+                            calculatedBalance = await calculateTimeBasedBalance(requestedRelay.id, userPubkey);
+                        }
+                    } catch (error) {
+                        console.error('Error calculating balance for relay', requestedRelay.id, ':', error);
+                        calculatedBalance = 0;
+                    }
+
+                    relayClientOrders.push({
+                        owner: requestedRelay.owner?.pubkey || userPubkey || "",
+                        relayName: requestedRelay.name,
+                        relayStatus: requestedRelay.status,
+                        relayId: requestedRelay.id,
+                        relayDomain: requestedRelay.domain,
+                        totalClientPayments: existingPaidOrders.reduce((sum, order) => sum + order.amount, 0),
+                        orders: existingPaidOrders,
+                        unpaidOrders: [],
+                        paymentAmount: requestedRelay.payment_amount || 0,
+                        paymentPremiumAmount: requestedRelay.payment_premium_amount,
+                        paymentRequired: requestedRelay.payment_required || false,
+                        isInAllowList: false,
+                        banner_image: requestedRelay.banner_image,
+                        profile_image: requestedRelay.profile_image,
+                        needsInitialSubscription: needsInitial,
+                        calculatedBalance: calculatedBalance
+                    } as RelayClientOrderData);
+                }
+            }
+
             console.log(relayClientOrders)
 
             return (
@@ -279,12 +332,7 @@ export default async function ServerStatus(props: {
                 include: {
                     relay: {
                         include: {
-                            owner: true,
-                            allow_list: {
-                                include: {
-                                    list_pubkeys: true
-                                }
-                            }
+                            owner: true
                         }
                     }
                 }
@@ -305,6 +353,16 @@ export default async function ServerStatus(props: {
                 // Only filter if we found matching relays, otherwise show all
                 if (matchingRelays.length > 0) {
                     uniqueRelays = matchingRelays;
+                }
+            }
+            
+            // If relayid is provided in the URL, filter to show only that specific relay
+            if (relayid) {
+                const matchingByRelayId = uniqueRelays.filter((r: any) => r.id === relayid);
+                if (matchingByRelayId.length > 0) {
+                    uniqueRelays = matchingByRelayId;
+                } else {
+                    uniqueRelays = []; // No existing orders for this relay — fall through to direct lookup
                 }
             }
             
@@ -364,6 +422,68 @@ export default async function ServerStatus(props: {
                         profile_image: requestedRelay.profile_image,
                         needsInitialSubscription: needsInitial, // Only true if user has no paid orders
                         calculatedBalance: calculatedBalance // Add the calculated balance
+                    }];
+                    
+                    return (
+                        <div>
+                            <ClientBalances 
+                                IsAdmin={false} 
+                                RelayClientOrders={relayClientOrders as any}
+                                rewrittenSubdomain={rewritten}
+                            />
+                        </div>
+                    );
+                }
+            }
+            
+            // If no relays found but relayid is provided, look up the relay directly
+            if (uniqueRelays.length === 0 && relayid) {
+                const requestedRelay = await prisma.relay.findFirst({
+                    where: {
+                        id: relayid,
+                        OR: [{status: "running"}, {status: "paused"}, {status: null}]
+                    },
+                    include: { owner: true }
+                });
+                
+                if (requestedRelay) {
+                    const existingPaidOrders = await prisma.clientOrder.findMany({
+                        where: {
+                            relayId: requestedRelay.id,
+                            pubkey: pubkey,
+                            paid: true
+                        }
+                    });
+                    
+                    const needsInitial = existingPaidOrders.length === 0;
+                    
+                    let calculatedBalance = 0;
+                    try {
+                        if (pubkey && requestedRelay.payment_required) {
+                            calculatedBalance = await calculateTimeBasedBalance(requestedRelay.id, pubkey);
+                        }
+                    } catch (error) {
+                        console.error('Error calculating balance for relay', requestedRelay.id, ':', error);
+                        calculatedBalance = 0;
+                    }
+                    
+                    const relayClientOrders = [{
+                        owner: (requestedRelay as any).owner?.pubkey || "",
+                        relayName: requestedRelay.name,
+                        relayStatus: requestedRelay.status,
+                        relayId: requestedRelay.id,
+                        relayDomain: requestedRelay.domain,
+                        totalClientPayments: existingPaidOrders.reduce((sum, order) => sum + order.amount, 0),
+                        orders: existingPaidOrders,
+                        unpaidOrders: [],
+                        paymentAmount: requestedRelay.payment_amount || 0,
+                        paymentPremiumAmount: requestedRelay.payment_premium_amount,
+                        paymentRequired: requestedRelay.payment_required || false,
+                        isInAllowList: false,
+                        banner_image: requestedRelay.banner_image,
+                        profile_image: requestedRelay.profile_image,
+                        needsInitialSubscription: needsInitial,
+                        calculatedBalance: calculatedBalance
                     }];
                     
                     return (

@@ -85,13 +85,40 @@ export default async function handle(req: any, res: any) {
             return
         }
 
-        await prisma.listEntryPubkey.create({
-            data: {
+        // Check if pubkey is already in the allow list (returning subscriber)
+        const existingEntry = await prisma.listEntryPubkey.findFirst({
+            where: {
                 AllowListId: clientOrder.relay.allow_list.id,
-                pubkey: clientOrder.pubkey,
-                reason: "paid"
+                pubkey: clientOrder.pubkey
             }
-        })
+        });
+
+        if (!existingEntry) {
+            // First-time subscriber: only grant access if total paid >= standard plan price
+            const totalPaidResult = await prisma.clientOrder.aggregate({
+                where: {
+                    relayId: clientOrder.relayId,
+                    pubkey: clientOrder.pubkey,
+                    paid: true
+                },
+                _sum: { amount: true }
+            });
+
+            const totalPaid = totalPaidResult._sum.amount || 0;
+            const minimumAmount = clientOrder.relay.payment_amount || 0;
+
+            if (totalPaid >= minimumAmount) {
+                await prisma.listEntryPubkey.create({
+                    data: {
+                        AllowListId: clientOrder.relay.allow_list.id,
+                        pubkey: clientOrder.pubkey,
+                        reason: "paid"
+                    }
+                });
+            }
+            // If totalPaid < minimumAmount, access is not granted yet — they can pay more to reach the threshold
+        }
+        // If already in allow list, no action needed — access was granted on their first qualifying payment
     }
 
     res.status(200).json({ clientOrder: clientOrder })

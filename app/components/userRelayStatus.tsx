@@ -467,10 +467,10 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                                 className="btn btn-primary uppercase mt-2 mb-2"
                                 href={
                                     session
-                                        ? `/clientinvoices`
+                                        ? `/clientinvoices?relayid=${relay.id}`
                                         : `/clientinvoices?pubkey=${
                                               checkedPubkey || myPubkey || ""
-                                          }`
+                                          }&relayid=${relay.id}`
                                 }
                             >
                                 <FaBolt
