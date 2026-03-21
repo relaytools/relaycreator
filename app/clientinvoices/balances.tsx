@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import SubscriptionMenu from "../components/subscriptionMenu";
 
 // Format date consistently using UTC to avoid hydration errors
 function formatDate(date: Date | string | null | undefined): string {
@@ -513,81 +514,11 @@ export default function ClientBalances(
 
                                     {renderPlanHistory(relay)}
 
-                                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
-                                        <details className="group" open={!session || isFiltered}>
-                                            <summary className="flex justify-between items-center cursor-pointer text-lg font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                                                {session ? "Renew Subscription" : "Subscription Options"}
-                                                <svg className="w-5 h-5 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </summary>
-                                            <div className="mt-4">
-                                                <div className="mb-4">
-                                                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">
-                                                        Choose Your Plan
-                                                    </label>
-                                                    {(() => {
-                                                        const currentPlan = session ? getUserMostRecentPlan(relay) : 'standard';
-                                                        return (
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                                                                <button
-                                                                    className={`btn flex-col h-auto py-4 relative ${
-                                                                        currentPlan === 'standard' 
-                                                                            ? 'btn-primary' 
-                                                                            : 'btn-outline btn-primary'
-                                                                    }`}
-                                                                    onClick={() => renewSubscription(relay, relay.paymentAmount.toString())}
-                                                                >
-                                                                    {session && currentPlan === 'standard' && (
-                                                                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                                                            Current
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="font-bold">Standard Plan</div>
-                                                                    <div className="text-sm opacity-70">Basic relay access</div>
-                                                                    <div className="font-bold text-lg">{relay.paymentAmount} sats/month</div>
-                                                                </button>
-                                                                <button
-                                                                    className={`btn flex-col h-auto py-4 relative ${
-                                                                        currentPlan === 'premium' 
-                                                                            ? 'btn-secondary' 
-                                                                            : 'btn-outline btn-secondary'
-                                                                    }`}
-                                                                    onClick={() => renewSubscription(relay, relay.paymentPremiumAmount.toString())}
-                                                                >
-                                                                    {session && currentPlan === 'premium' && (
-                                                                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                                                            Current
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="font-bold">Premium Plan</div>
-                                                                    <div className="text-sm opacity-70">Enhanced features & Benefits</div>
-                                                                    <div className="font-bold text-lg">{relay.paymentPremiumAmount} sats/month</div>
-                                                                </button>
-                                                            </div>
-                                                        );
-                                                    })()}
-                                                    <div className="text-center">
-                                                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">Or enter custom amount:</div>
-                                                        <div className="flex gap-2">
-                                                            <input
-                                                                type="text"
-                                                                className="input input-bordered flex-1"
-                                                                placeholder="Custom amount in sats"
-                                                                onChange={(e) => setClientAmount(e.target.value)}
-                                                            />
-                                                            <button
-                                                                className="btn btn-primary"
-                                                                onClick={() => renewSubscription(relay)}
-                                                            >
-                                                                Pay Custom Amount
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </details>
-                                    </div>
+                                    <SubscriptionMenu
+                                        relay={relay}
+                                        renewSubscription={renewSubscription}
+                                        createNewSubscription={createNewSubscription}
+                                    />
                                 </div>
                             </div>
                         );

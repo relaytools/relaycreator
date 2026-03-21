@@ -93,6 +93,9 @@ export default async function handle(req: any, res: any) {
             }
         });
 
+        const isPremium = clientOrder.order_type === 'premium';
+        const reason = isPremium ? "paid premium" : "paid";
+
         if (!existingEntry) {
             // First-time subscriber: only grant access if total paid >= standard plan price
             const totalPaidResult = await prisma.clientOrder.aggregate({
@@ -112,13 +115,18 @@ export default async function handle(req: any, res: any) {
                     data: {
                         AllowListId: clientOrder.relay.allow_list.id,
                         pubkey: clientOrder.pubkey,
-                        reason: "paid"
+                        reason: reason
                     }
                 });
             }
             // If totalPaid < minimumAmount, access is not granted yet — they can pay more to reach the threshold
+        } else if (isPremium && existingEntry.reason !== "paid premium") {
+            // Returning subscriber upgrading to premium — update the reason to reflect premium status
+            await prisma.listEntryPubkey.update({
+                where: { id: existingEntry.id },
+                data: { reason: "paid premium" }
+            });
         }
-        // If already in allow list, no action needed — access was granted on their first qualifying payment
     }
 
     res.status(200).json({ clientOrder: clientOrder })
