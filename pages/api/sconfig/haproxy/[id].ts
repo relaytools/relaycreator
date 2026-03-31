@@ -85,7 +85,9 @@ export default async function handle(req: any, res: any) {
     for(let i = 0; i < useApps.length; i++) {
         app_servers_cfg = app_servers_cfg + `
     server     app-${i} ${useApps[i]}:3000 maxconn 50000 weight 10 check
-    server    app-${i}-1 ${useApps[i]}:3001 maxconn 50000 weight 10 check`
+    server    app-${i}-1 ${useApps[i]}:3001 maxconn 50000 weight 10 check
+    server    app-${i}-1 ${useApps[i]}:3002 maxconn 50000 weight 10 check
+    server    app-${i}-1 ${useApps[i]}:3003 maxconn 50000 weight 10 check`
     }
 
 
@@ -332,15 +334,15 @@ frontend secured
 	http-request track-sc1 src table bk_stick_blocked if throttled_url !throttle_exclude
 	# Rate limit: more than 200 requests in 10 seconds
 	acl fast_refresher sc0_http_req_rate gt 200
-	# Connection rate: more than 100 new connections in 10 seconds
-	acl conn_rate_limit sc0_conn_rate gt 100
-	# Concurrent connections: more than 100 simultaneous plain HTTP connections
-	acl conn_cur_limit sc0_conn_cur gt 100 
+	# Connection rate: more than 200 new connections in 10 seconds
+	acl conn_rate_limit sc0_conn_rate gt 200
+	# Concurrent connections: more than 200 simultaneous plain HTTP connections
+	acl conn_cur_limit sc0_conn_cur gt 200 
 	# Concurrent websocket tunnels: more than 100 simultaneous
 	acl ws_conn_cur_limit sc0_conn_cur gt 100
 	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
 	acl ip_rate_offender sc1_get_gpc0(bk_stick_blocked) gt 2
-	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 2
+	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 5
 	# Hard block repeat offenders (skip whitelisted IPs)
 	http-request deny deny_status 403 if ip_rate_offender !throttle_exclude
 	http-request deny deny_status 403 if ip_conn_offender !throttle_exclude
