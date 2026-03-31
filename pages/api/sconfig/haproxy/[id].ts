@@ -195,7 +195,6 @@ export default async function handle(req: any, res: any) {
 		haproxy_backends_cfg = haproxy_backends_cfg + `
 backend ${element.name}
 	mode  		        http
-    no option           http-server-close
 	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip`
 
@@ -234,7 +233,6 @@ backend ${element.name}
 		haproxy_backends_cfg = haproxy_backends_cfg + `
 backend ${element.name}
 	mode  		        http
-    no option           http-server-close
 	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip
 	server     ${element.name} ${element.ip}:${element.port} ${useSSLVerify} maxconn 50000 weight 10 check
@@ -288,10 +286,10 @@ defaults
     timeout client  20s
     timeout server  30s
 	timeout tunnel 300s
-	timeout http-keep-alive 2s
-	timeout http-request 5s
-	timeout client-fin 10s
-	timeout server-fin 5s
+	#timeout http-keep-alive 2s
+	#timeout http-request 5s
+	#timeout client-fin 10s
+	#timeout server-fin 5s
 	errorfile 400 /etc/haproxy/errors/400.http
 	errorfile 403 /etc/haproxy/errors/403.http
 	errorfile 408 /etc/haproxy/errors/408.http
