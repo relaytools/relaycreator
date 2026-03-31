@@ -196,6 +196,7 @@ export default async function handle(req: any, res: any) {
 backend ${element.name}
 	mode  		        http
 	balance 	        roundrobin
+    timeout client 120s
 	option forwardfor except 127.0.0.1 header x-real-ip`
 
     if(element.auth_required || element.request_payment) {
@@ -234,6 +235,7 @@ backend ${element.name}
 backend ${element.name}
 	mode  		        http
 	balance 	        roundrobin
+    timeout client 120s
 	option forwardfor except 127.0.0.1 header x-real-ip
 	server     ${element.name} ${element.ip}:${element.port} ${useSSLVerify} maxconn 50000 weight 10 check
 	`
