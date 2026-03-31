@@ -283,11 +283,11 @@ defaults
 	mode	http
 	option	httplog
 	option	dontlognull
-	option	http-server-close
+	#option	http-server-close
     timeout connect 20s
-    timeout client  20s
-    timeout server  30s
-	timeout tunnel 120s
+    timeout client  120s
+    timeout server  120s
+	timeout tunnel  3600s
 	timeout http-keep-alive 2s
 	timeout http-request 5s
 	timeout client-fin 10s
