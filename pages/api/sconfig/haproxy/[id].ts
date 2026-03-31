@@ -196,7 +196,6 @@ export default async function handle(req: any, res: any) {
 backend ${element.name}
 	mode  		        http
 	balance 	        roundrobin
-    timeout client 120s
 	option forwardfor except 127.0.0.1 header x-real-ip`
 
     if(element.auth_required || element.request_payment) {
@@ -235,7 +234,6 @@ backend ${element.name}
 backend ${element.name}
 	mode  		        http
 	balance 	        roundrobin
-    timeout client 120s
 	option forwardfor except 127.0.0.1 header x-real-ip
 	server     ${element.name} ${element.ip}:${element.port} ${useSSLVerify} maxconn 50000 weight 10 check
 	`
@@ -285,8 +283,8 @@ defaults
 	option	dontlognull
 	#option	http-server-close
     timeout connect 20s
-    timeout client  20s
-    timeout server  30s
+    timeout client  120s
+    timeout server  120s
 	timeout tunnel 300s
 	#timeout http-keep-alive 2s
 	#timeout http-request 5s
