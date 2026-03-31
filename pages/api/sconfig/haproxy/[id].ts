@@ -195,7 +195,7 @@ export default async function handle(req: any, res: any) {
 		haproxy_backends_cfg = haproxy_backends_cfg + `
 backend ${element.name}
 	mode  		        http
-	option 		        redispatch
+    no option           http-server-close
 	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip`
 
@@ -234,8 +234,7 @@ backend ${element.name}
 		haproxy_backends_cfg = haproxy_backends_cfg + `
 backend ${element.name}
 	mode  		        http
-	option 		        redispatch
-	option		        abortonclose
+    no option           http-server-close
 	balance 	        roundrobin
 	option forwardfor except 127.0.0.1 header x-real-ip
 	server     ${element.name} ${element.ip}:${element.port} ${useSSLVerify} maxconn 50000 weight 10 check
