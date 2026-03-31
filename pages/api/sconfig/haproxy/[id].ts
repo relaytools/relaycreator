@@ -86,8 +86,8 @@ export default async function handle(req: any, res: any) {
         app_servers_cfg = app_servers_cfg + `
     server     app-${i} ${useApps[i]}:3000 maxconn 50000 weight 10 check
     server    app-${i}-1 ${useApps[i]}:3001 maxconn 50000 weight 10 check
-    server    app-${i}-1 ${useApps[i]}:3002 maxconn 50000 weight 10 check
-    server    app-${i}-1 ${useApps[i]}:3003 maxconn 50000 weight 10 check`
+    server    app-${i}-2 ${useApps[i]}:3002 maxconn 50000 weight 10 check
+    server    app-${i}-3 ${useApps[i]}:3003 maxconn 50000 weight 10 check`
     }
 
 
