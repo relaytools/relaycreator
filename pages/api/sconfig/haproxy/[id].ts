@@ -318,46 +318,23 @@ frontend secured
 	maxconn			60000      
 	default_backend		main	
 
-   	# Track HTTP request rate only on these URLs
-	acl throttled_url path_beg -i /
-	# Detect WebSocket upgrade requests (long-lived tunnels, not counted against conn_cur)
 	acl is_websocket hdr(Upgrade) -i websocket
-	# IPs excluded from throttling (whitelist)
 	acl throttle_exclude src -f /etc/haproxy/throttle_exclude.lst
-	# Build composite key: host_ip (so limits apply per relay subdomain, not globally)
+
+	# sc0: HTTP request rate per host+IP key (non-WebSocket, per relay subdomain)
 	http-request set-header X-Track-Key %[req.hdr(host)]_%[src]
-	# stick-table for tracking HTTP request rate and connection counts per IP per hostname
-	stick-table type string len 128 size 100k store http_req_rate(10s),conn_cur,conn_rate(10s) expire 4m
-	# Track composite key in the rate-limit table (skip whitelisted IPs)
-	http-request track-sc0 hdr(X-Track-Key) if throttled_url !throttle_exclude
+	stick-table type string len 128 size 100k store http_req_rate(10s) expire 4m
+	http-request track-sc0 hdr(X-Track-Key) if !is_websocket !throttle_exclude
 	http-request del-header X-Track-Key
-	# Track source IP in the blocklist table (skip whitelisted IPs)
-	http-request track-sc1 src table bk_stick_blocked if throttled_url !throttle_exclude
-	# Rate limit: more than 200 requests in 10 seconds
-	acl fast_refresher sc0_http_req_rate gt 200
-	# Connection rate: more than 200 new connections in 10 seconds
-	acl conn_rate_limit sc0_conn_rate gt 200
-	# Concurrent connections: more than 200 simultaneous plain HTTP connections
-	acl conn_cur_limit sc0_conn_cur gt 200 
-	# Concurrent websocket tunnels: more than 100 simultaneous
-	acl ws_conn_cur_limit sc0_conn_cur gt 100
-	# Check if IP is a repeat offender (3+ rate OR 3+ connection offenses = hard blocked)
-	acl ip_rate_offender sc1_get_gpc0(bk_stick_blocked) gt 2
-	acl ip_conn_offender sc1_get_gpc1(bk_stick_blocked) gt 5
-	# Hard block repeat offenders (skip whitelisted IPs)
-	http-request deny deny_status 403 if ip_rate_offender !throttle_exclude
-	http-request deny deny_status 403 if ip_conn_offender !throttle_exclude
-	# Increment rate offense counter (gpc0) when rate limit violated
-	http-request sc-inc-gpc0(1) if fast_refresher !throttle_exclude
-	# Increment connection offense counter (gpc1) when any connection limit violated
-	http-request sc-inc-gpc1(1) if conn_rate_limit !throttle_exclude
-	http-request sc-inc-gpc1(1) if conn_cur_limit !throttle_exclude !is_websocket
-	http-request sc-inc-gpc1(1) if ws_conn_cur_limit !throttle_exclude is_websocket
-	# Return 429 for current violations (skip whitelisted IPs)
-	use_backend bk_429 if fast_refresher !throttle_exclude
-	use_backend bk_429 if conn_rate_limit !throttle_exclude
-	use_backend bk_429 if conn_cur_limit !throttle_exclude !is_websocket
-	use_backend bk_429 if ws_conn_cur_limit !throttle_exclude is_websocket
+	acl http_rate_limit sc0_http_req_rate gt 200
+	use_backend bk_429 if http_rate_limit !throttle_exclude
+
+	# sc1: WebSocket concurrent connections per host+IP key
+	http-request set-header X-WS-Track-Key %[req.hdr(host)]_%[src]
+	http-request track-sc1 hdr(X-WS-Track-Key) table bk_ws_tracking if is_websocket !throttle_exclude
+	http-request del-header X-WS-Track-Key
+	acl ws_conn_limit sc1_conn_cur gt 100
+	use_backend bk_429 if ws_conn_limit !throttle_exclude
 
 	http-request del-header x-real-ip
 	option forwardfor except 127.0.0.1 header x-real-ip
@@ -381,8 +358,8 @@ frontend secured
     
     ${previewFrontend}
 
-backend bk_stick_blocked
-    stick-table type ip size 100k expire 1h store gpc0,gpc1
+backend bk_ws_tracking
+    stick-table type string len 128 size 100k store conn_cur expire 4m
 
 backend bk_429
     errorfile 429 /etc/haproxy/errors/429.http
