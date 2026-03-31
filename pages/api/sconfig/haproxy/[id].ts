@@ -285,14 +285,14 @@ defaults
 	option	httplog
 	option	dontlognull
 	option	http-server-close
-    timeout connect 10s
-    timeout client  10s
-    timeout server  5s
-	timeout tunnel 65s
+    timeout connect 20s
+    timeout client  20s
+    timeout server  30s
+	timeout tunnel 120s
 	timeout http-keep-alive 2s
-	timeout http-request 2s
-	timeout client-fin 1s
-	timeout server-fin 1s
+	timeout http-request 5s
+	timeout client-fin 10s
+	timeout server-fin 5s
 	errorfile 400 /etc/haproxy/errors/400.http
 	errorfile 403 /etc/haproxy/errors/403.http
 	errorfile 408 /etc/haproxy/errors/408.http
