@@ -19,6 +19,39 @@ export default async function handle(req: any, res: any) {
     }
 
     if (req.method == "POST") {
+        // Validate display_name
+        if (req.body.display_name !== undefined && req.body.display_name !== null) {
+            const dn = req.body.display_name;
+            if (typeof dn !== "string") {
+                res.status(400).json({ error: "display_name must be a string" });
+                return;
+            }
+            if (dn.length > 255) {
+                res.status(400).json({ error: "display_name must be 255 characters or less" });
+                return;
+            }
+            if (/<[^>]*>/g.test(dn)) {
+                res.status(400).json({ error: "display_name cannot contain HTML tags" });
+                return;
+            }
+        }
+
+        // Validate contact
+        if (req.body.contact !== undefined && req.body.contact !== null) {
+            const ct = req.body.contact;
+            if (typeof ct !== "string") {
+                res.status(400).json({ error: "contact must be a string" });
+                return;
+            }
+            const isNpub = /^npub1[a-z0-9]{58}$/.test(ct);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ct);
+            const isUrl = /^https?:\/\/.+/.test(ct);
+            if (!isNpub && !isEmail && !isUrl) {
+                res.status(400).json({ error: "contact must be an npub, email address, or website URL (http/https)" });
+                return;
+            }
+        }
+
         const updateFields: { [key: string]: any } = {};
         for (let key in req.body) {
             if (req.body[key] !== undefined) {

@@ -220,20 +220,48 @@ export default function Wizard(
     const [profileBanner, setProfileBanner] = useState(
         props.relay.banner_image
     );
+    const [profileImage, setProfileImage] = useState(
+        props.relay.profile_image || ""
+    );
     const [listed, setListed] = useState(props.relay.listed_in_directory);
+    const [displayName, setDisplayName] = useState(props.relay.display_name || "");
+    const [contactInfo, setContactInfo] = useState(props.relay.contact || "");
+    const [displayNameError, setDisplayNameError] = useState("");
+    const [contactError, setContactError] = useState("");
+
+    const validateDisplayName = (value: string): string => {
+        if (!value) return "";
+        if (/<[^>]*>/g.test(value)) return "Display name cannot contain HTML tags";
+        if (value.length > 255) return "Display name must be 255 characters or less";
+        return "";
+    };
+
+    const validateContact = (value: string): string => {
+        if (!value) return "";
+        if (/^npub1[a-z0-9]{58}$/.test(value)) return "";
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "";
+        if (/^https?:\/\/.+/.test(value)) return "";
+        return "Must be an npub, email address, or website URL (http/https)";
+    };
 
     const handleSubmitProfile = async (event: any) => {
         event.preventDefault();
-        // call to API to save relay details
-        const profileDetailsObj = {
+        const dnErr = validateDisplayName(displayName);
+        const ctErr = validateContact(contactInfo);
+        setDisplayNameError(dnErr);
+        setContactError(ctErr);
+        if (dnErr || ctErr) return;
+        const profileDetailsObj: Record<string, any> = {
             details: profileDetail,
-            banner_image: profileBanner,
+            banner_image: profileBanner || null,
+            profile_image: profileImage || null,
+            display_name: displayName || null,
+            contact: contactInfo || null,
         };
-        const profileDetailsJson = JSON.stringify(profileDetailsObj);
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: profileDetailsJson,
+            body: JSON.stringify(profileDetailsObj),
         });
         setChecked(4);
     };
@@ -1000,6 +1028,42 @@ export default function Wizard(
                                 <h3 className="font-semibold mb-3">📝 Profile Settings</h3>
                                 <div className="form-control">
                                     <label className="label">
+                                        <span className="label-text">Display Name <span className="opacity-50">(optional — defaults to relay name: {props.relay.name})</span></span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder={props.relay.name}
+                                        className={`input input-bordered w-full ${displayNameError ? "input-error" : ""}`}
+                                        value={displayName}
+                                        onChange={(e) => {
+                                            setDisplayName(e.target.value);
+                                            setDisplayNameError(validateDisplayName(e.target.value));
+                                        }}
+                                    />
+                                    {displayNameError && (
+                                        <label className="label">
+                                            <span className="label-text-alt text-error">{displayNameError}</span>
+                                        </label>
+                                    )}
+                                    <label className="label mt-2">
+                                        <span className="label-text">Contact <span className="opacity-50">(optional — npub, email, or website)</span></span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="npub1... or you@example.com or https://example.com"
+                                        className={`input input-bordered w-full ${contactError ? "input-error" : ""}`}
+                                        value={contactInfo}
+                                        onChange={(e) => {
+                                            setContactInfo(e.target.value);
+                                            setContactError(validateContact(e.target.value));
+                                        }}
+                                    />
+                                    {contactError && (
+                                        <label className="label">
+                                            <span className="label-text-alt text-error">{contactError}</span>
+                                        </label>
+                                    )}
+                                    <label className="label mt-2">
                                         <span className="label-text">Description</span>
                                     </label>
                                     <textarea
@@ -1011,19 +1075,31 @@ export default function Wizard(
                                             setProfileDetails(e.target.value)
                                         }
                                     ></textarea>
-                                    <label className="label">
-                                        <span className="label-text">Banner Image URL</span>
+                                    <label className="label mt-2">
+                                        <span className="label-text">Profile Image URL <span className="opacity-50">(icon / avatar)</span></span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="https://example.com/icon.png"
+                                        className="input input-bordered w-full"
+                                        onChange={(e) =>
+                                            setProfileImage(e.target.value)
+                                        }
+                                        value={profileImage || ""}
+                                    />
+                                    <label className="label mt-2">
+                                        <span className="label-text">Banner Image URL <span className="opacity-50">(background / cover)</span></span>
                                     </label>
                                     <input
                                         id={props.relay.id + "urlid"}
                                         type="text"
-                                        placeholder="https://example.com/image.png"
+                                        placeholder="https://example.com/banner.png"
                                         className="input input-bordered w-full"
-                                    onChange={(e) =>
-                                        setProfileBanner(e.target.value)
-                                    }
-                                    value={profileBanner || ""}
-                                />
+                                        onChange={(e) =>
+                                            setProfileBanner(e.target.value)
+                                        }
+                                        value={profileBanner || ""}
+                                    />
                                 </div>
                             </div>
                             
