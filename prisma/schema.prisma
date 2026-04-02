@@ -290,6 +290,7 @@ model Job {
   // TODO: other fields?
   pubkey    String?   @db.VarChar(255)
   eventId    String?   @db.VarChar(255)
+  until      Int?              // unix timestamp for --until filters
   
   // sync related
   syncHost String?   @db.VarChar(255)
