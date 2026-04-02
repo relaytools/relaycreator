@@ -22,12 +22,13 @@ export default async function handle(req: any, res: any) {
 
     let nostrjson: any = {
         "description": relay.details || "",
-        "name": useUrl,
+        "name": relay.display_name || useUrl,
         "pubkey": relay.owner.pubkey,
         "software": "git+https://github.com/hoytech/strfry.git",
         "supported_nips": [1, 2, 4, 9, 11, 12, 16, 20, 22, 28, 33, 40, 17, 86, 77],
         "version": "strfry v315-3cff8c9",
         "posting_policy": "https://" + useUrl + "#policy",
+        "terms_of_service": "https://" + useUrl + "#policy",
     }
 
     if (relay.payment_required == true) {
@@ -60,8 +61,18 @@ export default async function handle(req: any, res: any) {
     nostrjson["limitation"]["created_at_lower_limit"] = 94608000
     nostrjson["limitation"]["created_at_upper_limit"] = 900
 
-    if(relay.banner_image) {
+    if(relay.profile_image) {
+        nostrjson["icon"] = relay.profile_image
+    } else if(relay.banner_image) {
         nostrjson["icon"] = relay.banner_image
+    }
+
+    if(relay.banner_image) {
+        nostrjson["banner"] = relay.banner_image
+    }
+
+    if(relay.contact) {
+        nostrjson["contact"] = relay.contact
     }
 
     res.status(200).json(nostrjson)
