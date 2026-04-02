@@ -13,9 +13,15 @@ interface Nip86Response {
   error?: string;
 }
 
-// List of supported methods
-const SUPPORTED_METHODS = [
+// Methods available to any authenticated user (self-service)
+const SELF_SERVICE_METHODS = [
   'supportedmethods',
+  'deletedmsuntil',
+  'deletedmsid',
+];
+
+// Methods that require owner/moderator access
+const ADMIN_METHODS = [
   'banpubkey',
   'listbannedpubkeys',
   'deletebannedpubkey',
@@ -30,6 +36,9 @@ const SUPPORTED_METHODS = [
   'disallowkind',
   'listallowedkinds',
 ];
+
+// All supported methods combined
+const SUPPORTED_METHODS = [...SELF_SERVICE_METHODS, ...ADMIN_METHODS];
 
 // NIP-98 verification function
 async function verifyNip98Event(authHeader: string, requestUrl: string): Promise<{ valid: boolean; pubkey?: string; error?: string }> {
@@ -182,7 +191,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unable to extract pubkey from authorization' });
     }
 
-    // Check if the user has permission to manage this relay
+    // Parse the request body early so we can check method before authorization
+    const { method, params } = parsedBody as Nip86Request;
+    if (!method) {
+      return res.status(400).json({ error: 'Invalid request format' });
+    }
+
+    // Determine if user is owner or moderator
+    let isOwnerOrModerator = false;
     const relay = await prisma.relay.findFirst({
       where: {
         id: relayId,
@@ -192,8 +208,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    if (!relay) {
-      // Check if the user is a moderator for this relay
+    if (relay) {
+      isOwnerOrModerator = true;
+    } else {
       const moderator = await prisma.moderator.findFirst({
         where: {
           relayId: relayId,
@@ -206,15 +223,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
 
-      if (!moderator) {
-        return res.status(403).json({ error: 'Not authorized to manage this relay' });
+      if (moderator) {
+        isOwnerOrModerator = true;
       }
     }
 
-    // Parse the request body
-    const { method, params } = parsedBody as Nip86Request;
-    if (!method) {
-      return res.status(400).json({ error: 'Invalid request format' });
+    // Check if the user has permission for admin methods
+    if (!SELF_SERVICE_METHODS.includes(method) && !isOwnerOrModerator) {
+      return res.status(403).json({ error: 'Not authorized to manage this relay' });
     }
     
     // Handle the method
@@ -222,7 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     switch (method) {
       case 'supportedmethods':
-        response.result = SUPPORTED_METHODS;
+        response.result = isOwnerOrModerator ? SUPPORTED_METHODS : SELF_SERVICE_METHODS;
         break;
         
       case 'banpubkey':
@@ -604,6 +620,60 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         break;
         
+      case 'deletedmsuntil':
+        if (!params || params.length < 1) {
+          response.error = 'Missing required parameters. Expected: [until_timestamp]';
+        } else {
+          const untilTimestamp = parseInt(params[0], 10);
+
+          // Validate timestamp is a positive integer
+          if (isNaN(untilTimestamp) || untilTimestamp <= 0) {
+            return res.status(400).json({ error: 'Invalid timestamp. Must be a positive unix timestamp' });
+          }
+
+          // Queue a job to run strfry delete for kind 1059 with --until
+          await prisma.job.create({
+            data: {
+              relayId: relayId,
+              kind: 'deletedmsuntil',
+              status: 'queue',
+              pubkey: authorizedPubkey,
+              until: untilTimestamp
+            }
+          });
+
+          response.result = true;
+        }
+        break;
+
+      case 'deletedmsid':
+        if (!params || params.length < 1) {
+          response.error = 'Missing required parameters. Expected: [event_id, event_id, ...]';
+        } else {
+          // Validate all event IDs are valid 64-character hex strings
+          for (const eventId of params) {
+            if (typeof eventId !== 'string' || !/^[a-f0-9]{64}$/.test(eventId)) {
+              return res.status(400).json({ error: `Invalid event ID: ${eventId}. Must be a 64-character hexadecimal string` });
+            }
+          }
+
+          // Queue a job for each event ID
+          for (const eventId of params) {
+            await prisma.job.create({
+              data: {
+                relayId: relayId,
+                kind: 'deletedmsid',
+                status: 'queue',
+                pubkey: authorizedPubkey,
+                eventId: eventId
+              }
+            });
+          }
+
+          response.result = true;
+        }
+        break;
+
       default:
         response.error = `Method '${method}' not supported`;
     }
