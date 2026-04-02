@@ -18,12 +18,14 @@ const SUPPORTED_METHODS = [
   'supportedmethods',
   'banpubkey',
   'listbannedpubkeys',
+  'deletebannedpubkey',
   'allowpubkey',
   'deleteallowedpubkey',
   'listallowedpubkeys',
   'banevent',
   'changerelaydescription',
   'changerelayicon',
+  'changerelayname',
   'allowkind',
   'disallowkind',
   'listallowedkinds',
@@ -309,6 +311,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         break;
 
+    case 'deletebannedpubkey':
+        if (!params || params.length < 1) {
+          response.error = 'Missing required parameters';
+        } else {
+          const pubkey = params[0];
+          
+          // Validate pubkey (hex format only per NIP-86 spec)
+          const validation = validatePubkey(pubkey);
+          if (!validation.valid) {
+            return res.status(400).json({ error: validation.error || 'Invalid pubkey' });
+          }
+          
+          // Get the BlockList for this relay
+          const blockList = await prisma.blockList.findUnique({
+            where: { relayId: relayId },
+            include: {
+              list_pubkeys: true
+            }
+          });
+          
+          if (blockList) {
+            await prisma.listEntryPubkey.deleteMany({
+              where: {
+                BlockListId: blockList.id,
+                pubkey: pubkey
+              }
+            });
+          }
+          
+          response.result = true;
+        }
+        break;
+
     case 'deleteallowedpubkey':
         if (!params || params.length < 1) {
           response.error = 'Missing required parameters';
@@ -522,6 +557,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           await prisma.relay.update({
             where: { id: relayId },
             data: { banner_image: newIconUrl }
+          });
+          
+          response.result = true;
+        }
+        break;
+        
+      case 'changerelayname':
+        if (!params || params.length < 1) {
+          response.error = 'Missing required parameters';
+        } else {
+          const newName = params[0];
+          
+          await prisma.relay.update({
+            where: { id: relayId },
+            data: { display_name: newName }
           });
           
           response.result = true;
