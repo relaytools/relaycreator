@@ -368,10 +368,13 @@ export default function Wizard(
         e.preventDefault();
         const newValue = !useWoaForTagged;
         
-        // If enabling WOA for tagged, also enable allow_tagged
+        // If enabling WOA replies, auto-enable allow_tagged as an internal flag
+        // If disabling WOA replies (switching to Full Access), turn allow_tagged back off
         const settings: any = { use_woa_for_tagged: newValue };
         if (newValue && !allowTagged) {
             settings.allow_tagged = true;
+        } else if (!newValue && allowTagged) {
+            settings.allow_tagged = false;
         }
         
         const response = await fetch(`/api/relay/${props.relay.id}/settings`, {
@@ -383,6 +386,12 @@ export default function Wizard(
         setUseWoaForTagged(newValue);
         if (newValue && !allowTagged) {
             setAllowTagged(true);
+        } else if (!newValue && allowTagged) {
+            setAllowTagged(false);
+        }
+        // If enabling WOA replies and currently viewing tags section, redirect away
+        if (newValue && aclSection === "tags") {
+            setAclSection("allowed-pubkeys");
         }
     };
 
@@ -537,8 +546,48 @@ export default function Wizard(
 
     const [menuOpen, setMenuOpen] = useState(false);
 
+    // Allow DMs (kind 1059)
+    const allowedKinds = props.relay.allow_list?.list_kinds || [];
+    const [dmKindEntry, setDmKindEntry] = useState<{id: string} | null>(
+        allowedKinds.find((k: any) => k.kind === 1059) || null
+    );
+    const isDmsAllowed = dmKindEntry !== null;
+
+    const handleToggleDms = async () => {
+        if (isDmsAllowed && dmKindEntry) {
+            // Remove kind 1059
+            const response = await fetch(
+                `/api/relay/${props.relay.id}/allowlistkind?list_id=${dmKindEntry.id}`,
+                { method: "DELETE", headers: { "Content-Type": "application/json" } }
+            );
+            if (response.ok) {
+                setDmKindEntry(null);
+                toast.success("DMs disabled");
+            } else {
+                toast.error("Error disabling DMs");
+            }
+        } else {
+            // Add kind 1059
+            const response = await fetch(
+                `/api/relay/${props.relay.id}/allowlistkind`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ kind: 1059, reason: "Allow DMs (gift wrap)" }),
+                }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                setDmKindEntry({ id: data.id });
+                toast.success("DMs enabled");
+            } else {
+                toast.error("Error enabling DMs");
+            }
+        }
+    };
+
     // Add new state for ACL submenu
-    const [aclSection, setAclSection] = useState("allowed-pubkeys"); // Possible values: "allowed-pubkeys", "tags", "allowed-keywords", "allowed-kinds", "blocked-pubkeys", "blocked-keywords", "blocked-kinds", "auth", "mode"
+    const [aclSection, setAclSection] = useState("allowed-pubkeys"); // Possible values: "allowed-pubkeys", "tags", "dms", "allowed-keywords", "allowed-kinds", "blocked-pubkeys", "blocked-keywords", "blocked-kinds", "auth", "mode"
 
     return (
         <div className="flex flex-row min-h-screen relative">
@@ -665,19 +714,37 @@ export default function Wizard(
                                                 </button>
                                             </li>
                                         )}
+                                        {!useWoaForTagged && (
+                                            <li>
+                                                <button
+                                                    className={
+                                                        aclSection === "tags"
+                                                            ? "active bg-primary/20"
+                                                            : ""
+                                                    }
+                                                    onClick={() => {
+                                                        setAclSection("tags");
+                                                        setMenuOpen(false);
+                                                    }}
+                                                >
+                                                    Allow Tags
+                                                </button>
+                                            </li>
+                                        )}
                                         <li>
                                             <button
                                                 className={
-                                                    aclSection === "tags"
+                                                    aclSection === "dms"
                                                         ? "active bg-primary/20"
                                                         : ""
                                                 }
                                                 onClick={() => {
-                                                    setAclSection("tags");
+                                                    setAclSection("dms");
                                                     setMenuOpen(false);
                                                 }}
                                             >
-                                                Allow Tags
+                                                Allow DMs
+                                                {isDmsAllowed && <span className="text-success ml-1">✓</span>}
                                             </button>
                                         </li>
                                     </>
@@ -1180,6 +1247,7 @@ export default function Wizard(
                                 {aclSection === "mode" && "Advanced"}
                                 {aclSection === "auth" && "Authentication (NIP42)"}
                                 {aclSection === "tags" && "Allow Tags"}
+                                {aclSection === "dms" && "Allow DMs"}
                                 {aclSection === "allowed-pubkeys" && "Allowed Pubkeys"}
                                 {aclSection === "allowed-keywords" && "Allowed Keywords"}
                                 {aclSection === "allowed-kinds" && "Allowed Kinds"}
@@ -1336,6 +1404,71 @@ export default function Wizard(
                                         </div>
                                     </div>
 
+                                    {/* WOA + Auth warning for premium users */}
+                                    {isPremiumPlan && aclSources.length > 0 && (
+                                        <div className="card bg-base-200 p-4 mt-4 mb-4">
+                                            <h3 className="font-semibold mb-2">🏰 Auth & Web of Access</h3>
+                                            <p className="text-sm opacity-80 mb-3">
+                                                Think of authentication like a castle gate. When auth is <strong>ON</strong>, 
+                                                every connection must prove their identity before they can read anything — 
+                                                including your WOA sources.
+                                            </p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 my-3">
+                                                <div className={`card border-2 ${!authRequired ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+                                                    <div className="card-body p-3">
+                                                        <div className="text-center mb-1">
+                                                            <span className="text-2xl">🏰🚪</span>
+                                                        </div>
+                                                        <h4 className="font-bold text-sm text-center">Gate Open (Auth OFF)</h4>
+                                                        <div className="divider my-0"></div>
+                                                        <div className="space-y-1 text-xs">
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-success">✅</span> WOA sources can read events
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-success">✅</span> WOA filtering works fully
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-warning">⚠️</span> Anyone can read events
+                                                            </div>
+                                                        </div>
+                                                        {!authRequired && (
+                                                            <div className="badge badge-primary badge-sm mt-2 mx-auto">Current setup</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className={`card border-2 ${authRequired ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+                                                    <div className="card-body p-3">
+                                                        <div className="text-center mb-1">
+                                                            <span className="text-2xl">🏰🔒</span>
+                                                        </div>
+                                                        <h4 className="font-bold text-sm text-center">Gate Locked (Auth ON)</h4>
+                                                        <div className="divider my-0"></div>
+                                                        <div className="space-y-1 text-xs">
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-error">❌</span> WOA sources blocked at the gate
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-error">❌</span> WOA filtering cannot operate
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-success">✅</span> Only members can read events
+                                                            </div>
+                                                        </div>
+                                                        {authRequired && (
+                                                            <div className="badge badge-primary badge-sm mt-2 mx-auto">Current setup</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm opacity-80">
+                                                You have <strong>{aclSources.length} WOA source{aclSources.length > 1 ? "s" : ""}</strong> configured. 
+                                                Enabling auth will prevent {aclSources.length > 1 ? "them" : "it"} from reading your relay's events, 
+                                                effectively disabling WOA functionality.
+                                            </p>
+                                        </div>
+                                    )}
+
                                     <div className="mt-4">
                                         <label
                                             className={isAuthRequired()}
@@ -1356,26 +1489,32 @@ export default function Wizard(
                                 <div>
                                     <article className="prose">
                                         <p>
-                                            This setting will allow users on the
-                                            wider nostr network to send events
-                                            to this relay that are replying to
-                                            your member's events.
+                                            When enabled, this allows <strong>anyone</strong> on the nostr network to send
+                                            replies and mentions to your relay members — with no filtering on who can respond.
                                         </p>
                                         <p>
-                                            This is useful if you want people to
-                                            be able to DM you that are not a
-                                            member of the relay or if you want
-                                            to backup conversations with
-                                            non-member users.
+                                            This is useful if you want to see
+                                            replies from people who are not
+                                            members of the relay.
                                         </p>
                                         <p>
-                                            Since this is a commonly requested
-                                            feature we recommend you start with
-                                            this turned on. However if you get a
-                                            lot of unwanted comments from spammers
-                                            and get tired of blocking them you
+                                            We recommend starting with this turned on. If you get
+                                            unwanted comments from spammers you
                                             can turn it off at any time.
                                         </p>
+                                        {isPremiumPlan && (
+                                            <div className="alert alert-info not-prose mt-2">
+                                                <span className="text-lg">💡</span>
+                                                <div>
+                                                    <p className="font-medium">Premium Tip</p>
+                                                    <p className="text-sm opacity-80">
+                                                        Want replies but only from trusted users? Use the <strong>Web of Access</strong> page 
+                                                        and select <strong>"Replies Only"</strong> mode. This filters replies through your WOA sources 
+                                                        instead of allowing everyone.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </article>
                                     
                                     {/* Allow Tags Diagram */}
@@ -1393,11 +1532,11 @@ export default function Wizard(
                                                     <div className="flex items-center gap-2">
                                                         <span>🌐</span>
                                                         <span className="font-semibold">Non-members:</span>
-                                                        <span className="text-success">✅ Can tag you</span>
+                                                        <span className="text-success">✅ Can reply</span>
                                                     </div>
                                                 </div>
                                                 <div className="divider my-1"></div>
-                                                <p className="text-xs opacity-70 text-center">DMs & replies from anyone</p>
+                                                <p className="text-xs opacity-70 text-center">Anyone can reply to members</p>
                                             </div>
                                         </div>
                                         <div className="card bg-base-200 shadow-md">
@@ -1413,7 +1552,7 @@ export default function Wizard(
                                                     <div className="flex items-center gap-2">
                                                         <span>🌐</span>
                                                         <span className="font-semibold">Non-members:</span>
-                                                        <span className="text-error">❌ Cannot tag you</span>
+                                                        <span className="text-error">❌ Cannot contact you</span>
                                                     </div>
                                                 </div>
                                                 <div className="divider my-1"></div>
@@ -1438,37 +1577,301 @@ export default function Wizard(
                                         </label>
                                     </div>
                                     
-                                    {/* Use WOA for tagged events - Premium only */}
-                                    {allowTagged && isPremiumPlan && (
-                                        <div className="form-control bg-base-200 rounded-lg p-4 my-4">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <span className="label-text font-semibold">Use Web of Access for Tagged Events</span>
-                                                    <p className="text-sm opacity-70 mt-1">
-                                                        Only allow tagged events from pubkeys in your WOA sources
-                                                    </p>
+                                    <div className="flex justify-center mt-4">
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={() => setAclSection("dms")}
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {aclSection === "dms" && !allow && (
+                                <div>
+                                    <article className="prose">
+                                        <p>
+                                            When enabled, <strong>anyone</strong> on the nostr network can send
+                                            private direct messages to your relay members, even if they are not a member themselves.
+                                        </p>
+                                        <p>
+                                            This works by allowing kind 1059 (gift-wrapped) events, which is how
+                                            encrypted DMs are delivered on nostr.
+                                        </p>
+                                        <p>
+                                            We recommend turning this on so your members can receive DMs
+                                            from anyone. You can turn it off at any time.
+                                        </p>
+                                    </article>
+                                    
+                                    {/* Allow DMs Diagram */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+                                        <div className="card bg-base-200 shadow-md">
+                                            <div className="card-body p-4">
+                                                <h3 className="card-title text-base justify-center">✅ DMs ON</h3>
+                                                <div className="divider my-1"></div>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>👤</span>
+                                                        <span className="font-semibold">Members:</span>
+                                                        <span className="text-success">✅ Can send & receive DMs</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>🌐</span>
+                                                        <span className="font-semibold">Non-members:</span>
+                                                        <span className="text-success">✅ Can DM your members</span>
+                                                    </div>
                                                 </div>
-                                                <label
-                                                    className={isUseWoaForTagged()}
-                                                    onClick={handleUseWoaForTaggedChange}
-                                                >
-                                                    <input type="checkbox" checked={useWoaForTagged} readOnly />
-                                                    <div className="swap-on btn btn-sm btn-primary">ON</div>
-                                                    <div className="swap-off btn btn-sm btn-secondary">OFF</div>
-                                                </label>
+                                                <div className="divider my-1"></div>
+                                                <p className="text-xs opacity-70 text-center">Open DMs from anyone</p>
                                             </div>
-                                            {aclSources.length === 0 && (
-                                                <div className="alert alert-warning mt-3">
-                                                    <span>⚠️</span>
-                                                    <span>No WOA sources configured.</span>
-                                                    <button
-                                                        className="btn btn-sm btn-primary"
-                                                        onClick={() => setChecked(9)}
-                                                    >
-                                                        Configure WOA →
-                                                    </button>
+                                        </div>
+                                        <div className="card bg-base-200 shadow-md">
+                                            <div className="card-body p-4">
+                                                <h3 className="card-title text-base justify-center">🙈 DMs OFF</h3>
+                                                <div className="divider my-1"></div>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>👤</span>
+                                                        <span className="font-semibold">Members:</span>
+                                                        <span className="text-success">✅ Can DM each other</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>🌐</span>
+                                                        <span className="font-semibold">Non-members:</span>
+                                                        <span className="text-error">❌ Cannot DM your members</span>
+                                                    </div>
+                                                </div>
+                                                <div className="divider my-1"></div>
+                                                <p className="text-xs opacity-70 text-center">Members-only DMs</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4">
+                                        <label
+                                            className={isDmsAllowed ? "swap swap-active" : "swap"}
+                                            onClick={handleToggleDms}
+                                        >
+                                            <div className="btn uppercase btn-primary swap-on">
+                                                DMs: ON ✅
+                                            </div>
+                                            <div className="btn uppercase btn-primary swap-off">
+                                                DMs: OFF 🙈
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    {/* NIP-42 Auth + DMs explainer */}
+                                    {isDmsAllowed && (
+                                        <div className="card bg-base-200 p-4 mt-6">
+                                            <h3 className="font-semibold mb-2">DMs & Authentication (NIP-42)</h3>
+                                            <p className="text-sm opacity-80 mb-3">
+                                                Without auth, encrypted DM events can be downloaded by anyone — though 
+                                                metadata is obfuscated and content stays encrypted. Many people use relays 
+                                                this way, but it's not ideal. {isPremiumPlan ? "Here are your options:" : "You can enable auth for extra protection:"}
+                                            </p>
+
+                                            {/* Premium: Three scenario comparison cards (with WOA tradeoff) */}
+                                            {isPremiumPlan ? (
+                                                <>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
+                                                        <div className={`card border-2 ${!authRequired ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+                                                            <div className="card-body p-3">
+                                                                <div className="text-center mb-2">
+                                                                    <span className="text-3xl">🌐</span>
+                                                                </div>
+                                                                <h4 className="font-bold text-sm text-center">DMs + WOA</h4>
+                                                                <p className="text-xs text-center opacity-70 mb-2">Auth OFF</p>
+                                                                <div className="divider my-0"></div>
+                                                                <div className="space-y-1 text-xs">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> WOA works fully
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> DMs delivered
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-warning">⚠️</span> DM events downloadable
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> Content encrypted
+                                                                    </div>
+                                                                </div>
+                                                                {!authRequired && (
+                                                                    <div className="badge badge-primary badge-sm mt-2 mx-auto">Current setup</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className={`card border-2 ${authRequired ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+                                                            <div className="card-body p-3">
+                                                                <div className="text-center mb-2">
+                                                                    <span className="text-3xl">🔒</span>
+                                                                </div>
+                                                                <h4 className="font-bold text-sm text-center">DMs + Auth</h4>
+                                                                <p className="text-xs text-center opacity-70 mb-2">Auth ON</p>
+                                                                <div className="divider my-0"></div>
+                                                                <div className="space-y-1 text-xs">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-warning">⚠️</span> WOA limited
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> DMs delivered
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> DM events protected
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> Content encrypted
+                                                                    </div>
+                                                                </div>
+                                                                {authRequired && (
+                                                                    <div className="badge badge-primary badge-sm mt-2 mx-auto">Current setup</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="card border-2 border-success bg-success/10">
+                                                            <div className="card-body p-3">
+                                                                <div className="text-center mb-2">
+                                                                    <span className="text-3xl">⭐</span>
+                                                                </div>
+                                                                <h4 className="font-bold text-sm text-center">Best Practice</h4>
+                                                                <p className="text-xs text-center opacity-70 mb-2">Two relays</p>
+                                                                <div className="divider my-0"></div>
+                                                                <div className="space-y-1 text-xs">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> WOA works fully
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> DMs delivered
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> DM events protected
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-success">✅</span> Content encrypted
+                                                                    </div>
+                                                                </div>
+                                                                <div className="badge badge-success badge-sm mt-2 mx-auto">Recommended</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Best practice: two-relay visual */}
+                                                    <div className="bg-base-100 rounded-lg p-4 mt-2">
+                                                        <p className="text-xs font-semibold text-center mb-3 opacity-60 uppercase tracking-wide">Best Practice: Two Relays</p>
+                                                        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                                                            <div className="flex flex-col items-center">
+                                                                <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary">
+                                                                    <span className="text-2xl">🏠</span>
+                                                                </div>
+                                                                <span className="font-bold text-sm mt-1">Community Relay</span>
+                                                                <span className="text-xs opacity-60">Auth OFF · WOA ON</span>
+                                                            </div>
+                                                            <div className="text-2xl">+</div>
+                                                            <div className="flex flex-col items-center">
+                                                                <div className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center border-2 border-secondary">
+                                                                    <span className="text-2xl">✉️</span>
+                                                                </div>
+                                                                <span className="font-bold text-sm mt-1">DM Relay</span>
+                                                                <span className="text-xs opacity-60">Auth ON · DMs only</span>
+                                                            </div>
+                                                            <div className="text-2xl">=</div>
+                                                            <div className="flex flex-col items-center">
+                                                                <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center border-2 border-success">
+                                                                    <span className="text-2xl">🛡️</span>
+                                                                </div>
+                                                                <span className="font-bold text-sm mt-1">Full Protection</span>
+                                                                <span className="text-xs opacity-60">Best of both worlds</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-sm opacity-80 mt-4">
+                                                        If you want to combine DMs with WOA on a single relay, keeping auth off is ok — 
+                                                        content and metadata stay encrypted either way.
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                /* Standard: Simple auth ON/OFF comparison (no WOA mentions) */
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 my-4">
+                                                    <div className={`card border-2 ${!authRequired ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+                                                        <div className="card-body p-3">
+                                                            <div className="text-center mb-2">
+                                                                <span className="text-3xl">🌐</span>
+                                                            </div>
+                                                            <h4 className="font-bold text-sm text-center">Auth OFF</h4>
+                                                            <div className="divider my-0"></div>
+                                                            <div className="space-y-1 text-xs">
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-success">✅</span> DMs delivered
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-warning">⚠️</span> DM events downloadable
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-success">✅</span> Content encrypted
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-success">✅</span> Metadata obfuscated
+                                                                </div>
+                                                            </div>
+                                                            {!authRequired && (
+                                                                <div className="badge badge-primary badge-sm mt-2 mx-auto">Current setup</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className={`card border-2 ${authRequired ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+                                                        <div className="card-body p-3">
+                                                            <div className="text-center mb-2">
+                                                                <span className="text-3xl">🔒</span>
+                                                            </div>
+                                                            <h4 className="font-bold text-sm text-center">Auth ON</h4>
+                                                            <div className="divider my-0"></div>
+                                                            <div className="space-y-1 text-xs">
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-success">✅</span> DMs delivered
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-success">✅</span> DM events protected
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-success">✅</span> Content encrypted
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-success">✅</span> Metadata obfuscated
+                                                                </div>
+                                                            </div>
+                                                            {authRequired && (
+                                                                <div className="badge badge-primary badge-sm mt-2 mx-auto">Current setup</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
+
+                                            <div className={`alert ${authRequired ? "alert-success" : "alert-info"} mt-3`}>
+                                                <span className="text-lg">{authRequired ? "🔒" : "ℹ️"}</span>
+                                                <div>
+                                                    <p className="font-medium">
+                                                        {authRequired 
+                                                            ? "NIP-42 Auth is ON — DM events cannot be downloaded by unauthorized users." 
+                                                            : "NIP-42 Auth is OFF — DM events can be downloaded, but content and metadata remain protected by encryption."}
+                                                    </p>
+                                                </div>
+                                                {!authRequired && (
+                                                    <button
+                                                        className="btn btn-sm btn-primary"
+                                                        onClick={() => setAclSection("auth")}
+                                                    >
+                                                        Configure Auth →
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                     
@@ -1503,7 +1906,15 @@ export default function Wizard(
                                     <div className="flex justify-center mt-4">
                                         <button
                                             className="btn btn-primary"
-                                            onClick={() => setAclSection(isPremiumPlan ? "woa" : "tags")}
+                                            onClick={() => {
+                                                if (isPremiumPlan) {
+                                                    setAclSection("woa");
+                                                } else if (!useWoaForTagged) {
+                                                    setAclSection("tags");
+                                                } else {
+                                                    setAclSection("dms");
+                                                }
+                                            }}
                                         >
                                             Next
                                         </button>
@@ -1961,7 +2372,13 @@ export default function Wizard(
                                     <div className="flex justify-center mt-4">
                                         <button
                                             className="btn btn-primary"
-                                            onClick={() => setAclSection("tags")}
+                                            onClick={() => {
+                                                if (!useWoaForTagged) {
+                                                    setAclSection("tags");
+                                                } else {
+                                                    setAclSection("dms");
+                                                }
+                                            }}
                                         >
                                             Next
                                         </button>
@@ -1984,14 +2401,30 @@ export default function Wizard(
                                 </p>
                                 <p>
                                     This is a great way to prevent spam on your
-                                    relay.
-                                </p>
-                                <p>
-                                    The payments received will go toward the
-                                    cost of running the relay in your monthly
-                                    invoices.
+                                    relay. Payments received will go toward the
+                                    cost of running your relay.
                                 </p>
                             </article>
+                            
+                            {/* Standard vs Premium explainer - shown when payments are on */}
+                            {pay && (
+                                <div className="card bg-base-200 p-4 mt-4">
+                                    <h3 className="font-semibold mb-2">Why offer two plans?</h3>
+                                    <p className="text-sm opacity-80 mb-3">
+                                        Having standard and premium tiers is a handy feature for community management.
+                                        Users who sign up at the premium level can be given additional perks that you manage
+                                        outside of Relay Tools — for example, access to exclusive content, priority support,
+                                        or special roles in your community.
+                                    </p>
+                                    <p className="text-sm opacity-80 mb-3">
+                                        The one built-in perk for premium subscribers is <strong>free NIP-05 identity creation</strong> on
+                                        your relay's domain. Standard users pay separately for NIP-05s.
+                                    </p>
+                                    <p className="text-sm opacity-80">
+                                        You can query which plan a user signed up for via the <a href="https://github.com/nostr-protocol/nips/blob/master/86.md" target="_blank" rel="noopener noreferrer" className="link link-primary">NIP-86 relay management API</a> and use that information however you like for your community.
+                                    </p>
+                                </div>
+                            )}
                             
                             {/* Lightning Payments Diagram */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
@@ -2056,8 +2489,8 @@ export default function Wizard(
                                         <label className="label">
                                             Set payment amount (sats)
                                         </label>
-                                        <div className="text-sm text-gray-600 mb-2">
-                                            Standard relay access 
+                                        <div className="text-sm opacity-70 mb-2">
+                                            Base price for relay access
                                         </div>
                                         <input
                                             type="text"
@@ -2073,8 +2506,8 @@ export default function Wizard(
                                         <label className="label">
                                             Set premium payment amount (sats)
                                         </label>
-                                        <div className="text-sm text-gray-600 mb-2">
-                                            Higher amount for premium access or special features
+                                        <div className="text-sm opacity-70 mb-2">
+                                            Higher tier — includes free NIP-05 + any perks you offer
                                         </div>
                                         <input
                                             type="text"
@@ -2090,8 +2523,8 @@ export default function Wizard(
                                         <label className="label">
                                             Set NIP-05 payment amount (sats)
                                         </label>
-                                        <div className="text-sm text-gray-600 mb-2">
-                                            Amount users pay to create NIP-05 identities on your relay
+                                        <div className="text-sm opacity-70 mb-2">
+                                            Amount standard users pay for a NIP-05 identity (free for premium)
                                         </div>
                                         <input
                                             type="text"
