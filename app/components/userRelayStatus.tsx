@@ -140,6 +140,7 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
             setWotStatus("loading");
             setWotSources(relay.acl_sources.length);
 
+            /*
             try {
                 console.log("Checking WOT status for pubkey:", pubkeyToCheck);
                 console.log("ACL sources:", relay.acl_sources);
@@ -204,6 +205,9 @@ export default function UserRelayStatus({ relay }: UserRelayStatusProps) {
                 console.error("Error checking WOT status:", error);
                 setWotStatus("error");
             }
+            */
+           // Mock status for now
+           setWotStatus("error");
         };
 
         checkWOTStatus();
