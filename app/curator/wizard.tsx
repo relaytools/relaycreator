@@ -73,7 +73,7 @@ export default function Wizard(
     const [aclSourceUrl, setAclSourceUrl] = useState("");
     const [aclSourceType, setAclSourceType] = useState("brainstorm"); // can be "brainstorm" or "nip05"
     const [brainstormObserverPubkey, setBrainstormObserverPubkey] = useState<string>("");
-    const [brainstormBaseUrl, setBrainstormBaseUrl] = useState("https://straycat.brainstorm.social/api/get-whitelist");
+    const [brainstormBaseUrl, setBrainstormBaseUrl] = useState("https://brainstormserver.nosfabrica.com/whitelisted");
     const [showAdvancedBrainstorm, setShowAdvancedBrainstorm] = useState(false);
     
     // Handle session data and auto-fill user pubkey
@@ -164,10 +164,11 @@ export default function Wizard(
         if (newSource.type === "brainstorm") {
             if (brainstormObserverPubkey.trim()) {
                 // Use custom observer pubkey
-                finalUrl = `${brainstormBaseUrl}?observerPubkey=${brainstormObserverPubkey}`;
+                finalUrl = `${brainstormBaseUrl}/${brainstormObserverPubkey}`;
             } else {
                 // Use platform default (no observerPubkey parameter)
-                finalUrl = brainstormBaseUrl;
+                // use a default key here..
+                finalUrl = `${brainstormBaseUrl}/${process.env.NEXT_PUBLIC_BRAINSTORM_DEFAULT_PUBKEY}`;
             }
         }
         
@@ -2231,7 +2232,7 @@ export default function Wizard(
                                                         </label>
                                                         <input
                                                             type="text"
-                                                            placeholder="https://straycat.brainstorm.social/api/get-whitelist"
+                                                            placeholder="https://brainstormserver.nosfabrica.com/whitelisted"
                                                             className="input input-bordered w-full"
                                                             value={brainstormBaseUrl}
                                                             onChange={(e) => setBrainstormBaseUrl(e.target.value)}
