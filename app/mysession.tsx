@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { signupsDisabled, migrationUrl } from "../lib/migration";
 
 export default function ShowSession(
     props: React.PropsWithChildren<{
@@ -244,11 +245,19 @@ export default function ShowSession(
                                 <li>
                                     <a href={supportURL}>Support</a>
                                 </li>
-                                <li className="border-b border-neutral">
-                                    <a href={rootDomain + "/signup"}>
-                                        Create Relay
-                                    </a>
-                                </li>
+                                {!signupsDisabled ? (
+                                    <li className="border-b border-neutral">
+                                        <a href={rootDomain + "/signup"}>
+                                            Create Relay
+                                        </a>
+                                    </li>
+                                ) : migrationUrl ? (
+                                    <li className="border-b border-neutral">
+                                        <a href={migrationUrl}>
+                                            Create Relay ↗
+                                        </a>
+                                    </li>
+                                ) : null}
                                 <li>
                                     <span className="text-center items-center">
                                         <button
@@ -327,11 +336,19 @@ export default function ShowSession(
                             <li>
                                 <a href={supportURL}>Support</a>
                             </li>
-                            <li className="border-b border-base-200">
-                                <a href={rootDomain + "/signup"}>
-                                    Create Relay
-                                </a>
-                            </li>
+                            {!signupsDisabled ? (
+                                <li className="border-b border-base-200">
+                                    <a href={rootDomain + "/signup"}>
+                                        Create Relay
+                                    </a>
+                                </li>
+                            ) : migrationUrl ? (
+                                <li className="border-b border-base-200">
+                                    <a href={migrationUrl}>
+                                        Create Relay ↗
+                                    </a>
+                                </li>
+                            ) : null}
                             <li>
                                 <a
                                     onClick={() =>

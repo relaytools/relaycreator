@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { nip19 } from "nostr-tools";
 import { convertOrValidatePubkey } from "../../lib/pubkeyValidation";
+import { signupsDisabled } from "../../lib/migration";
+import SignupsMovedNotice from "../components/signupsMovedNotice";
 
 export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     const { data: session, status } = useSession();
@@ -38,6 +40,10 @@ export default function CreateRelay(props: React.PropsWithChildren<{}>) {
     const [selectedPlan, setSelectedPlan] = useState("standard");
 
     const router = useRouter();
+
+    if (signupsDisabled) {
+        return <SignupsMovedNotice />;
+    }
 
     function setRelayName(name: string) {
         setName(name);

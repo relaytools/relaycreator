@@ -3,6 +3,8 @@ import authOptions from "../../pages/api/auth/[...nextauth]";
 import PublicRelays from "./publicRelays";
 import CreateRelay from "./createRelay";
 import HelpfulInfo from "./helpfulInfo";
+import MigrationHero from "./migrationHero";
+import { signupsDisabled } from "../../lib/migration";
 import RelayDashboard from "./relayDashboard";
 import Link from "next/link";
 
@@ -27,11 +29,11 @@ export default async function Relays() {
                     {!showSignup && (
                         <div className="card bg-base-200 mb-8">
                             <div className="card-body">
-                                <HelpfulInfo />
+                                {signupsDisabled ? <MigrationHero /> : <HelpfulInfo />}
                             </div>
                         </div>
                     )}
-                    
+
                     <div className="card bg-base-100 shadow-lg">
                         <PublicRelays />
                     </div>

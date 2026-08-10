@@ -27,6 +27,27 @@ pnpm install
 cp env.develop .env
 ```
 
+### Optional: disabling new relay signups (migration mode)
+
+If you are sunsetting an installation, you can disable new relay signups
+without affecting existing relays. All of these flags default to OFF — with
+nothing set, signups work exactly as before.
+
+```bash
+# Hides the create-relay UI and blocks the creation API.
+NEXT_PUBLIC_SIGNUPS_DISABLED=true
+# Optional: promote a successor site (landing hero + CTA links).
+NEXT_PUBLIC_MIGRATION_URL=https://example.com
+NEXT_PUBLIC_MIGRATION_NAME=Example
+```
+
+Note: `NEXT_PUBLIC_*` variables are baked in at build time, so flipping them
+requires a rebuild and restart. `SIGNUPS_DISABLED=true` is a server-only
+override that blocks the creation API immediately on restart, without a
+rebuild. When signups are disabled, existing relays continue to operate:
+topups/renewals, client membership payments, and NIP-05 orders all keep
+working, and pending orders created before the cutoff can still be paid.
+
 ### Prisma ORM setup
 
 This application requires MySQL and prisma ORM.

@@ -4,6 +4,11 @@ To create a new relay, you must create a reservation and invoice in the system.
 You can check the status of the order and the new relay by using the GET /api/invoices/[id] endpoint.
 Once the invoice is paid, you can use the NIP86 api to manage your new relay.
 
+Note: if the operator has disabled new signups (`SIGNUPS_DISABLED` or
+`NEXT_PUBLIC_SIGNUPS_DISABLED`), the creation call returns `403` with an
+`error` message and an optional `migration_url` pointing to a successor site.
+Topups for existing relays (`topup=true`) are unaffected.
+
 ## POST /api/invoices
 
 ### Parameters

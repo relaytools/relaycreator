@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { signupsDisabled, migrationName, migrationUrl } from "../../lib/migration";
 
 export default function RelayDashboard() {
 
@@ -8,6 +9,22 @@ export default function RelayDashboard() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
             <div className="container mx-auto px-4 py-8">
+                {signupsDisabled && (
+                    <div className="alert alert-info mb-6 max-w-6xl mx-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>
+                            New relay signups have moved to {migrationName}.
+                            Your existing relays are unaffected.
+                        </span>
+                        {migrationUrl && (
+                            <a href={migrationUrl} className="btn btn-sm btn-primary">
+                                Visit {migrationName}
+                            </a>
+                        )}
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
                         <Link 
                             href="/clientinvoices"

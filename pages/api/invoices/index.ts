@@ -112,6 +112,16 @@ export default async function handle(req: any, res: any) {
         }
     }
 
+    // Everything below creates a NEW relay. Topups for existing relays are
+    // handled above and are not affected by this gate.
+    if (process.env.SIGNUPS_DISABLED == "true" || process.env.NEXT_PUBLIC_SIGNUPS_DISABLED == "true") {
+        res.status(403).json({
+            "error": "new relay signups are disabled" + (process.env.NEXT_PUBLIC_MIGRATION_URL ? ", please visit " + process.env.NEXT_PUBLIC_MIGRATION_URL : ""),
+            "migration_url": process.env.NEXT_PUBLIC_MIGRATION_URL || null,
+        })
+        return
+    }
+
     if (pubkey == null) {
         res.status(404).json({ "error": "not signed in or no pubkey" })
         res.end()
