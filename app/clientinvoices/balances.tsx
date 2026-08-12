@@ -420,28 +420,34 @@ export default function ClientBalances(
                                 </div>
                                 
                                 <div className="p-6">
-                                    {/* Only show balance and history button for logged-in users */}
+                                    {/* Only show history toggle for logged-in users */}
                                     {session && (
-                                        <div className="mb-6">
-                                            <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 relative">
-                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Outstanding Balance</div>
-                                                <div className={`text-lg font-bold ${calculateOutstandingBalance(relay) < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                                                    {calculateOutstandingBalance(relay) < 0 ? 
-                                                        `${Math.round(calculateOutstandingBalance(relay))} sats due` : 
-                                                        calculateOutstandingBalance(relay) > 0 ? 
-                                                            `${Math.round(Math.abs(calculateOutstandingBalance(relay)))} sats credit` : 
-                                                            'Paid in full'}
-                                                </div>
-                                                <button
-                                                    className="btn btn-primary btn-xs absolute top-2 right-2"
-                                                    onClick={() => toggleShowOrders(relay.relayId)}
-                                                >
-                                                    {showOrdersFor(relay.relayId) ? "Hide" : "History"}
-                                                </button>
+                                        <div className="mb-6 flex justify-end">
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={() => toggleShowOrders(relay.relayId)}
+                                            >
+                                                {showOrdersFor(relay.relayId) ? "Hide History" : "Payment History"}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Suggested balance - shown inside the collapsible history */}
+                                    {session && showOrdersFor(relay.relayId) && (
+                                        <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 mb-6">
+                                            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Suggested Balance</div>
+                                            <div className="text-sm text-slate-700 dark:text-slate-300">
+                                                {calculateOutstandingBalance(relay) < 0
+                                                    ? `Suggested top-up: ${Math.abs(Math.round(calculateOutstandingBalance(relay)))} sats`
+                                                    : calculateOutstandingBalance(relay) > 0
+                                                        ? `${Math.round(calculateOutstandingBalance(relay))} sats credit`
+                                                        : "All caught up"}
+                                            </div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                Estimate based on your plan over time — payments of any amount are always welcome.
                                             </div>
                                         </div>
                                     )}
-                                    
 
 
                                     {/* Only show payment history for logged-in users */}
