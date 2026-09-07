@@ -55,3 +55,186 @@
 
 
 @config '../tailwind.config.js';
+/* ---------------------------------------------------------------------------
+   Landing page (app/components/landing) — brand tokens, backdrop, motion.
+   Everything else on the landing page uses daisyUI tokens so both themes work.
+   --------------------------------------------------------------------------- */
+:root,
+[data-theme="dark"] {
+    --brand: #ff007c;
+    --brand-2: #7c3aed;
+    --brand-3: #22d3ee;
+    /* glow blobs (dark: saturated, on near-black) */
+    --glow-1: var(--brand);
+    --glow-2: var(--brand-2);
+    --glow-3: var(--brand-3);
+    --glow-alpha: 0.55;
+    --grid-ink: 255 255 255;
+    --grid-alpha: 0.06;
+    /* landing-only page tint painted behind everything (none in dark) */
+    --landing-page-bg: transparent;
+    --glass-bg: color-mix(in oklab, var(--color-base-100) 60%, transparent);
+    --glass-border: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    --glass-shadow: none;
+}
+
+[data-theme="light"] {
+    /* violet / blue / cyan to match the navy light-mode logo (no pink) */
+    --brand: #5b21b6;
+    --brand-2: #2563eb;
+    --brand-3: #0891b2;
+    /* pastel glows so they read as colour washes, not grey smudges, on white */
+    --glow-1: #c4b5fd;
+    --glow-2: #bfdbfe;
+    --glow-3: #a5f3fc;
+    --glow-alpha: 0.5;
+    --grid-ink: 76 29 149;
+    --grid-alpha: 0.07;
+    --landing-page-bg: linear-gradient(180deg, #f5f3ff 0%, #f7f9ff 45%, #ffffff 100%);
+    --glass-bg: color-mix(in oklab, #ffffff 72%, transparent);
+    --glass-border: color-mix(in oklab, #4c1d95 14%, transparent);
+    --glass-shadow: 0 1px 0 #ffffff inset, 0 12px 32px -20px rgb(76 29 149 / 0.25);
+}
+
+.landing-page-bg {
+    background: var(--landing-page-bg);
+}
+
+.landing-backdrop {
+    background-image:
+        linear-gradient(rgb(var(--grid-ink) / var(--grid-alpha)) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(var(--grid-ink) / var(--grid-alpha)) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
+}
+
+.landing-glow {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(120px);
+    opacity: var(--glow-alpha);
+    will-change: transform;
+    animation: landing-drift 28s ease-in-out infinite alternate;
+}
+
+.landing-glow-1 { background: var(--glow-1); }
+.landing-glow-2 { background: var(--glow-2); animation-delay: -9s; animation-duration: 34s; }
+.landing-glow-3 { background: var(--glow-3); animation-delay: -18s; animation-duration: 40s; }
+
+@keyframes landing-drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(8vw, -6vh, 0) scale(1.15); }
+}
+
+.landing-gradient-text {
+    background-image: linear-gradient(90deg, var(--brand), var(--brand-2) 55%, var(--brand-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.landing-glass {
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.landing-tint {
+    color: var(--brand);
+    background: color-mix(in oklab, var(--brand) 15%, transparent);
+}
+
+.landing-card {
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.landing-card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklab, var(--brand) 55%, transparent);
+    box-shadow: 0 20px 50px -20px color-mix(in oklab, var(--brand) 45%, transparent);
+}
+
+.landing-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.landing-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -12px color-mix(in oklab, var(--brand) 60%, transparent);
+}
+
+.landing-dot {
+    animation: landing-pulse 2s ease-in-out infinite;
+}
+@keyframes landing-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand) 60%, transparent); }
+    50%      { box-shadow: 0 0 0 8px transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-flow-dot { display: none; }
+    .landing-glow, .landing-dot { animation: none !important; }
+    .landing-card, .landing-badge { transition: none !important; }
+    .landing-card:hover, .landing-badge:hover { transform: none !important; }
+}
+
+/* Landing page buttons: gradient pill (primary) and glass pill (ghost). */
+.landing-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
+    font-family: var(--font-roboto-condensed);
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: #fff;
+    background-image: linear-gradient(120deg, var(--brand), var(--brand-2));
+    box-shadow: 0 10px 30px -12px color-mix(in oklab, var(--brand) 70%, transparent);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, border-color 0.2s ease;
+}
+.landing-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow: 0 18px 40px -14px color-mix(in oklab, var(--brand) 80%, transparent);
+}
+.landing-btn:active { transform: translateY(0); }
+.landing-btn:disabled { opacity: 0.6; pointer-events: none; }
+.landing-btn-lg { padding: 1rem 2rem; font-size: 1.3rem; }
+.landing-btn-sm { padding: 0.5rem 1rem; font-size: 0.95rem; }
+
+.landing-btn-ghost {
+    color: inherit;
+    background-image: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: none;
+}
+.landing-btn-ghost:hover {
+    filter: none;
+    border-color: color-mix(in oklab, var(--brand) 60%, transparent);
+    box-shadow: 0 12px 30px -16px color-mix(in oklab, var(--brand) 50%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-btn { transition: none !important; }
+    .landing-btn:hover { transform: none !important; }
+}
+
+/* Medium on small screens, large from lg up (Tailwind variants don't apply to plain classes). */
+@media (min-width: 1024px) {
+    .landing-btn-grow { padding: 1rem 2rem; font-size: 1.3rem; }
+}

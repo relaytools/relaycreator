@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { supportUrl } from "../../lib/support";
 
 export default function ShowSmallSession(
     props: React.PropsWithChildren<{
@@ -72,7 +73,7 @@ export default function ShowSmallSession(
     const rootDomain =
         process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000";
 
-    const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#";
+    const supportURL = supportUrl;
 
     return (
         <div className="mb-2 flex items-center justify-center">

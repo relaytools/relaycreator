@@ -3,7 +3,8 @@ import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { signupsDisabled, migrationUrl } from "../lib/migration";
+import { signupsDisabled, migrationUrl, migrationName } from "../lib/migration";
+import { supportUrl } from "../lib/support";
 
 export default function ShowSession(
     props: React.PropsWithChildren<{
@@ -98,10 +99,10 @@ export default function ShowSession(
     const rootDomain =
         process.env.NEXT_PUBLIC_ROOT_DOMAIN || "http://localhost:3000";
 
-    const supportURL = process.env.NEXT_PUBLIC_SUPPORT_URL || "#";
+    const supportURL = supportUrl;
 
     return (
-        <div className="navbar p-0 bg-base-100">
+        <div className="navbar p-0">
             {showLoginHelp && (
                 <dialog
                     id="my_modal_5"
@@ -198,28 +199,39 @@ export default function ShowSession(
                             HOME
                         </a>
                         <a
-                            href={
-                                "https://github.com/relaytools/relaycreator/blob/f253d2aa81bf385816f750f730c687c96b61ce6e/design/UserStories.md"
-                            }
-                            className="btn uppercase btn-ghost normal-case text-lg hidden lg:flex"
-                        >
-                            FAQ
-                        </a>
-                        <a
                             href={supportURL}
                             className="btn uppercase btn-ghost normal-case text-lg hidden lg:flex"
                         >
                             SUPPORT
                         </a>
 
-                        <span className="text-center items-center hidden lg:flex">
-                            <button
-                                onClick={doNip07Login}
-                                className="btn uppercase btn-ghost normal-case text-lg hidden lg:flex ml-2"
+                        <div className="dropdown dropdown-end hidden lg:block">
+                            <label
+                                tabIndex={0}
+                                className="btn uppercase btn-ghost normal-case text-lg ml-2"
                             >
-                                SIGN-IN
-                            </button>
-                        </span>
+                                SIGN-IN ▾
+                            </label>
+                            <ul
+                                tabIndex={0}
+                                className="menu dropdown-content mt-3 p-2 shadow-lg bg-base-200 rounded-box w-72 z-50"
+                            >
+                                {migrationUrl && (
+                                    <li>
+                                        <a href={migrationUrl} className="flex flex-col items-start gap-0">
+                                            <span className="font-bold">{migrationName} ↗</span>
+                                            <span className="text-[0.85rem] opacity-70">New relays &amp; feeds accounts</span>
+                                        </a>
+                                    </li>
+                                )}
+                                <li>
+                                    <a onClick={doNip07Login} className="flex flex-col items-start gap-0 cursor-pointer">
+                                        <span className="font-bold">Existing relays hosted here</span>
+                                        <span className="text-[0.85rem] opacity-70">Sign in with your nostr extension</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
 
                         <div className="dropdown dropdown-end lg:hidden">
                             <label
@@ -240,9 +252,6 @@ export default function ShowSession(
                                 className="menu menu-lg dropdown-content mt-3 p-2 shadow-sm bg-base-200 font-bold rounded-box w-52 z-1"
                             >
                                 <li>
-                                    <a href={rootDomain + "/"}>Faq</a>
-                                </li>
-                                <li>
                                     <a href={supportURL}>Support</a>
                                 </li>
                                 {!signupsDisabled ? (
@@ -258,13 +267,21 @@ export default function ShowSession(
                                         </a>
                                     </li>
                                 ) : null}
+                                {migrationUrl && (
+                                    <li>
+                                        <a href={migrationUrl}>
+                                            Sign in to {migrationName} ↗
+                                        </a>
+                                    </li>
+                                )}
                                 <li>
                                     <span className="text-center items-center">
                                         <button
                                             onClick={doNip07Login}
                                             className="btn uppercase btn-ghost ml-2"
+                                            title="Existing relays hosted here"
                                         >
-                                            sign-in
+                                            sign-in (legacy)
                                             <Image
                                                 alt="nostr"
                                                 src="/nostr_logo_prpl_wht_rnd.svg"
