@@ -43,3 +43,6 @@ next-env.d.ts
 env.production
 
 curl
+
+# node 22+ module compile cache
+/node-compile-cache/
